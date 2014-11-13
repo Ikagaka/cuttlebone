@@ -93,7 +93,7 @@ Surface = (function() {
           case "yen-e":
             break;
           case "talk":
-            return n;
+            break;
           case "bind":
             break;
           default:
@@ -175,7 +175,7 @@ Surface = (function() {
             if (b != null) {
               wait = _.random(Number(a), Number(b));
             }
-            return setTimeout(resolve, wait);
+            return setTimeout(resolve, wait * 10);
           });
         };
       };
