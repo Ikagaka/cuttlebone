@@ -7,8 +7,8 @@ class Nar
   WMDescript = window["WMDescript"]
 
   @loadFromBuffer: (buffer, callback)->
-    zip = Nar.unzip(buffer)
-    setTimeout -> callback(null, zip)
+    tree = Nar.unzip(buffer)
+    setTimeout -> callback(null, tree)
 
   @loadFromURL: (src, callback)->
     Nar.wget src, "arraybuffer", (err, buffer)->

@@ -1,9 +1,9 @@
 {
   "name":           "ikagaka.shell.js",
-  "version":        "0.0.0",
+  "version":        "0.1.0",
   "description":    "Nanika Archive",
   "url":            "https://github.com/ikagaka/Shell.js",
-  "keywords":       ["nar", "ikagaka"],
+  "keywords":       ["nar", "ikagaka", "unstable", "ukagaka"],
   "repository": {
     "type":         "git",
     "url":          "https://github.com/ikagaka/Shell.js"

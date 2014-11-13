@@ -1,14 +1,25 @@
 
-
-declare class Shell {
-  constructor(nar:Nar);
-  load(shell:string, callback:(err:any)=>void )=>void;
-  getSurface(scopeId, surfaceId)->
+declare class Surface {
+  constructor(scopeId: number, srf: any, surfaces: any); // unstable
+  destructor(): void; // stable
+  element: HTMLCanvasElement; // stable
+  render(): void; // stable
+  playAnimation(animationId, callback: () => void): void; // stable
+  stopAnimation(): void; // stable
 }
 
-declare module Shell {
-  bufferToURL
-  mergeSurfacesAndSurfacesFiles
-  parseSurfaces(text:SurfacesTxtString):SurfacesYAMLObject
-  parseSurfaces
+
+declare module Surface {
+  function random(callback: (callback: () => void) => void, probability: Number): void; // stable
+  function periodic(callback: (callback: () => void) => void, sec: Number): void; // stable
+  function always(callback: (callback: () => void) => void): void; // stable
+  function isHit(cnv: HTMLCanvasElement, x: number, y: number ): boolean; // stable
+}
+
+declare module 'surface' {
+  var foo: typeof Surface;
+  module rsvp {
+    export var Surface: typeof foo;
+  }
+  export = rsvp;
 }

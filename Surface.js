@@ -65,13 +65,13 @@ Surface = (function() {
         n = Number(tmp.slice(1).join(","));
         switch (interval) {
           case "sometimes":
-            return Surface.sometimes(function(callback) {
+            return Surface.random((function(callback) {
               return _this.playAnimation(_is, callback);
-            });
+            }), 2);
           case "rarely":
-            return Surface.rarely(function(callback) {
+            return Surface.random((function(callback) {
               return _this.playAnimation(_is, callback);
-            });
+            }), 4);
           case "random":
             return Surface.random((function(callback) {
               return _this.playAnimation(_is, callback);
@@ -85,9 +85,7 @@ Surface = (function() {
               return _this.playAnimation(_is, callback);
             });
           case "runonce":
-            return Surface.runonce(function(callback) {
-              return _this.playAnimation(_is, callback);
-            });
+            return _this.playAnimation(_is, function() {});
           case "never":
             break;
           case "yen-e":
@@ -175,7 +173,7 @@ Surface = (function() {
             if (b != null) {
               wait = _.random(Number(a), Number(b));
             }
-            return setTimeout(resolve, wait * 10);
+            return setTimeout(resolve, wait);
           });
         };
       };
@@ -196,45 +194,6 @@ Surface = (function() {
   Surface.prototype.stopAnimation = function(id) {
     this.stop = true;
     return void 0;
-  };
-
-  Surface.sometimes = function(callback) {
-    return this.random(callback, 2);
-  };
-
-  Surface.rarely = function(callback) {
-    return this.random(callback, 4);
-  };
-
-  Surface.random = function(callback, n) {
-    var ms;
-    ms = 1;
-    while (Math.round(Math.random() * 1000) > 1000 / n) {
-      ms++;
-    }
-    return setTimeout((function() {
-      return callback(function() {
-        return Surface.random(callback, n);
-      });
-    }), ms * 1000);
-  };
-
-  Surface.periodic = function(callback, n) {
-    return setTimeout((function() {
-      return callback(function() {
-        return Surface.periodic(callback, n);
-      });
-    }), n * 1000);
-  };
-
-  Surface.runonce = function(callback) {
-    return callback();
-  };
-
-  Surface.always = function(callback) {
-    return callback(function() {
-      return Surface.always(callback);
-    });
   };
 
   Surface.processMouseEvent = function(ev, scopeId, regions, eventName, callback) {
@@ -287,6 +246,33 @@ Surface = (function() {
       event["Reference4"] = regions[hits[hits.length - 1]].name;
     }
     return event;
+  };
+
+  Surface.random = function(callback, n) {
+    var ms;
+    ms = 1;
+    while (Math.round(Math.random() * 1000) > 1000 / n) {
+      ms++;
+    }
+    return setTimeout((function() {
+      return callback(function() {
+        return Surface.random(callback, n);
+      });
+    }), ms * 1000);
+  };
+
+  Surface.periodic = function(callback, n) {
+    return setTimeout((function() {
+      return callback(function() {
+        return Surface.periodic(callback, n);
+      });
+    }), n * 1000);
+  };
+
+  Surface.always = function(callback) {
+    return callback(function() {
+      return Surface.always(callback);
+    });
   };
 
   Surface.isHit = function(canvas, x, y) {

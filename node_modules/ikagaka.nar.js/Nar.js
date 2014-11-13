@@ -15,10 +15,10 @@ Nar = (function() {
   WMDescript = window["WMDescript"];
 
   Nar.loadFromBuffer = function(buffer, callback) {
-    var zip;
-    zip = Nar.unzip(buffer);
+    var tree;
+    tree = Nar.unzip(buffer);
     return setTimeout(function() {
-      return callback(null, zip);
+      return callback(null, tree);
     });
   };
 
