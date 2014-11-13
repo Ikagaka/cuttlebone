@@ -40,7 +40,7 @@ class Surface
           when "runonce"   then Surface.runonce   (callback)=> @playAnimation(_is, callback)
           when "never"     then ;
           when "yen-e"     then ;
-          when "talk"      then n;
+          when "talk"      then ;
           when "bind"      then ;
           else console.error(@animations[name])
   # Surface#setEventListener(listener:Function(ev:ShioriEventObject):void):void
@@ -85,7 +85,7 @@ class Surface
             if @stop then return console.info("animation stoped")
             [__, a, b] = /(\d+)(?:\-(\d+))?/.exec(wait)
             if b? then wait = _.random(Number(a), Number(b))
-            setTimeout(resolve, wait))
+            setTimeout(resolve, wait*10))
       .reduce(((proA, proB)->
         proA.then(proB)), Promise.resolve())
       .then(=> if !@stop then setTimeout(callback))

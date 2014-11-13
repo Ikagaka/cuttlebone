@@ -10,9 +10,20 @@
 <script src="./SurfaceUtil.js"></script>
 <script src="./Surface.js"></script>
 <script src="./Shell.js"></script>
-<input type="number" id="surfaceId" value="0">
+<p>
+  nar: <input type="file" id="nar" />
+  surface: <input type="number" value="0" id="surfaceId" />
+</p>
 <script>
-Nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", function(err, tree){
+
+$("#nar").change(function(ev){
+  Nar.loadFromURL(Shell.bufferToURL(ev.target.files[0]), loadHandler);
+});
+
+Nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler);
+
+
+function loadHandler(err, tree){
   if(!!err) return console.error(err.stack);
   var shell = new Shell(tree);
 
@@ -20,6 +31,10 @@ Nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
     if(!!err) return console.error(err.stack);
 
     console.log(shell);
+
+    $div = $("<div style='display:inline-block;' />")
+      .append($("<p />").append(shell.shells[shell.current].descript["name"]))
+      .appendTo("body");
 
     $("#surfaceId").change(function(ev){ changeSurface(Number($(ev.target).val())); });
 
@@ -35,11 +50,11 @@ Nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
         $(surface.element).on("IkagakaSurfaceEvent", function(ev){
           console.log(ev.detail);
         });
-        $("body").append(surface.element);
+        $($div).append(surface.element);
       }
     }
 
   });
 
-});
+}
 </script>
