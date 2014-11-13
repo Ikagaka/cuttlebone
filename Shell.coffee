@@ -8,11 +8,12 @@ class Shell
   Surface = window["Surface"]
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
 
-  constructor: (tree)->
+  constructor: (nar)->
     if !tree["shell"] then throw new Error("directory not found.")
-    @tree = tree
+    @nar = nar
+    @tree = nar.tree
     @current = null
-    @shells = Shell.getShells(tree)
+    @shells = Shell.getShells(@tree)
     @surfaces = null
 
 

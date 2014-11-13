@@ -1,6 +1,6 @@
 
 declare class Shell {
-  constructor(tree: any); // unstable
+  constructor(nar: Nar); // stable
   load(shellDirName: string, callback:(error: any) => void): void; // stable
   getSurface(scopeId: number, surfaceId: number): Surface; // unstable
   tree: any; // unstable

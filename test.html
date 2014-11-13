@@ -15,17 +15,18 @@
   surface: <input type="number" value="0" id="surfaceId" />
 </p>
 <script>
+var nar = null;
 
 $("#nar").change(function(ev){
-  Nar.loadFromURL(Shell.bufferToURL(ev.target.files[0]), loadHandler);
+  nar = new Nar().loadFromURL(Shell.bufferToURL(ev.target.files[0]), loadHandler);
 });
 
-Nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler);
+nar = new Nar().loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler);
 
 
-function loadHandler(err, tree){
+function loadHandler(err){
   if(!!err) return console.error(err.stack);
-  var shell = new Shell(tree);
+  var shell = new Shell(nar);
 
   shell.load(Object.keys(shell.shells)[0], function(err){
     if(!!err) return console.error(err.stack);
