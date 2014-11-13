@@ -8,22 +8,17 @@ class Shell
   Surface = window["Surface"]
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
 
-  constructor: (nar)->
-    if !tree["shell"] then throw new Error("directory not found.")
-    @nar = nar
-    @tree = nar.tree
-    @current = null
-    @shells = Shell.getShells(@tree)
+  constructor: (tree)->
+    if !tree["descript.txt"] then throw new Error("descript.txt not found")
+    @tree = tree
+    @descript = Nar.parseDescript(Nar.convert(@tree["descript.txt"].asArrayBuffer()))
     @surfaces = null
 
-
-  load: (shellName, callback)->
-    if !@shells[shellName] then throw new Error("directory not found.")
-    @current = shellName
-    surfacesYaml = Shell.parseSurfaces(Nar.convert(@shells[shellName].tree["surfaces.txt"].asArrayBuffer()))
-    merged = Shell.mergeSurfacesAndSurfacesFiles(surfacesYaml, @shells[shellName].tree)
-    Shell.loadSurfaces merged, @shells[shellName].tree, (err, loaded)=>
-      Shell.loadElements loaded, @shells[shellName].tree, (err, loaded)=>
+  load: (callback)->
+    surfacesYaml = Shell.parseSurfaces(Nar.convert(@tree["surfaces.txt"].asArrayBuffer()))
+    merged = Shell.mergeSurfacesAndSurfacesFiles(surfacesYaml, @tree)
+    Shell.loadSurfaces merged, @tree, (err, loaded)=>
+      Shell.loadElements loaded, @tree, (err, loaded)=>
         if !!err then return callback(err)
         @surfaces = Shell.createBases(loaded)
         callback(null)
@@ -39,17 +34,6 @@ class Shell
     if hits.length is 0
     then return null
     new Surface(scopeId, srfs[hits[0]], @surfaces)
-
-  @getShells = (tree)->
-    Object
-      .keys(tree["shell"])
-      .reduce(((shells, dirName)->
-        if !tree["shell"][dirName]["descript.txt"] then return shells
-        descript = Nar.parseDescript(Nar.convert(tree["shell"][dirName]["descript.txt"].asArrayBuffer()))
-        if descript["type"] isnt "shell" then return shells
-        shells[dirName] = {descript, tree: tree["shell"][dirName]}
-        shells
-      ), {})
 
   @createBases = (loaded)->
     srfs = loaded.surfaces

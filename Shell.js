@@ -15,26 +15,21 @@ Shell = (function() {
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"];
 
   function Shell(tree) {
-    if (!tree["shell"]) {
-      throw new Error("directory not found.");
+    if (!tree["descript.txt"]) {
+      throw new Error("descript.txt not found");
     }
     this.tree = tree;
-    this.current = null;
-    this.shells = Shell.getShells(tree);
+    this.descript = Nar.parseDescript(Nar.convert(this.tree["descript.txt"].asArrayBuffer()));
     this.surfaces = null;
   }
 
-  Shell.prototype.load = function(shellName, callback) {
+  Shell.prototype.load = function(callback) {
     var merged, surfacesYaml;
-    if (!this.shells[shellName]) {
-      throw new Error("directory not found.");
-    }
-    this.current = shellName;
-    surfacesYaml = Shell.parseSurfaces(Nar.convert(this.shells[shellName].tree["surfaces.txt"].asArrayBuffer()));
-    merged = Shell.mergeSurfacesAndSurfacesFiles(surfacesYaml, this.shells[shellName].tree);
-    return Shell.loadSurfaces(merged, this.shells[shellName].tree, (function(_this) {
+    surfacesYaml = Shell.parseSurfaces(Nar.convert(this.tree["surfaces.txt"].asArrayBuffer()));
+    merged = Shell.mergeSurfacesAndSurfacesFiles(surfacesYaml, this.tree);
+    return Shell.loadSurfaces(merged, this.tree, (function(_this) {
       return function(err, loaded) {
-        return Shell.loadElements(loaded, _this.shells[shellName].tree, function(err, loaded) {
+        return Shell.loadElements(loaded, _this.tree, function(err, loaded) {
           if (!!err) {
             return callback(err);
           }
@@ -56,24 +51,6 @@ Shell = (function() {
       return null;
     }
     return new Surface(scopeId, srfs[hits[0]], this.surfaces);
-  };
-
-  Shell.getShells = function(tree) {
-    return Object.keys(tree["shell"]).reduce((function(shells, dirName) {
-      var descript;
-      if (!tree["shell"][dirName]["descript.txt"]) {
-        return shells;
-      }
-      descript = Nar.parseDescript(Nar.convert(tree["shell"][dirName]["descript.txt"].asArrayBuffer()));
-      if (descript["type"] !== "shell") {
-        return shells;
-      }
-      shells[dirName] = {
-        descript: descript,
-        tree: tree["shell"][dirName]
-      };
-      return shells;
-    }), {});
   };
 
   Shell.createBases = function(loaded) {

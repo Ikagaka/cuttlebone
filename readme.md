@@ -20,12 +20,19 @@ Usage
 <script src="./Surface.js"></script>
 <script src="./Shell.js"></script>
 <script>
-Nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", function (err, tree){
+var nar = new Nar()
+nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", function (err){
   if(!!err) return console.error(err.stack);
 
-  var shell = new Shell(tree);
+  if(nar.install.type === "ghost"){
+    var shell = new Shell(nar.tree["shell"]["master"]);
+  }else if(nar.install.type === "shell"){
+    var shell = new Shell(nar.tree);
+  }else{
+    throw new Error("wrong nar file")
+  }
 
-  shell.load(Object.keys(shell.shells)[0], function(err){
+  shell.load(function(err){
     if(!!err) return console.error(err.stack);
 
     console.log(shell);
@@ -35,13 +42,8 @@ Nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
     console.log(surface);
 
     if(surface != null){
-      $(surface.element).on("IkagakaSurfaceEvent", function(ev){
-        console.log(ev.detail);
-      });
-
       $(surface.element).appendTo("body");
     }
-
 
   });
 });

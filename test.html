@@ -18,23 +18,34 @@
 var nar = null;
 
 $("#nar").change(function(ev){
-  nar = new Nar().loadFromURL(Shell.bufferToURL(ev.target.files[0]), loadHandler);
+  nar = new Nar()
+  nar.loadFromURL(Shell.bufferToURL(ev.target.files[0]), loadHandler);
 });
 
-nar = new Nar().loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler);
+nar = new Nar()
+nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler);
 
 
 function loadHandler(err){
   if(!!err) return console.error(err.stack);
-  var shell = new Shell(nar);
 
-  shell.load(Object.keys(shell.shells)[0], function(err){
+  console.log(nar);
+
+  if(nar.install.type === "ghost"){
+    var shell = new Shell(nar.tree["shell"]["master"]);
+  }else if(nar.install.type === "shell"){
+    var shell = new Shell(nar.tree);
+  }else{
+    throw new Error("wrong nar file")
+  }
+
+  shell.load(function(err){
     if(!!err) return console.error(err.stack);
 
     console.log(shell);
 
     $div = $("<div style='display:inline-block;' />")
-      .append($("<p />").append(shell.shells[shell.current].descript["name"]))
+      .append($("<p />").append(shell.descript["name"]))
       .appendTo("body");
 
     $("#surfaceId").change(function(ev){ changeSurface(Number($(ev.target).val())); });
