@@ -1,17 +1,24 @@
 {
-  "name":           "ikagaka.shell.js",
-  "version":        "0.2.0",
-  "description":    "",
-  "url":            "https://github.com/ikagaka/Shell.js",
-  "keywords":       ["nar", "ikagaka", "unstable", "ukagaka"],
+  "name": "ikagaka.shell.js",
+  "version": "0.2.0",
+  "description": "",
+  "url": "https://github.com/ikagaka/Shell.js",
+  "keywords": [
+    "nar",
+    "ikagaka",
+    "unstable",
+    "ukagaka"
+  ],
   "repository": {
-    "type":         "git",
-    "url":          "https://github.com/ikagaka/Shell.js"
+    "type": "git",
+    "url": "https://github.com/ikagaka/Shell.js"
   },
   "dependencies": {
-    "ikagaka.nar.js": ""
+    "ikagaka.nar.js": "",
+    "surfaces_txt2yaml": "",
+    "underscore": "",
+    "zepto": "0.0.4"
   },
-  "devDependencies": {
-  },
-  "license":        "MIT"
+  "devDependencies": {},
+  "license": "MIT"
 }

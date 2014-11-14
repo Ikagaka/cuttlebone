@@ -223,7 +223,9 @@ Shell = (function() {
         obj[name] = data.surfaces[name];
       }
       if (data.surfaces[name].base != null) {
-        data.surfaces[name].base.forEach(function(key) {});
+        data.surfaces[name].base.forEach(function(key) {
+          return data.surfaces[name] = _.extend(data.surfaces[name], data.surfaces[key]);
+        });
       }
       return obj;
     }), {});

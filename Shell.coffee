@@ -150,7 +150,7 @@ class Shell
         then obj[name] = data.surfaces[name]
         if data.surfaces[name].base?
           data.surfaces[name].base.forEach (key)->
-            #data.surfaces[name] = _.extend(data.surfaces[name], data.surfaces[key])
+            data.surfaces[name] = _.extend(data.surfaces[name], data.surfaces[key])
         obj
       ), {})
     data
