@@ -5,12 +5,12 @@ class Surface
   _ = window["_"]
   Promise = window["Promise"]
 
-  constructor: (@scopeId, srf, @surfaces)->
-    @is = srf.is
-    @base = srf.base
+  constructor: (@scopeId, @surfaceName, @surfaces)->
+    srf = @surfaces.surfaces[surfaceName]
+    @baseSurface = srf.baseSurface
     @regions = srf.regions || {}
     @animations = srf.animations || {}
-    @element = SurfaceUtil.copy(@base)
+    @element = SurfaceUtil.copy(@baseSurface)
     @layers = []
     @stop = false
     $(@element).on "click", (ev)=>
@@ -60,11 +60,11 @@ class Surface
         .keys(srfs)
         .filter((name)-> srfs[name].is is surface)
       if hits.length is 0 then return arr
-      arr.concat({type, x, y, canvas: srfs[hits[hits.length-1]].base})
+      arr.concat({type, x, y, canvas: srfs[hits[hits.length-1]].baseSurface})
     ), [])
     SurfaceUtil.clear(@element)
     srfutil = new SurfaceUtil(@element)
-    srfutil.composeElements([{"type": "base", "canvas": @base}].concat(elements))
+    srfutil.composeElements([{"type": "base", "canvas": @baseSurface}].concat(elements))
     undefined
 
   playAnimation: (animationId, callback)->

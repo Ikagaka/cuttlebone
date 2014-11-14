@@ -31,9 +31,13 @@ function loadHandler(err){
   console.log(nar);
 
   if(nar.install.type === "ghost"){
-    var shell = new Shell(nar.tree["shell"]["master"]);
+    var shellDir = Object
+      .keys(nar.directory)
+      .filter(function(path){ return /shell\/master\//.test(path); })
+      .reduce(function(dir, path, zip){ dir[path.replace(/shell\/master\//, "")] = nar.directory[path]; return dir; }, {})
+    var shell = new Shell(shellDir);
   }else if(nar.install.type === "shell"){
-    var shell = new Shell(nar.tree);
+    var shell = new Shell(nar.directory);
   }else{
     throw new Error("wrong nar file")
   }
@@ -44,7 +48,6 @@ function loadHandler(err){
     console.log(shell);
 
     $div = $("<div style='display:inline-block;' />")
-      .append($("<p />").append(shell.descript["name"]))
       .appendTo("body");
 
     $("#surfaceId").change(function(ev){ changeSurface(Number($(ev.target).val())); });

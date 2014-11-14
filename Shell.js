@@ -2,9 +2,11 @@
 var Shell;
 
 Shell = (function() {
-  var Nar, Promise, Surface, SurfacesTxt2Yaml, URL, _;
+  var $, Nar, Promise, Surface, SurfacesTxt2Yaml, URL, _;
 
   _ = window["_"];
+
+  $ = window["Zepto"];
 
   Nar = window["Nar"];
 
@@ -16,32 +18,34 @@ Shell = (function() {
 
   URL = window["URL"];
 
-  function Shell(tree) {
-    if (!tree["descript.txt"]) {
+  function Shell(directory) {
+    if (!directory["descript.txt"]) {
       throw new Error("descript.txt not found");
     }
-    this.tree = tree;
-    this.descript = Nar.parseDescript(Nar.convert(this.tree["descript.txt"].asArrayBuffer()));
+    this.directory = directory;
+    this.descript = Nar.parseDescript(Nar.convert(this.directory["descript.txt"].asArrayBuffer()));
     this.surfaces = null;
   }
 
   Shell.prototype.load = function(callback) {
-    var merged, surfacesYaml;
-    if (!!this.tree["surfaces.txt"]) {
-      surfacesYaml = Shell.parseSurfaces(Nar.convert(this.tree["surfaces.txt"].asArrayBuffer()));
+    var buffer, mergedSurfaces, surfaces, surfacesTxt;
+    if (!!this.directory["surfaces.txt"]) {
+      buffer = this.directory["surfaces.txt"].asArrayBuffer();
+      surfacesTxt = Nar.convert(buffer);
+      surfaces = Shell.parseSurfaces(surfacesTxt);
     } else {
-      surfacesYaml = {
+      surfaces = {
         "surfaces": {}
       };
     }
-    merged = Shell.mergeSurfacesAndSurfacesFiles(surfacesYaml, this.tree);
-    return Shell.loadSurfaces(merged, this.tree, (function(_this) {
-      return function(err, loaded) {
-        return Shell.loadElements(loaded, _this.tree, function(err, loaded) {
+    mergedSurfaces = Shell.mergeSurfacesAndSurfacesFiles(surfaces, this.directory);
+    return Shell.loadSurfaces(mergedSurfaces, (function(_this) {
+      return function(err, loadedSurfaces) {
+        return Shell.loadElements(loadedSurfaces, _this.directory, function(err, loadedElmSurfaces) {
           if (!!err) {
             return callback(err);
           }
-          _this.surfaces = Shell.createBases(loaded);
+          _this.surfaces = Shell.createBases(loadedElmSurfaces);
           return callback(null);
         });
       };
@@ -58,20 +62,20 @@ Shell = (function() {
     if (hits.length === 0) {
       return null;
     }
-    return new Surface(scopeId, srfs[hits[0]], this.surfaces);
+    return new Surface(scopeId, hits[0], this.surfaces);
   };
 
-  Shell.createBases = function(loaded) {
+  Shell.createBases = function(surfaces) {
     var srfs;
-    srfs = loaded.surfaces;
+    srfs = surfaces.surfaces;
     Object.keys(srfs).forEach(function(name) {
-      var base, cnv, sorted, srfutil;
+      var baseSurface, cnv, sortedElm, srfutil;
       srfs[name].is = srfs[name].is;
-      cnv = srfs[name].canvas;
+      cnv = srfs[name].baseSurface;
       if (!srfs[name].elements) {
-        srfs[name].base = cnv;
+        return srfs[name].baseSurface = cnv;
       } else {
-        sorted = Object.keys(srfs[name].elements).sort(function(a, b) {
+        sortedElm = Object.keys(srfs[name].elements).sort(function(a, b) {
           if (a.is > b.is) {
             return 1;
           } else {
@@ -80,19 +84,18 @@ Shell = (function() {
         }).map(function(key) {
           return srfs[name].elements[key];
         });
-        base = sorted[0].canvas || srfs[name].canvas;
-        srfutil = new SurfaceUtil(base);
-        srfutil.composeElements(sorted);
-        srfs[name].base = base;
+        baseSurface = sortedElm[0].canvas || srfs[name].baseSurface;
+        srfutil = new SurfaceUtil(baseSurface);
+        srfutil.composeElements(sortedElm);
+        return srfs[name].baseSurface = baseSurface;
       }
-      return srfs[name].canvas = null;
     });
-    return loaded;
+    return surfaces;
   };
 
-  Shell.loadSurfaces = function(merged, surfacesDir, callback) {
+  Shell.loadSurfaces = function(surfaces, callback) {
     var promises, srfs;
-    srfs = merged.surfaces;
+    srfs = surfaces.surfaces;
     promises = Object.keys(srfs).filter(function(name) {
       return !!srfs[name].file;
     }).map(function(name) {
@@ -108,14 +111,14 @@ Shell = (function() {
             if (!!err) {
               return reject(err);
             }
-            srfs[name].canvas = SurfaceUtil.transImage(img);
+            srfs[name].baseSurface = SurfaceUtil.transImage(img);
             return resolve();
           });
         });
       });
     });
     Promise.all(promises).then(function() {
-      return callback(null, merged);
+      return callback(null, surfaces);
     })["catch"](function(err) {
       console.error(err, err.stack);
       return callback(err, null);
@@ -123,9 +126,9 @@ Shell = (function() {
     return void 0;
   };
 
-  Shell.loadElements = function(merged, surfacesDir, callback) {
+  Shell.loadElements = function(surfaces, directory, callback) {
     var promises, srfs;
-    srfs = merged.surfaces;
+    srfs = surfaces.surfaces;
     promises = Object.keys(srfs).filter(function(name) {
       return !!srfs[name].elements;
     }).reduce((function(arr, srfName) {
@@ -136,13 +139,13 @@ Shell = (function() {
           return setTimeout(function() {
             var buffer, file, type, url, x, y;
             type = elm.type, file = elm.file, x = elm.x, y = elm.y;
-            if (!surfacesDir[file]) {
+            if (!directory[file]) {
               file += ".png";
             }
-            if (!surfacesDir[file]) {
+            if (!directory[file]) {
               reject(new Error(file.substr(0, file.length - 4) + "element file not found"));
             }
-            buffer = surfacesDir[file].asArrayBuffer();
+            buffer = directory[file].asArrayBuffer();
             url = URL.createObjectURL(new Blob([buffer], {
               type: "image/png"
             }));
@@ -159,7 +162,7 @@ Shell = (function() {
       }));
     }), []);
     Promise.all(promises).then(function() {
-      return callback(null, merged);
+      return callback(null, surfaces);
     })["catch"](function(err) {
       console.error(err, err.stack);
       return callback(err, null);
@@ -167,11 +170,11 @@ Shell = (function() {
     return void 0;
   };
 
-  Shell.mergeSurfacesAndSurfacesFiles = function(surfaces, surfacesDir) {
-    return Object.keys(surfacesDir).filter(function(filename) {
+  Shell.mergeSurfacesAndSurfacesFiles = function(surfaces, directory) {
+    return Object.keys(directory).filter(function(filename) {
       return /^surface\d+\.png$/i.test(filename);
     }).map(function(filename) {
-      return [Number((/^surface(\d+)\.png$/i.exec(filename) || ["", "-1"])[1]), surfacesDir[filename]];
+      return [Number((/^surface(\d+)\.png$/i.exec(filename) || ["", "-1"])[1]), directory[filename]];
     }).reduce((function(surfaces, _arg) {
       var file, n, name, srfs;
       n = _arg[0], file = _arg[1];
@@ -183,8 +186,7 @@ Shell = (function() {
         };
       }
       srfs[name].file = file;
-      srfs[name].canvas = null;
-      srfs[name].base = null;
+      srfs[name].baseSurface = null;
       return surfaces;
     }), surfaces);
   };
@@ -193,12 +195,12 @@ Shell = (function() {
     var data;
     data = SurfacesTxt2Yaml.txt_to_data(text);
     data.surfaces = Object.keys(data.surfaces).reduce((function(obj, name) {
-      if (data.surfaces[name].is != null) {
+      if (typeof data.surfaces[name].is === "string") {
         obj[name] = data.surfaces[name];
       }
-      if (data.surfaces[name].base != null) {
+      if (Array.isArray(data.surfaces[name].base)) {
         data.surfaces[name].base.forEach(function(key) {
-          return data.surfaces[name] = _.extend(data.surfaces[name], data.surfaces[key]);
+          return data.surfaces[name] = $.extend(true, data.surfaces[name], data.surfaces[key]);
         });
       }
       return obj;

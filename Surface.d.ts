@@ -1,6 +1,6 @@
 
 declare class Surface {
-  constructor(scopeId: number, srf: any, surfaces: any); // unstable
+  constructor(scopeId: number, surfaceName: string, surfaces: Surfaces); // stable
   destructor(): void; // stable
   element: HTMLCanvasElement; // stable
   render(): void; // stable

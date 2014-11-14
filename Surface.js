@@ -10,14 +10,16 @@ Surface = (function() {
 
   Promise = window["Promise"];
 
-  function Surface(scopeId, srf, surfaces) {
+  function Surface(scopeId, surfaceName, surfaces) {
+    var srf;
     this.scopeId = scopeId;
+    this.surfaceName = surfaceName;
     this.surfaces = surfaces;
-    this.is = srf.is;
-    this.base = srf.base;
+    srf = this.surfaces.surfaces[surfaceName];
+    this.baseSurface = srf.baseSurface;
     this.regions = srf.regions || {};
     this.animations = srf.animations || {};
-    this.element = SurfaceUtil.copy(this.base);
+    this.element = SurfaceUtil.copy(this.baseSurface);
     this.layers = [];
     this.stop = false;
     $(this.element).on("click", (function(_this) {
@@ -131,7 +133,7 @@ Surface = (function() {
           type: type,
           x: x,
           y: y,
-          canvas: srfs[hits[hits.length - 1]].base
+          canvas: srfs[hits[hits.length - 1]].baseSurface
         });
       };
     })(this)), []);
@@ -140,7 +142,7 @@ Surface = (function() {
     srfutil.composeElements([
       {
         "type": "base",
-        "canvas": this.base
+        "canvas": this.baseSurface
       }
     ].concat(elements));
     return void 0;
