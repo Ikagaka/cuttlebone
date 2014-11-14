@@ -1,7 +1,7 @@
 
 declare class Shell {
   constructor(tree: any); // unstable
-  load(callback:(error: any) => void): void; // stable
+  load(callback: (error: any) => void): void; // stable
   getSurface(scopeId: number, surfaceId: number): Surface; // stable
   descript: { [key: string]: string; }; // stable
   tree: any; // unstable

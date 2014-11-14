@@ -20,7 +20,7 @@ Usage
 <script src="./Surface.js"></script>
 <script src="./Shell.js"></script>
 <script>
-var nar = new Nar()
+var nar = new Nar();
 nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", function (err){
   if(!!err) return console.error(err.stack);
 
