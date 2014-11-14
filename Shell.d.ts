@@ -1,3 +1,5 @@
+interface JSZipDirectory { [filepath: string]: JSZipObject; };
+interface Descript { [key: string]: string; };
 interface Surfaces {
   charset: string;
   descript: {

@@ -1,3 +1,5 @@
+interface JSZipDirectory { [filepath: string]: JSZipObject; };
+interface Descript { [key: string]: string; };
 
 declare class Surface {
   constructor(scopeId: number, surfaceName: string, surfaces: Surfaces); // stable
