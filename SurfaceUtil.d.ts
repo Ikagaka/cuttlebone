@@ -11,6 +11,8 @@ declare class ShellUtil {
 declare module ShellUtil {
   function clear(cnv: HTMLCanvasElement): void; // stable
   function copy(cnv: HTMLCanvasElement): HTMLCanvasElement; // stable
+  function transImage(img: HTMLImageElement): HTMLCanvasElement; // stable
+  function loadImage(url: string, callback: (error: any, img: HTMLImageElement) => void ): void; // stable
 }
 
 declare module 'surfaceutil' {

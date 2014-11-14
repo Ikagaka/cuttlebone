@@ -17,7 +17,9 @@ class Shell
     @surfaces = null
 
   load: (callback)->
-    surfacesYaml = Shell.parseSurfaces(Nar.convert(@tree["surfaces.txt"].asArrayBuffer()))
+    if !!@tree["surfaces.txt"]
+    then surfacesYaml = Shell.parseSurfaces(Nar.convert(@tree["surfaces.txt"].asArrayBuffer()))
+    else surfacesYaml = {"surfaces": {}}
     merged = Shell.mergeSurfacesAndSurfacesFiles(surfacesYaml, @tree)
     Shell.loadSurfaces merged, @tree, (err, loaded)=>
       Shell.loadElements loaded, @tree, (err, loaded)=>
@@ -65,10 +67,10 @@ class Shell
           setTimeout ->
             buffer = srfs[name].file.asArrayBuffer()
             url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-            Shell.loadImage url, (err, img)->
+            SurfaceUtil.loadImage url, (err, img)->
               URL.revokeObjectURL(url)
               if !!err then return reject(err)
-              srfs[name].canvas = Shell.transImage(img)
+              srfs[name].canvas = SurfaceUtil.transImage(img)
               resolve()
     Promise
       .all(promises)
@@ -90,40 +92,16 @@ class Shell
               if !surfacesDir[file] then reject(new Error(file.substr(0, file.length-4) + "element file not found"))
               buffer = surfacesDir[file].asArrayBuffer()
               url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-              Shell.loadImage url, (err, img)->
+              SurfaceUtil.loadImage url, (err, img)->
                 URL.revokeObjectURL(url)
                 if !!err then return reject(err.error)
-                elm.canvas = Shell.transImage(img)
+                elm.canvas = SurfaceUtil.transImage(img)
                 resolve()
       ), [])
     Promise
       .all(promises)
       .then(-> callback(null, merged))
       .catch((err)-> console.error(err, err.stack); callback(err, null))
-    undefined
-
-  @transImage = (img)->
-    cnv = SurfaceUtil.copy(img)
-    ctx = cnv.getContext("2d")
-    imgdata = ctx.getImageData(0, 0, img.width, img.height)
-    data = imgdata.data
-    [r, g, b, a] = data
-    i = 0
-    if a isnt 0
-      while i < data.length
-        if r is data[i] and
-           g is data[i+1] and
-           b is data[i+2]
-          data[i+3] = 0
-        i += 4
-    ctx.putImageData(imgdata, 0, 0)
-    cnv
-
-  @loadImage = (url, callback)->
-    img = new Image
-    img.src = url
-    img.addEventListener "load", -> callback(null, img)
-    img.addEventListener "error", (ev)-> console.error(ev); callback(ev.error, null)
     undefined
 
   @mergeSurfacesAndSurfacesFiles = (surfaces, surfacesDir)->

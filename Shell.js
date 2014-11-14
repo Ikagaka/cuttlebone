@@ -27,7 +27,13 @@ Shell = (function() {
 
   Shell.prototype.load = function(callback) {
     var merged, surfacesYaml;
-    surfacesYaml = Shell.parseSurfaces(Nar.convert(this.tree["surfaces.txt"].asArrayBuffer()));
+    if (!!this.tree["surfaces.txt"]) {
+      surfacesYaml = Shell.parseSurfaces(Nar.convert(this.tree["surfaces.txt"].asArrayBuffer()));
+    } else {
+      surfacesYaml = {
+        "surfaces": {}
+      };
+    }
     merged = Shell.mergeSurfacesAndSurfacesFiles(surfacesYaml, this.tree);
     return Shell.loadSurfaces(merged, this.tree, (function(_this) {
       return function(err, loaded) {
@@ -97,12 +103,12 @@ Shell = (function() {
           url = URL.createObjectURL(new Blob([buffer], {
             type: "image/png"
           }));
-          return Shell.loadImage(url, function(err, img) {
+          return SurfaceUtil.loadImage(url, function(err, img) {
             URL.revokeObjectURL(url);
             if (!!err) {
               return reject(err);
             }
-            srfs[name].canvas = Shell.transImage(img);
+            srfs[name].canvas = SurfaceUtil.transImage(img);
             return resolve();
           });
         });
@@ -140,12 +146,12 @@ Shell = (function() {
             url = URL.createObjectURL(new Blob([buffer], {
               type: "image/png"
             }));
-            return Shell.loadImage(url, function(err, img) {
+            return SurfaceUtil.loadImage(url, function(err, img) {
               URL.revokeObjectURL(url);
               if (!!err) {
                 return reject(err.error);
               }
-              elm.canvas = Shell.transImage(img);
+              elm.canvas = SurfaceUtil.transImage(img);
               return resolve();
             });
           });
@@ -159,46 +165,6 @@ Shell = (function() {
       return callback(err, null);
     });
     return void 0;
-  };
-
-  Shell.transImage = function(img) {
-    var a, b, cnv, ctx, data, g, i, imgdata, r;
-    cnv = SurfaceUtil.copy(img);
-    ctx = cnv.getContext("2d");
-    imgdata = ctx.getImageData(0, 0, img.width, img.height);
-    data = imgdata.data;
-    r = data[0], g = data[1], b = data[2], a = data[3];
-    i = 0;
-    if (a !== 0) {
-      while (i < data.length) {
-        if (r === data[i] && g === data[i + 1] && b === data[i + 2]) {
-          data[i + 3] = 0;
-        }
-        i += 4;
-      }
-    }
-    ctx.putImageData(imgdata, 0, 0);
-    return cnv;
-  };
-
-  Shell.loadImage = function(url, callback) {
-    var img;
-    img = new Image;
-    img.src = url;
-    img.addEventListener("load", function() {
-      return callback(null, img);
-    });
-    img.addEventListener("error", function(ev) {
-      console.error(ev);
-      return callback(ev.error, null);
-    });
-    return void 0;
-  };
-
-  Shell.bufferToURL = function(buffer, type) {
-    return URL.createObjectURL(new Blob([buffer], {
-      type: type
-    }));
   };
 
   Shell.mergeSurfacesAndSurfacesFiles = function(surfaces, surfacesDir) {

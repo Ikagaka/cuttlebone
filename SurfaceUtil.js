@@ -70,6 +70,40 @@ SurfaceUtil = (function() {
     return copy;
   };
 
+  SurfaceUtil.transImage = function(img) {
+    var a, b, cnv, ctx, data, g, i, imgdata, r;
+    cnv = SurfaceUtil.copy(img);
+    ctx = cnv.getContext("2d");
+    imgdata = ctx.getImageData(0, 0, img.width, img.height);
+    data = imgdata.data;
+    r = data[0], g = data[1], b = data[2], a = data[3];
+    i = 0;
+    if (a !== 0) {
+      while (i < data.length) {
+        if (r === data[i] && g === data[i + 1] && b === data[i + 2]) {
+          data[i + 3] = 0;
+        }
+        i += 4;
+      }
+    }
+    ctx.putImageData(imgdata, 0, 0);
+    return cnv;
+  };
+
+  SurfaceUtil.loadImage = function(url, callback) {
+    var img;
+    img = new Image;
+    img.src = url;
+    img.addEventListener("load", function() {
+      return callback(null, img);
+    });
+    img.addEventListener("error", function(ev) {
+      console.error(ev);
+      return callback(ev.error, null);
+    });
+    return void 0;
+  };
+
   return SurfaceUtil;
 
 })();

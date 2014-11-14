@@ -45,3 +45,29 @@ class SurfaceUtil
     copy.height = cnv.height
     ctx.drawImage(cnv, 0, 0)
     copy
+
+
+
+  @transImage = (img)->
+    cnv = SurfaceUtil.copy(img)
+    ctx = cnv.getContext("2d")
+    imgdata = ctx.getImageData(0, 0, img.width, img.height)
+    data = imgdata.data
+    [r, g, b, a] = data
+    i = 0
+    if a isnt 0
+      while i < data.length
+        if r is data[i] and
+           g is data[i+1] and
+           b is data[i+2]
+          data[i+3] = 0
+        i += 4
+    ctx.putImageData(imgdata, 0, 0)
+    cnv
+
+  @loadImage = (url, callback)->
+    img = new Image
+    img.src = url
+    img.addEventListener "load", -> callback(null, img)
+    img.addEventListener "error", (ev)-> console.error(ev); callback(ev.error, null)
+    undefined

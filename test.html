@@ -18,7 +18,7 @@ var nar = null;
 
 $("#nar").change(function(ev){
   nar = new Nar()
-  nar.loadFromURL(Shell.bufferToURL(ev.target.files[0]), loadHandler);
+  nar.loadFromBlob(ev.target.files[0], loadHandler);
 });
 
 nar = new Nar()
