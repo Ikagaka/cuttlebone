@@ -2,11 +2,13 @@
 
 
 class Shell
+
   _ = window["_"]
   Nar = window["Nar"]
   Promise = window["Promise"]
   Surface = window["Surface"]
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
+  URL = window["URL"]
 
   constructor: (tree)->
     if !tree["descript.txt"] then throw new Error("descript.txt not found")
@@ -62,8 +64,9 @@ class Shell
         new Promise (resolve, reject)->
           setTimeout ->
             buffer = srfs[name].file.asArrayBuffer()
-            url = Shell.bufferToURL(buffer, "image/png")
+            url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
             Shell.loadImage url, (err, img)->
+              URL.revokeObjectURL(url)
               if !!err then return reject(err)
               srfs[name].canvas = Shell.transImage(img)
               resolve()
@@ -86,8 +89,9 @@ class Shell
               if !surfacesDir[file] then file += ".png"
               if !surfacesDir[file] then reject(new Error(file.substr(0, file.length-4) + "element file not found"))
               buffer = surfacesDir[file].asArrayBuffer()
-              url = Shell.bufferToURL(buffer, "image/png")
+              url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
               Shell.loadImage url, (err, img)->
+                URL.revokeObjectURL(url)
                 if !!err then return reject(err.error)
                 elm.canvas = Shell.transImage(img)
                 resolve()
@@ -121,9 +125,6 @@ class Shell
     img.addEventListener "load", -> callback(null, img)
     img.addEventListener "error", (ev)-> console.error(ev); callback(ev.error, null)
     undefined
-
-  @bufferToURL = (buffer, type)->
-    URL.createObjectURL(new Blob([buffer], {type}))
 
   @mergeSurfacesAndSurfacesFiles = (surfaces, surfacesDir)->
     Object

@@ -2,7 +2,7 @@
 var Shell;
 
 Shell = (function() {
-  var Nar, Promise, Surface, SurfacesTxt2Yaml, _;
+  var Nar, Promise, Surface, SurfacesTxt2Yaml, URL, _;
 
   _ = window["_"];
 
@@ -13,6 +13,8 @@ Shell = (function() {
   Surface = window["Surface"];
 
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"];
+
+  URL = window["URL"];
 
   function Shell(tree) {
     if (!tree["descript.txt"]) {
@@ -92,8 +94,11 @@ Shell = (function() {
         return setTimeout(function() {
           var buffer, url;
           buffer = srfs[name].file.asArrayBuffer();
-          url = Shell.bufferToURL(buffer, "image/png");
+          url = URL.createObjectURL(new Blob([buffer], {
+            type: "image/png"
+          }));
           return Shell.loadImage(url, function(err, img) {
+            URL.revokeObjectURL(url);
             if (!!err) {
               return reject(err);
             }
@@ -132,8 +137,11 @@ Shell = (function() {
               reject(new Error(file.substr(0, file.length - 4) + "element file not found"));
             }
             buffer = surfacesDir[file].asArrayBuffer();
-            url = Shell.bufferToURL(buffer, "image/png");
+            url = URL.createObjectURL(new Blob([buffer], {
+              type: "image/png"
+            }));
             return Shell.loadImage(url, function(err, img) {
+              URL.revokeObjectURL(url);
               if (!!err) {
                 return reject(err.error);
               }
