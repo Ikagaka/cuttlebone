@@ -14,29 +14,31 @@
   surface: <input type="number" value="0" id="surfaceId" />
 </p>
 <script>
-var nar = null;
+$(function(){
 
-$("#nar").change(function(ev){
-  nar = new Nar()
-  nar.loadFromBlob(ev.target.files[0], loadHandler);
+  $("#nar").change(function(ev){
+    var nar = new Nar();
+    nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
+  });
+
+  var nar = new Nar();
+  console.log(nar);
+  nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler.bind(this, nar));
 });
 
-nar = new Nar()
-nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler);
 
-
-function loadHandler(err){
+function loadHandler(nar, err){
   if(!!err) return console.error(err.stack);
 
   console.log(nar);
 
-  if(nar.install.type === "ghost"){
-    var shellDir = Object.keys(nar.directory)
-      .filter(function(path){ return /shell\/master\//.test(path); })
-      .reduce(function(dir, path, zip){ dir[path.replace(/shell\/master\//, "")] = nar.directory[path]; return dir; }, {})
+  if(nar.install["type"] === "ghost"){
+    var shellDir = nar.getDirectory(/shell\/master\//);
     var shell = new Shell(shellDir);
+
   }else if(nar.install.type === "shell"){
     var shell = new Shell(nar.directory);
+
   }else{
     throw new Error("wrong nar file")
   }
@@ -46,10 +48,17 @@ function loadHandler(err){
 
     console.log(shell);
 
-    $div = $("<div style='display:inline-block;' />")
+    var $wrapper = $("<div />")
+      .on("IkagakaSurfaceEvent", function(ev){
+        console.log(ev.detail);
+      })
       .appendTo("body");
+    var $canvas = $("<canvas style='display:inline-block;' />")
+      .appendTo($wrapper);
 
-    $("#surfaceId").change(function(ev){ changeSurface(Number($(ev.target).val())); });
+    $("#surfaceId").change(function(ev){
+      changeSurface(Number($(ev.target).val()));
+    });
 
     var surface;
 
@@ -57,17 +66,16 @@ function loadHandler(err){
 
     function changeSurface(n){
       if(surface != null){
-        $(surface.element).remove();
         surface.destructor();
       }
-      surface = shell.getSurface(0, n, document.createElement("canvas"));
+      surface = shell.attachSurface($canvas[0], 0, n);
+
+      surface.bind(30);
+      surface.bind(31);
+      surface.bind(32);
+      surface.bind(50);
+
       console.log(surface);
-      if(surface != null){
-        $(surface.element).on("IkagakaSurfaceEvent", function(ev){
-          console.log(ev.detail);
-        });
-        $($div).append(surface.element);
-      }
     }
 
   });

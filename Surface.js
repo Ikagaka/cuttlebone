@@ -10,8 +10,9 @@ Surface = (function() {
 
   Promise = window["Promise"];
 
-  function Surface(scopeId, surfaceName, surfaces) {
+  function Surface(element, scopeId, surfaceName, surfaces) {
     var srf;
+    this.element = element;
     this.scopeId = scopeId;
     this.surfaceName = surfaceName;
     this.surfaces = surfaces;
@@ -19,48 +20,49 @@ Surface = (function() {
     this.baseSurface = srf.baseSurface;
     this.regions = srf.regions || {};
     this.animations = srf.animations || {};
-    this.element = SurfaceUtil.copy(this.baseSurface);
+    this.bufferCanvas = SurfaceUtil.copy(this.baseSurface);
     this.layers = [];
-    this.stop = false;
+    this.destructed = false;
     $(this.element).on("click", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function(ev) {
-          return _this.element.dispatchEvent(ev);
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
+          return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("dblclick", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnDoubleMouseClick", function(ev) {
-          return _this.element.dispatchEvent(ev);
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnDoubleMouseClick", function($ev) {
+          return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("mousemove", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseMove", function(ev) {
-          return _this.element.dispatchEvent(ev);
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseMove", function($ev) {
+          return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("mousedown", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDown", function(ev) {
-          return _this.element.dispatchEvent(ev);
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDown", function($ev) {
+          return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("mouseup", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseUp", function(ev) {
-          return _this.element.dispatchEvent(ev);
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseUp", function($ev) {
+          return $(_this.element).trigger($ev);
         });
       };
     })(this));
     Object.keys(this.animations).forEach((function(_this) {
       return function(name) {
-        var interval, n, pattern, tmp, _is, _ref;
+        var animationId, interval, n, pattern, tmp, _is, _ref;
         _ref = _this.animations[name], _is = _ref.is, interval = _ref.interval, pattern = _ref.pattern;
+        animationId = Number(_is);
         interval = interval || "";
         tmp = interval.split(",");
         interval = tmp[0];
@@ -68,23 +70,33 @@ Surface = (function() {
         switch (interval) {
           case "sometimes":
             return Surface.random((function(callback) {
-              return _this.playAnimation(_is, callback);
+              if (!_this.destructed) {
+                return _this.playAnimation(animationId, callback);
+              }
             }), 2);
           case "rarely":
             return Surface.random((function(callback) {
-              return _this.playAnimation(_is, callback);
+              if (!_this.destructed) {
+                return _this.playAnimation(animationId, callback);
+              }
             }), 4);
           case "random":
             return Surface.random((function(callback) {
-              return _this.playAnimation(_is, callback);
+              if (!_this.destructed) {
+                return _this.playAnimation(animationId, callback);
+              }
             }), n);
           case "periodic":
             return Surface.periodic((function(callback) {
-              return _this.playAnimation(_is, callback);
+              if (!_this.destructed) {
+                return _this.playAnimation(animationId, callback);
+              }
             }), n);
           case "always":
             return Surface.always(function(callback) {
-              return _this.playAnimation(_is, callback);
+              if (!_this.destructed) {
+                return _this.playAnimation(animationId, callback);
+              }
             });
           case "runonce":
             return _this.playAnimation(_is, function() {});
@@ -101,17 +113,20 @@ Surface = (function() {
         }
       };
     })(this));
+    this.render();
   }
 
   Surface.prototype.destructor = function() {
+    console.log("destructed!");
+    SurfaceUtil.clear(this.element);
     $(this.element).off();
-    this.stopAnimation();
+    this.destructed = true;
     this.layers = [];
     return void 0;
   };
 
   Surface.prototype.render = function() {
-    var elements, srfs, srfutil;
+    var elements, srfs, util, util2;
     srfs = this.surfaces.surfaces;
     elements = this.layers.reduce(((function(_this) {
       return function(arr, layer) {
@@ -137,14 +152,17 @@ Surface = (function() {
         });
       };
     })(this)), []);
-    SurfaceUtil.clear(this.element);
-    srfutil = new SurfaceUtil(this.element);
-    srfutil.composeElements([
+    SurfaceUtil.clear(this.bufferCanvas);
+    util = new SurfaceUtil(this.bufferCanvas);
+    util.composeElements([
       {
         "type": "base",
         "canvas": this.baseSurface
       }
     ].concat(elements));
+    SurfaceUtil.clear(this.element);
+    util2 = new SurfaceUtil(this.element);
+    util2.init(this.bufferCanvas);
     return void 0;
   };
 
@@ -152,7 +170,7 @@ Surface = (function() {
     var anim, hits;
     hits = Object.keys(this.animations).filter((function(_this) {
       return function(name) {
-        return _this.animations[name].is === animationId;
+        return Number(_this.animations[name].is) === animationId;
       };
     })(this));
     if (hits.length === 0) {
@@ -168,14 +186,17 @@ Surface = (function() {
             surface = pattern.surface, wait = pattern.wait;
             _this.layers[anim.is] = pattern;
             _this.render();
-            if (_this.stop) {
-              return console.info("animation stoped");
-            }
             _ref = /(\d+)(?:\-(\d+))?/.exec(wait), __ = _ref[0], a = _ref[1], b = _ref[2];
             if (b != null) {
               wait = _.random(Number(a), Number(b));
             }
-            return setTimeout(resolve, wait);
+            return setTimeout((function() {
+              if (_this.destructed) {
+                return reject();
+              } else {
+                return resolve();
+              }
+            }), wait);
           });
         };
       };
@@ -183,9 +204,7 @@ Surface = (function() {
       return proA.then(proB);
     }), Promise.resolve()).then((function(_this) {
       return function() {
-        if (!_this.stop) {
-          return setTimeout(callback);
-        }
+        return setTimeout(callback);
       };
     })(this))["catch"](function(err) {
       return console.error(err.stack);
@@ -193,8 +212,32 @@ Surface = (function() {
     return void 0;
   };
 
-  Surface.prototype.stopAnimation = function(id) {
-    this.stop = true;
+  Surface.prototype.stopAnimation = function(animationId) {
+    return void 0;
+  };
+
+  Surface.prototype.bind = function(animationId) {
+    var anim, hits, pattern;
+    hits = Object.keys(this.animations).filter((function(_this) {
+      return function(name) {
+        return Number(_this.animations[name].is) === animationId;
+      };
+    })(this));
+    if (hits.length === 0) {
+      return void 0;
+    }
+    anim = this.animations[hits[hits.length - 1]];
+    if (anim.patterns.length === 0) {
+      return void 0;
+    }
+    pattern = anim.patterns[anim.patterns.length - 1];
+    this.layers[anim.is] = pattern;
+    this.render();
+    return void 0;
+  };
+
+  Surface.prototype.unbind = function(animationId) {
+    delete this.layers[animationId];
     return void 0;
   };
 
@@ -207,7 +250,6 @@ Surface = (function() {
       "cursor": "default"
     });
     if (Surface.isHit(ev.target, offsetX, offsetY)) {
-      console.log(offsetX, offsetY);
       ev.preventDefault();
       detail = Surface.createMouseEvent(eventName, scopeId, regions, offsetX, offsetY);
       if (!!detail["Reference4"]) {
@@ -219,8 +261,9 @@ Surface = (function() {
           "cursor": "default"
         });
       }
-      callback(new CustomEvent('IkagakaSurfaceEvent', {
-        detail: detail
+      callback($.Event('IkagakaSurfaceEvent', {
+        detail: detail,
+        bubbles: true
       }));
     }
     return void 0;

@@ -12,41 +12,40 @@ class Surface
     @animations = srf.animations || {}
     @bufferCanvas = SurfaceUtil.copy(@baseSurface)
     @layers = []
-    @stop = false
-    $(@element).on "click", (ev)=>
-      Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick", (ev)=> @element.dispatchEvent(ev))
-    $(@element).on "dblclick", (ev)=>
-      Surface.processMouseEvent(ev, @scopeId, @regions, "OnDoubleMouseClick", (ev)=> @element.dispatchEvent(ev))
-    $(@element).on "mousemove", (ev)=>
-      Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove", (ev)=> @element.dispatchEvent(ev))
-    $(@element).on "mousedown", (ev)=>
-      Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown", (ev)=> @element.dispatchEvent(ev))
-    $(@element).on "mouseup", (ev)=>
-      Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp", (ev)=> @element.dispatchEvent(ev))
+    @destructed = false
+    $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
+    $(@element).on "dblclick",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnDoubleMouseClick", ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mousedown", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mouseup",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
     Object
       .keys(@animations)
       .forEach (name)=>
         {is:_is, interval, pattern} = @animations[name]
+        animationId = Number(_is)
         interval = interval || ""
         tmp = interval.split(",")
         interval = tmp[0]
         n = Number(tmp.slice(1).join(","))
         switch interval
-          when "sometimes" then Surface.random   ((callback)=> @playAnimation(_is, callback)), 2
-          when "rarely"    then Surface.random   ((callback)=> @playAnimation(_is, callback)), 4
-          when "random"    then Surface.random   ((callback)=> @playAnimation(_is, callback)), n
-          when "periodic"  then Surface.periodic ((callback)=> @playAnimation(_is, callback)), n
-          when "always"    then Surface.always    (callback)=> @playAnimation(_is, callback)
+          when "sometimes" then Surface.random   ((callback)=> if !@destructed then @playAnimation(animationId, callback)), 2
+          when "rarely"    then Surface.random   ((callback)=> if !@destructed then @playAnimation(animationId, callback)), 4
+          when "random"    then Surface.random   ((callback)=> if !@destructed then @playAnimation(animationId, callback)), n
+          when "periodic"  then Surface.periodic ((callback)=> if !@destructed then @playAnimation(animationId, callback)), n
+          when "always"    then Surface.always    (callback)=> if !@destructed then @playAnimation(animationId, callback)
           when "runonce"   then @playAnimation(_is, ->)
           when "never"     then ;
           when "yen-e"     then ;
           when "talk"      then ;
           when "bind"      then ;
           else console.error(@animations[name])
+    @render()
 
   destructor: ->
+    console.log "destructed!"
+    SurfaceUtil.clear(@element)
     $(@element).off() # g.c.
-    @stopAnimation()
+    @destructed = true
     @layers = []
     undefined
 
@@ -73,7 +72,7 @@ class Surface
   playAnimation: (animationId, callback)->
     hits = Object
       .keys(@animations)
-      .filter((name)=> @animations[name].is is animationId)
+      .filter((name)=> Number(@animations[name].is) is animationId)
     if hits.length is 0 then setTimeout(callback); return undefined
     anim = @animations[hits[hits.length-1]]
     anim.patterns
@@ -83,21 +82,37 @@ class Surface
             {surface, wait} = pattern
             @layers[anim.is] = pattern
             @render()
-            if @stop then return console.info("animation stoped")
+            # ex. 100-200 ms wait
             [__, a, b] = /(\d+)(?:\-(\d+))?/.exec(wait)
             if b? then wait = _.random(Number(a), Number(b))
-            setTimeout(resolve, wait))
-      .reduce(((proA, proB)->
-        proA.then(proB)), Promise.resolve())
-      .then(=> if !@stop then setTimeout(callback))
-      .catch((err)-> console.error err.stack)
+            setTimeout((=>
+              if @destructed # stop pattern animation.
+              then reject()
+              else resolve()
+            ), wait))
+      .reduce(((proA, proB)-> proA.then(proB)), Promise.resolve()) # Promise.resolve().then(prom).then(prom)...
+      .then(=> setTimeout(callback))
+      .catch (err)-> console.error err.stack
     undefined
 
-  stopAnimation: (id)->
-    @stop = true
+  stopAnimation: (animationId)->
     undefined
 
+  bind: (animationId)->
+    hits = Object
+      .keys(@animations)
+      .filter((name)=> Number(@animations[name].is) is animationId)
+    if hits.length is 0 then return undefined
+    anim = @animations[hits[hits.length-1]]
+    if anim.patterns.length is 0 then return undefined
+    pattern = anim.patterns[anim.patterns.length-1]
+    @layers[anim.is] = pattern
+    @render()
+    undefined
 
+  unbind: (animationId)->
+    delete @layers[animationId]
+    undefined
 
   @processMouseEvent = (ev, scopeId, regions, eventName, callback)->
     {left, top} = $(ev.target).offset()
@@ -105,13 +120,12 @@ class Surface
     offsetY = ev.pageY - top
     $(ev.target).css({"cursor": "default"})
     if Surface.isHit(ev.target, offsetX, offsetY)
-      console.log offsetX, offsetY
       ev.preventDefault()
       detail = Surface.createMouseEvent(eventName, scopeId, regions, offsetX, offsetY)
       if !!detail["Reference4"]
       then $(ev.target).css({"cursor": "pointer"})
       else $(ev.target).css({"cursor": "default"})
-      callback(new CustomEvent('IkagakaSurfaceEvent', { detail }))
+      callback($.Event('IkagakaSurfaceEvent', { detail, bubbles: true }))
     undefined
 
   @createMouseEvent = (eventName, scopeId, regions, offsetX, offsetY)->

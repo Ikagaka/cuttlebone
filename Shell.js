@@ -52,15 +52,14 @@ Shell = (function() {
     })(this));
   };
 
-  Shell.prototype.getSurface = function(scopeId, surfaceId, canvas) {
-    var hits, srfs, type, _ref, _ref1, _ref2, _ref3, _surfaceId;
+  Shell.prototype.attachSurface = function(canvas, scopeId, surfaceId) {
+    var hits, srfs, type, _ref, _ref1, _surfaceId;
     type = scopeId === 0 ? "sakura" : "kero";
     if (Array.isArray((_ref = this.surfaces.aliases) != null ? (_ref1 = _ref[type]) != null ? _ref1[surfaceId] : void 0 : void 0)) {
       _surfaceId = Number(Shell.choice(this.surfaces.aliases[type][surfaceId]));
     } else {
       _surfaceId = surfaceId;
     }
-    console.log(surfaceId, (_ref2 = this.surfaces.aliases) != null ? (_ref3 = _ref2[type]) != null ? _ref3[surfaceId] : void 0 : void 0, _surfaceId);
     srfs = this.surfaces.surfaces;
     hits = Object.keys(srfs).filter(function(name) {
       return Number(srfs[name].is) === _surfaceId;
@@ -68,7 +67,7 @@ Shell = (function() {
     if (hits.length === 0) {
       return null;
     }
-    return new Surface(scopeId, hits[0], this.surfaces, canvas);
+    return new Surface(canvas, scopeId, hits[0], this.surfaces);
   };
 
   Shell.choice = function(ary) {
