@@ -11,6 +11,7 @@ class Surface
     @regions = srf.regions || {}
     @animations = srf.animations || {}
     @bufferCanvas = SurfaceUtil.copy(@baseSurface)
+    @stopFlags = []
     @layers = []
     @destructed = false
     $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
@@ -28,12 +29,12 @@ class Surface
         interval = tmp[0]
         n = Number(tmp.slice(1).join(","))
         switch interval
-          when "sometimes" then Surface.random   ((callback)=> if !@destructed then @playAnimation(animationId, callback)), 2
-          when "rarely"    then Surface.random   ((callback)=> if !@destructed then @playAnimation(animationId, callback)), 4
-          when "random"    then Surface.random   ((callback)=> if !@destructed then @playAnimation(animationId, callback)), n
-          when "periodic"  then Surface.periodic ((callback)=> if !@destructed then @playAnimation(animationId, callback)), n
-          when "always"    then Surface.always    (callback)=> if !@destructed then @playAnimation(animationId, callback)
-          when "runonce"   then @playAnimation(_is, ->)
+          when "sometimes" then Surface.random   ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), 2
+          when "rarely"    then Surface.random   ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), 4
+          when "random"    then Surface.random   ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
+          when "periodic"  then Surface.periodic ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
+          when "always"    then Surface.always    (callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)
+          when "runonce"   then @play(_is, ->)
           when "never"     then ;
           when "yen-e"     then ;
           when "talk"      then ;
@@ -69,7 +70,7 @@ class Surface
     util2.init(@bufferCanvas)
     undefined
 
-  playAnimation: (animationId, callback)->
+  play: (animationId, callback)->
     hits = Object
       .keys(@animations)
       .filter((name)=> Number(@animations[name].is) is animationId)
@@ -95,7 +96,8 @@ class Surface
       .catch (err)-> console.error err.stack
     undefined
 
-  stopAnimation: (animationId)->
+  stop: (animationId)->
+    @stopFlags[animationId] = true
     undefined
 
   bind: (animationId)->
@@ -105,9 +107,13 @@ class Surface
     if hits.length is 0 then return undefined
     anim = @animations[hits[hits.length-1]]
     if anim.patterns.length is 0 then return undefined
+    interval = anim.interval
     pattern = anim.patterns[anim.patterns.length-1]
     @layers[anim.is] = pattern
     @render()
+    if /^bind(?:\+(\d+))/.test(interval)
+      animIds = interval.split("+").slice(1)
+      animIds.forEach (animId)=> @play(animId, ->)
     undefined
 
   unbind: (animationId)->

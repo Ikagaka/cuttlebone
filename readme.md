@@ -4,10 +4,11 @@ Shell.js can play SERIKO/2.0 animation.
 
 ![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot.png )
 
+
 ## Usage
 
-
 [wiki](https://github.com/Ikagaka/Shell.js/wiki/Shell.js )
+
 
 ```html
 <script src="./node_modules/ikagaka.nar.js/node_modules/encoding-japanese/encoding.js"></script>
@@ -21,20 +22,22 @@ Shell.js can play SERIKO/2.0 animation.
 <script src="./SurfaceUtil.js"></script>
 <script src="./Surface.js"></script>
 <script src="./Shell.js"></script>
+<canvas id="surface"></canvas>
 <script>
 var nar = new Nar();
 nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", function (err){
   if(!!err) return console.error(err.stack);
 
-  if(nar.install.type === "ghost"){
+  if(nar.install["type"] === "ghost"){
     var shellDir = nar.getDirectory(/shell\/master\//);
     var shell = new Shell(nar.directory);
 
-  }else if(nar.install.type === "shell"){
+  }else if(nar.install["type"] === "shell"){
     var shell = new Shell(nar.directory);
 
   }else{
-    throw new Error("wrong nar file")
+    throw new Error("non support nar file type");
+
   }
 
   shell.load(function(err){
@@ -42,16 +45,12 @@ nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
 
     console.log(shell);
 
+    var surface = shell.attachSurface($("#surface")[0], 0, 0);
 
-    var $wrapper = $("<div />")
-      .on("IkagakaSurfaceEvent", function(ev){
-        console.log(ev.detail);
-      })
-      .appendTo("body");
-    var $canvas = $("<canvas style='display:inline-block;' />")
-      .appendTo($wrapper);
-
-    var surface = shell.attachSurface($canvas[0], 0, 0);
+    surface.bind(30);
+    surface.bind(31);
+    surface.bind(32);
+    surface.bind(50);
 
     console.log(surface);
   });

@@ -21,6 +21,7 @@ Surface = (function() {
     this.regions = srf.regions || {};
     this.animations = srf.animations || {};
     this.bufferCanvas = SurfaceUtil.copy(this.baseSurface);
+    this.stopFlags = [];
     this.layers = [];
     this.destructed = false;
     $(this.element).on("click", (function(_this) {
@@ -70,36 +71,36 @@ Surface = (function() {
         switch (interval) {
           case "sometimes":
             return Surface.random((function(callback) {
-              if (!_this.destructed) {
-                return _this.playAnimation(animationId, callback);
+              if (!_this.destructed && !_this.stopFlags[animationId]) {
+                return _this.play(animationId, callback);
               }
             }), 2);
           case "rarely":
             return Surface.random((function(callback) {
-              if (!_this.destructed) {
-                return _this.playAnimation(animationId, callback);
+              if (!_this.destructed && !_this.stopFlags[animationId]) {
+                return _this.play(animationId, callback);
               }
             }), 4);
           case "random":
             return Surface.random((function(callback) {
-              if (!_this.destructed) {
-                return _this.playAnimation(animationId, callback);
+              if (!_this.destructed && !_this.stopFlags[animationId]) {
+                return _this.play(animationId, callback);
               }
             }), n);
           case "periodic":
             return Surface.periodic((function(callback) {
-              if (!_this.destructed) {
-                return _this.playAnimation(animationId, callback);
+              if (!_this.destructed && !_this.stopFlags[animationId]) {
+                return _this.play(animationId, callback);
               }
             }), n);
           case "always":
             return Surface.always(function(callback) {
-              if (!_this.destructed) {
-                return _this.playAnimation(animationId, callback);
+              if (!_this.destructed && !_this.stopFlags[animationId]) {
+                return _this.play(animationId, callback);
               }
             });
           case "runonce":
-            return _this.playAnimation(_is, function() {});
+            return _this.play(_is, function() {});
           case "never":
             break;
           case "yen-e":
@@ -166,7 +167,7 @@ Surface = (function() {
     return void 0;
   };
 
-  Surface.prototype.playAnimation = function(animationId, callback) {
+  Surface.prototype.play = function(animationId, callback) {
     var anim, hits;
     hits = Object.keys(this.animations).filter((function(_this) {
       return function(name) {
@@ -212,12 +213,13 @@ Surface = (function() {
     return void 0;
   };
 
-  Surface.prototype.stopAnimation = function(animationId) {
+  Surface.prototype.stop = function(animationId) {
+    this.stopFlags[animationId] = true;
     return void 0;
   };
 
   Surface.prototype.bind = function(animationId) {
-    var anim, hits, pattern;
+    var anim, animIds, hits, interval, pattern;
     hits = Object.keys(this.animations).filter((function(_this) {
       return function(name) {
         return Number(_this.animations[name].is) === animationId;
@@ -230,9 +232,18 @@ Surface = (function() {
     if (anim.patterns.length === 0) {
       return void 0;
     }
+    interval = anim.interval;
     pattern = anim.patterns[anim.patterns.length - 1];
     this.layers[anim.is] = pattern;
     this.render();
+    if (/^bind(?:\+(\d+))/.test(interval)) {
+      animIds = interval.split("+").slice(1);
+      animIds.forEach((function(_this) {
+        return function(animId) {
+          return _this.play(animId, function() {});
+        };
+      })(this));
+    }
     return void 0;
   };
 
