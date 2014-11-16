@@ -4,6 +4,8 @@ declare class ShellUtil {
   ctx: CanvasRenderingContext2D; // stable
   composeElements(layers:{canvas: HTMLCanvasElement; type: string; x: number; y: number}[]): void; // stable
   overlayfast(part: HTMLCanvasElement, x: number, y: number): void; // stable
+  interpolate(part: HTMLCanvasElement, x: number, y: number): void; // unstable
+  replace(part: HTMLCanvasElement, x: number, y: number): void; // unstable
   init(cnv: HTMLCanvasElement): void; // unstable
 }
 

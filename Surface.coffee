@@ -20,7 +20,6 @@ class Surface
     $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousedown", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mouseup",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
-
     $(@element).on "IkagakaTalkEvent", (ev)=> @talkCount++; Object.keys(@animations).filter((name)=> @animations[name].interval is "talk").forEach (name)=> @play(Number(@animations[name].is))
 
     Object

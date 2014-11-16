@@ -64,6 +64,10 @@ function loadHandler(nar, err){
 
     changeSurface(0);
 
+    setInterval(function(){
+      $canvas.trigger("IkagakaTalkEvent")
+    }, 100);
+
     function changeSurface(n){
       if(surface != null){
         surface.destructor();
@@ -74,10 +78,6 @@ function loadHandler(nar, err){
       surface.bind(31);
       surface.bind(32);
       surface.bind(50);
-
-      setInterval(function(){
-        $(surface.element).trigger("IkagakaTalkEvent")
-      }, 80);
 
       console.log(surface);
     }

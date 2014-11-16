@@ -13,20 +13,33 @@ class SurfaceUtil
       when "base"        then @overlayfast(canvas, offsetX,     offsetY)
       when "overlay"     then @overlayfast(canvas, offsetX + x, offsetY + y)
       when "overlayfast" then @overlayfast(canvas, offsetX + x, offsetY + y)
-      when "replace"     then @overlayfast(canvas, offsetX + x, offsetY + y)
+      when "replace"     then @replace(    canvas, offsetX + x, offsetY + y)
+      when "add"         then @overlayfast(canvas, offsetX + x, offsetY + y)
+      when "interpolate" then @interpolate(canvas, offsetX + x, offsetY + y)
       when "move"
         offsetX = x
         offsetY = y
         copyed = SurfaceUtil.copy(@cnv)
         SurfaceUtil.clear(@cnv)
         @overlayfast(copyed, offsetX, offsetY)
-      else console.error(elements[0]); @cnv
+      else console.error(elements[0])
     @composeElements(elements.slice(1))
     undefined
 
   overlayfast: (part, x, y)->
-    @ctx.drawImage(part, x||0, y||0)
-    @cnv
+    @ctx.globalCompositeOperation = "source-over"
+    @ctx.drawImage(part, x, y)
+    undefined
+
+  interpolate: (part, x, y)->
+    @ctx.globalCompositeOperation = "destination-over"
+    @ctx.drawImage(part, x, y)
+    undefined
+
+  replace: (part, x, y)->
+    @ctx.clearRect(x, y, part.width, part.height)
+    @overlayfast(part, x, y)
+
     undefined
 
   init: (cnv)->

@@ -25,7 +25,13 @@ SurfaceUtil = (function() {
         this.overlayfast(canvas, offsetX + x, offsetY + y);
         break;
       case "replace":
+        this.replace(canvas, offsetX + x, offsetY + y);
+        break;
+      case "add":
         this.overlayfast(canvas, offsetX + x, offsetY + y);
+        break;
+      case "interpolate":
+        this.interpolate(canvas, offsetX + x, offsetY + y);
         break;
       case "move":
         offsetX = x;
@@ -36,15 +42,26 @@ SurfaceUtil = (function() {
         break;
       default:
         console.error(elements[0]);
-        this.cnv;
     }
     this.composeElements(elements.slice(1));
     return void 0;
   };
 
   SurfaceUtil.prototype.overlayfast = function(part, x, y) {
-    this.ctx.drawImage(part, x || 0, y || 0);
-    this.cnv;
+    this.ctx.globalCompositeOperation = "source-over";
+    this.ctx.drawImage(part, x, y);
+    return void 0;
+  };
+
+  SurfaceUtil.prototype.interpolate = function(part, x, y) {
+    this.ctx.globalCompositeOperation = "destination-over";
+    this.ctx.drawImage(part, x, y);
+    return void 0;
+  };
+
+  SurfaceUtil.prototype.replace = function(part, x, y) {
+    this.ctx.clearRect(x, y, part.width, part.height);
+    this.overlayfast(part, x, y);
     return void 0;
   };
 
