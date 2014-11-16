@@ -4,7 +4,7 @@ declare class Surface {
   destructor(): void; // stable
   element: HTMLCanvasElement; // stable
   render(): void; // unstable
-  play(animationId: number, callback: () => void): void; // unstable
+  play(animationId: number, callback?: () => void): void; // unstable
   stop(animationId: number): void; // unstable
   bind(animationId: number): void; // unstable
   unbind(animationId: number): void; // unstable

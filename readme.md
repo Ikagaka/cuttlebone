@@ -30,7 +30,7 @@ nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
 
   if(nar.install["type"] === "ghost"){
     var shellDir = nar.getDirectory(/shell\/master\//);
-    var shell = new Shell(nar.directory);
+    var shell = new Shell(shellDir);
 
   }else if(nar.install["type"] === "shell"){
     var shell = new Shell(nar.directory);
@@ -45,7 +45,7 @@ nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
 
     console.log(shell);
 
-    var surface = shell.attachSurface($("#surface")[0], 0, 0);
+    var surface = shell.attachSurface($("#surface")[0], 0, 7);
 
     surface.bind(30);
     surface.bind(31);

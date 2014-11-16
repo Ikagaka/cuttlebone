@@ -169,6 +169,9 @@ Surface = (function() {
 
   Surface.prototype.play = function(animationId, callback) {
     var anim, hits;
+    if (callback == null) {
+      callback = function() {};
+    }
     hits = Object.keys(this.animations).filter((function(_this) {
       return function(name) {
         return Number(_this.animations[name].is) === animationId;

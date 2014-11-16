@@ -70,7 +70,7 @@ class Surface
     util2.init(@bufferCanvas)
     undefined
 
-  play: (animationId, callback)->
+  play: (animationId, callback=->)->
     hits = Object
       .keys(@animations)
       .filter((name)=> Number(@animations[name].is) is animationId)
