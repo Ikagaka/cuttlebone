@@ -2,7 +2,7 @@
 
 Shell.js can play SERIKO/2.0 animation.
 
-![screenshot](./screenshot.png)
+![screenshot](https://github.com/Ikagaka/Shell.js/blob/master/screenshot.png )
 
 ## Usage
 
