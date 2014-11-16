@@ -32,6 +32,9 @@ SurfaceUtil = (function() {
       case "add":
         this.overlayfast(canvas, offsetX + x, offsetY + y);
         break;
+      case "bind":
+        this.overlayfast(canvas, offsetX + x, offsetY + y);
+        break;
       case "interpolate":
         this.interpolate(canvas, offsetX + x, offsetY + y);
         break;

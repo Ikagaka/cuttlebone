@@ -211,6 +211,20 @@ Surface = (function() {
           return new Promise(function(resolve, reject) {
             var a, animId, arr, b, match, surface, type, wait, __, _ref, _ref1, _ref2;
             surface = pattern.surface, wait = pattern.wait, type = pattern.type;
+            if (/^start\,\d+/.test(type)) {
+              animId = Number(type.split(",")[1]);
+              _this.play(animId, function() {
+                return resolve();
+              });
+              return;
+            }
+            if (/^stop\,\d+/.test(type)) {
+              animId = Number(type.split(",")[1]);
+              _this.stop(animId, function() {
+                return resolve();
+              });
+              return;
+            }
             if (/^alternativestart\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)) {
               _ref = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref[0], match = _ref[1];
               arr = match.split(/[\,\.]/);

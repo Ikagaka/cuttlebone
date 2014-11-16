@@ -17,6 +17,7 @@ class SurfaceUtil
       when "overlayfast" then @overlayfast(canvas, offsetX + x, offsetY + y)
       when "replace"     then @replace(    canvas, offsetX + x, offsetY + y)
       when "add"         then @overlayfast(canvas, offsetX + x, offsetY + y)
+      when "bind"        then @overlayfast(canvas, offsetX + x, offsetY + y)
       when "interpolate" then @interpolate(canvas, offsetX + x, offsetY + y)
       when "move"
         offsetX = x
