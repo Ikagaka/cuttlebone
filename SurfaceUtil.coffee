@@ -28,6 +28,7 @@ class SurfaceUtil
     @ctx.drawImage(part, x||0, y||0)
     @cnv
     undefined
+
   init: (cnv)->
     @cnv.width = cnv.width
     @cnv.height = cnv.height
@@ -45,8 +46,6 @@ class SurfaceUtil
     copy.height = cnv.height
     ctx.drawImage(cnv, 0, 0)
     copy
-
-
 
   @transImage = (img)->
     cnv = SurfaceUtil.copy(img)

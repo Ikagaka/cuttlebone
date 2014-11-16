@@ -29,17 +29,20 @@ class Shell
         @surfaces = Shell.createBases(loadedElmSurfaces)
         callback(null)
 
-  getSurface: (scopeId, surfaceId)->
-    # alias choice process with scopeID
-    # @surfaces.sakrua
-    n = surfaceId
+  attatchSurface: (canvas, scopeId, surfaceId)->
+    type = if scopeId is 0 then "sakura" else "kero"
+    if Array.isArray(@surfaces.aliases?[type]?[surfaceId])
+    then _surfaceId = Number(Shell.choice(@surfaces.aliases[type][surfaceId]))
+    else _surfaceId = surfaceId
     srfs = @surfaces.surfaces
     hits = Object
       .keys(srfs)
-      .filter((name)-> Number(srfs[name].is) is n)
+      .filter((name)-> Number(srfs[name].is) is _surfaceId)
     if hits.length is 0
     then return null
-    new Surface(scopeId, hits[0], @surfaces)
+    new Surface(scopeId, hits[0], @surfaces, canvas)
+
+  @choice = (ary)-> ary[Math.round(Math.random()*(ary.length-1))]
 
   @createBases = (surfaces)->
     srfs = surfaces.surfaces

@@ -6,6 +6,8 @@ Shell.js
 Usage
 --------
 
+[wiki](https://github.com/Ikagaka/Shell.js/wiki/Shell.js )
+
 ```html
 <script src="./node_modules/ikagaka.nar.js/vender/encoding.js"></script>
 <script src="./node_modules/ikagaka.nar.js/vender/jszip.min.js"></script>

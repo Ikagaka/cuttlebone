@@ -1,13 +1,11 @@
-interface JSZipDirectory { [filepath: string]: JSZipObject; };
-interface Descript { [key: string]: string; };
 
 declare class Surface {
-  constructor(scopeId: number, surfaceName: string, surfaces: Surfaces); // stable
+  constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceName: string, surfaces: Surfaces); // unstable
   destructor(): void; // stable
   element: HTMLCanvasElement; // stable
-  render(): void; // stable
-  playAnimation(animationId, callback: () => void): void; // stable
-  stopAnimation(): void; // stable
+  render(): void; // unstable
+  playAnimation(animationId: number, callback: () => void): void; // unstable
+  stopAnimation(animationId: number): void; // unstable
 }
 
 

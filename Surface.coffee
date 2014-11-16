@@ -5,12 +5,12 @@ class Surface
   _ = window["_"]
   Promise = window["Promise"]
 
-  constructor: (@scopeId, @surfaceName, @surfaces)->
+  constructor: (@element, @scopeId, @surfaceName, @surfaces)->
     srf = @surfaces.surfaces[surfaceName]
     @baseSurface = srf.baseSurface
     @regions = srf.regions || {}
     @animations = srf.animations || {}
-    @element = SurfaceUtil.copy(@baseSurface)
+    @bufferCanvas = SurfaceUtil.copy(@baseSurface)
     @layers = []
     @stop = false
     $(@element).on "click", (ev)=>
@@ -62,9 +62,12 @@ class Surface
       if hits.length is 0 then return arr
       arr.concat({type, x, y, canvas: srfs[hits[hits.length-1]].baseSurface})
     ), [])
+    SurfaceUtil.clear(@bufferCanvas)
+    util = new SurfaceUtil(@bufferCanvas)
+    util.composeElements([{"type": "base", "canvas": @baseSurface}].concat(elements))
     SurfaceUtil.clear(@element)
-    srfutil = new SurfaceUtil(@element)
-    srfutil.composeElements([{"type": "base", "canvas": @baseSurface}].concat(elements))
+    util2 = new SurfaceUtil(@element)
+    util2.init(@bufferCanvas)
     undefined
 
   playAnimation: (animationId, callback)->
@@ -100,7 +103,9 @@ class Surface
     {left, top} = $(ev.target).offset()
     offsetX = ev.pageX - left
     offsetY = ev.pageY - top
+    $(ev.target).css({"cursor": "default"})
     if Surface.isHit(ev.target, offsetX, offsetY)
+      console.log offsetX, offsetY
       ev.preventDefault()
       detail = Surface.createMouseEvent(eventName, scopeId, regions, offsetX, offsetY)
       if !!detail["Reference4"]
@@ -108,7 +113,7 @@ class Surface
       else $(ev.target).css({"cursor": "default"})
       callback(new CustomEvent('IkagakaSurfaceEvent', { detail }))
     undefined
-  # Surface.processMouseEvent(eventName:ShioriEventIDString, scopeId:Number, regions:{is:Number, top:Number, left:Number, right:Number, bottom:Number, name:String}, offsetX:Number, offsetY:Number):ShioriEventObject
+
   @createMouseEvent = (eventName, scopeId, regions, offsetX, offsetY)->
     event =
       "ID": eventName

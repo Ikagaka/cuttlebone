@@ -1,6 +1,6 @@
 {
   "name": "ikagaka.shell.js",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "",
   "url": "https://github.com/ikagaka/Shell.js",
   "keywords": [
@@ -19,6 +19,7 @@
     "underscore": "",
     "zepto": ""
   },
-  "devDependencies": {},
+  "devDependencies": {
+  },
   "license": "MIT"
 }

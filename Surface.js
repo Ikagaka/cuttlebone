@@ -203,7 +203,11 @@ Surface = (function() {
     _ref = $(ev.target).offset(), left = _ref.left, top = _ref.top;
     offsetX = ev.pageX - left;
     offsetY = ev.pageY - top;
+    $(ev.target).css({
+      "cursor": "default"
+    });
     if (Surface.isHit(ev.target, offsetX, offsetY)) {
+      console.log(offsetX, offsetY);
       ev.preventDefault();
       detail = Surface.createMouseEvent(eventName, scopeId, regions, offsetX, offsetY);
       if (!!detail["Reference4"]) {

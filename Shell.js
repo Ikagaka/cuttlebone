@@ -52,17 +52,27 @@ Shell = (function() {
     })(this));
   };
 
-  Shell.prototype.getSurface = function(scopeId, surfaceId) {
-    var hits, n, srfs;
-    n = surfaceId;
+  Shell.prototype.getSurface = function(scopeId, surfaceId, canvas) {
+    var hits, srfs, type, _ref, _ref1, _ref2, _ref3, _surfaceId;
+    type = scopeId === 0 ? "sakura" : "kero";
+    if (Array.isArray((_ref = this.surfaces.aliases) != null ? (_ref1 = _ref[type]) != null ? _ref1[surfaceId] : void 0 : void 0)) {
+      _surfaceId = Number(Shell.choice(this.surfaces.aliases[type][surfaceId]));
+    } else {
+      _surfaceId = surfaceId;
+    }
+    console.log(surfaceId, (_ref2 = this.surfaces.aliases) != null ? (_ref3 = _ref2[type]) != null ? _ref3[surfaceId] : void 0 : void 0, _surfaceId);
     srfs = this.surfaces.surfaces;
     hits = Object.keys(srfs).filter(function(name) {
-      return Number(srfs[name].is) === n;
+      return Number(srfs[name].is) === _surfaceId;
     });
     if (hits.length === 0) {
       return null;
     }
-    return new Surface(scopeId, hits[0], this.surfaces);
+    return new Surface(scopeId, hits[0], this.surfaces, canvas);
+  };
+
+  Shell.choice = function(ary) {
+    return ary[Math.round(Math.random() * (ary.length - 1))];
   };
 
   Shell.createBases = function(surfaces) {

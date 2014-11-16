@@ -1,4 +1,4 @@
-interface JSZipDirectory { [filepath: string]: JSZipObject; };
+interface JSZipDirectory { [filePath: string]: JSZipObject; };
 interface Descript { [key: string]: string; };
 interface Surfaces {
   charset: string;
@@ -80,7 +80,7 @@ interface Surfaces {
 declare class Shell {
   constructor(directory: JSZipDirectory); // stable
   load(callback: (error: any) => void): void; // stable
-  getSurface(scopeId: number, surfaceId: number): Surface; // stable
+  attatchSurface(canvas:HTMLCanvasElement, scopeId: number, surfaceId: number): Surface; // unstable
   descript: Descript; // stable
   directory: JSZipDirectory; // stable
   surfaces: Surfaces; // stable
@@ -88,6 +88,7 @@ declare class Shell {
 
 
 declare module Shell {
+  function choice<T>(arr: T[]): T; // unstable
   function createBases(surfaces: Surfaces): Surfaces; // unstable
   function loadSurfaces(surfaces: Surfaces, callback: (error: any, surfaces: Surfaces) => void ): void; // unstable
   function loadElements(surfaces: Surfaces, directory: JSZipDirectory, callback: (error: any, surfaces: Surfaces) => void ): void; // unstable
