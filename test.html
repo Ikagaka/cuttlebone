@@ -75,6 +75,10 @@ function loadHandler(nar, err){
       surface.bind(32);
       surface.bind(50);
 
+      setInterval(function(){
+        $(surface.element).trigger("IkagakaTalkEvent")
+      }, 80);
+
       console.log(surface);
     }
 

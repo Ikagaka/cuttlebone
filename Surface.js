@@ -24,6 +24,7 @@ Surface = (function() {
     this.stopFlags = [];
     this.layers = [];
     this.destructed = false;
+    this.talkCount = 0;
     $(this.element).on("click", (function(_this) {
       return function(ev) {
         return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
@@ -59,9 +60,19 @@ Surface = (function() {
         });
       };
     })(this));
+    $(this.element).on("IkagakaTalkEvent", (function(_this) {
+      return function(ev) {
+        _this.talkCount++;
+        return Object.keys(_this.animations).filter(function(name) {
+          return _this.animations[name].interval === "talk";
+        }).forEach(function(name) {
+          return _this.play(Number(_this.animations[name].is));
+        });
+      };
+    })(this));
     Object.keys(this.animations).forEach((function(_this) {
       return function(name) {
-        var animationId, interval, n, pattern, tmp, _is, _ref;
+        var animationId, interval, n, pattern, talkCount, tmp, _is, _ref;
         _ref = _this.animations[name], _is = _ref.is, interval = _ref.interval, pattern = _ref.pattern;
         animationId = Number(_is);
         interval = interval || "";
@@ -103,13 +114,26 @@ Surface = (function() {
             return _this.play(_is, function() {});
           case "never":
             break;
-          case "yen-e":
-            break;
-          case "talk":
-            break;
           case "bind":
             break;
+          case "yen-e":
+            return $(_this.element).on("IkagakaYenEEvent", function(ev) {
+              if (!_this.destructed && !_this.stopFlags[animationId]) {
+                return _this.play(animationId);
+              }
+            });
+          case "talk":
+            talkCount = 0;
+            return $(_this.element).on("IkagakaTalkEvent", function(ev) {
+              talkCount++;
+              if (!_this.destructed && !_this.stopFlags[animationId] && talkCount % n === 0) {
+                return _this.play(animationId);
+              }
+            });
           default:
+            if (/^bind(?:\+(\d+))/.test(interval)) {
+
+            }
             return console.error(_this.animations[name]);
         }
       };

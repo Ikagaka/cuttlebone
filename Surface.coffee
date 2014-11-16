@@ -14,11 +14,15 @@ class Surface
     @stopFlags = []
     @layers = []
     @destructed = false
+    @talkCount = 0
     $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
     $(@element).on "dblclick",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnDoubleMouseClick", ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousedown", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mouseup",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
+
+    $(@element).on "IkagakaTalkEvent", (ev)=> @talkCount++; Object.keys(@animations).filter((name)=> @animations[name].interval is "talk").forEach (name)=> @play(Number(@animations[name].is))
+
     Object
       .keys(@animations)
       .forEach (name)=>
@@ -36,10 +40,20 @@ class Surface
           when "always"    then Surface.always    (callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)
           when "runonce"   then @play(_is, ->)
           when "never"     then ;
-          when "yen-e"     then ;
-          when "talk"      then ;
           when "bind"      then ;
-          else console.error(@animations[name])
+          when "yen-e"
+            $(@element).on "IkagakaYenEEvent", (ev)=>
+              if !@destructed and !@stopFlags[animationId]
+              then @play(animationId)
+          when "talk"
+            talkCount = 0
+            $(@element).on "IkagakaTalkEvent", (ev)=>
+              talkCount++
+              if !@destructed and !@stopFlags[animationId] and talkCount % n is 0
+              then @play(animationId)
+          else
+            if /^bind(?:\+(\d+))/.test(interval) then ;
+            console.error(@animations[name])
     @render()
 
   destructor: ->
