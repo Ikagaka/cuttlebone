@@ -11,6 +11,7 @@ declare class ShellUtil {
 
 
 declare module ShellUtil {
+  function choice<T>(arr: T[]): T; // unstable
   function clear(cnv: HTMLCanvasElement): void; // stable
   function copy(cnv: HTMLCanvasElement): HTMLCanvasElement; // stable
   function transImage(img: HTMLImageElement): HTMLCanvasElement; // stable

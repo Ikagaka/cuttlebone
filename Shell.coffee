@@ -7,6 +7,7 @@ class Shell
   Nar = window["Nar"]
   Promise = window["Promise"]
   Surface = window["Surface"]
+  SurfaceUtil = window["SurfaceUtil"]
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
   URL = window["URL"]
 
@@ -32,7 +33,7 @@ class Shell
   attachSurface: (canvas, scopeId, surfaceId)->
     type = if scopeId is 0 then "sakura" else "kero"
     if Array.isArray(@surfaces.aliases?[type]?[surfaceId])
-    then _surfaceId = Number(Shell.choice(@surfaces.aliases[type][surfaceId]))
+    then _surfaceId = Number(SurfaceUtil.choice(@surfaces.aliases[type][surfaceId]))
     else _surfaceId = surfaceId
     srfs = @surfaces.surfaces
     hits = Object
@@ -42,7 +43,7 @@ class Shell
     then return null
     new Surface(canvas, scopeId, hits[0], @surfaces)
 
-  @choice = (ary)-> ary[Math.round(Math.random()*(ary.length-1))]
+
 
   @createBases = (surfaces)->
     srfs = surfaces.surfaces

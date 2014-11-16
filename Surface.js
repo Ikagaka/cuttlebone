@@ -111,7 +111,7 @@ Surface = (function() {
               }
             });
           case "runonce":
-            return _this.play(_is, function() {});
+            return _this.play(animationId, function() {});
           case "never":
             break;
           case "bind":
@@ -142,7 +142,6 @@ Surface = (function() {
   }
 
   Surface.prototype.destructor = function() {
-    console.log("destructed!");
     SurfaceUtil.clear(this.element);
     $(this.element).off();
     this.destructed = true;
@@ -210,11 +209,32 @@ Surface = (function() {
       return function(pattern) {
         return function() {
           return new Promise(function(resolve, reject) {
-            var a, b, surface, wait, __, _ref;
-            surface = pattern.surface, wait = pattern.wait;
+            var a, animId, arr, b, match, surface, type, wait, __, _ref, _ref1, _ref2;
+            surface = pattern.surface, wait = pattern.wait, type = pattern.type;
+            if (/^alternativestart\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)) {
+              _ref = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref[0], match = _ref[1];
+              arr = match.split(/[\,\.]/);
+              if (arr.length > 0) {
+                animId = Number(SurfaceUtil.choice(arr));
+                _this.play(animId, function() {
+                  return resolve();
+                });
+                return;
+              }
+            }
+            if (/^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)) {
+              _ref1 = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref1[0], match = _ref1[1];
+              arr = match.split(/[\,\.]/);
+              if (arr.length > 0) {
+                animId = Number(SurfaceUtil.choice(arr));
+                _this.stop(animId);
+                resolve();
+                return;
+              }
+            }
             _this.layers[anim.is] = pattern;
             _this.render();
-            _ref = /(\d+)(?:\-(\d+))?/.exec(wait), __ = _ref[0], a = _ref[1], b = _ref[2];
+            _ref2 = /(\d+)(?:\-(\d+))?/.exec(wait), __ = _ref2[0], a = _ref2[1], b = _ref2[2];
             if (b != null) {
               wait = _.random(Number(a), Number(b));
             }

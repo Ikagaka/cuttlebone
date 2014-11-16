@@ -13,6 +13,8 @@ SurfaceUtil = (function() {
       return;
     }
     _ref = elements[0], canvas = _ref.canvas, type = _ref.type, x = _ref.x, y = _ref.y;
+    x = Number(x);
+    y = Number(y);
     offsetX = offsetY = 0;
     switch (type) {
       case "base":
@@ -70,6 +72,10 @@ SurfaceUtil = (function() {
     this.cnv.height = cnv.height;
     this.overlayfast(cnv, 0, 0);
     return void 0;
+  };
+
+  SurfaceUtil.choice = function(ary) {
+    return ary[Math.round(Math.random() * (ary.length - 1))];
   };
 
   SurfaceUtil.clear = function(cnv) {

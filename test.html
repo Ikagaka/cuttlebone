@@ -22,7 +22,7 @@ $(function(){
   });
 
   var nar = new Nar();
-  console.log(nar);
+
   nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler.bind(this, nar));
 });
 
@@ -48,12 +48,12 @@ function loadHandler(nar, err){
 
     console.log(shell);
 
-    var $wrapper = $("<div />")
+    var $wrapper = $("<div style='display:inline-block;' />")
       .on("IkagakaSurfaceEvent", function(ev){
         console.log(ev.detail);
       })
       .appendTo("body");
-    var $canvas = $("<canvas style='display:inline-block;' />")
+    var $canvas = $("<canvas />")
       .appendTo($wrapper);
 
     $("#surfaceId").change(function(ev){
@@ -62,7 +62,7 @@ function loadHandler(nar, err){
 
     var surface;
 
-    changeSurface(0);
+    changeSurface(21);
 
     setInterval(function(){
       $canvas.trigger("IkagakaTalkEvent")
@@ -73,11 +73,6 @@ function loadHandler(nar, err){
         surface.destructor();
       }
       surface = shell.attachSurface($canvas[0], 0, n);
-
-      surface.bind(30);
-      surface.bind(31);
-      surface.bind(32);
-      surface.bind(50);
 
       console.log(surface);
     }

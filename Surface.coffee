@@ -37,7 +37,7 @@ class Surface
           when "random"    then Surface.random   ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
           when "periodic"  then Surface.periodic ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
           when "always"    then Surface.always    (callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)
-          when "runonce"   then @play(_is, ->)
+          when "runonce"   then @play(animationId, ->)
           when "never"     then ;
           when "bind"      then ;
           when "yen-e"
@@ -56,7 +56,6 @@ class Surface
     @render()
 
   destructor: ->
-    console.log "destructed!"
     SurfaceUtil.clear(@element)
     $(@element).off() # g.c.
     @destructed = true
@@ -93,7 +92,22 @@ class Surface
       .map((pattern)=>
         =>
           new Promise (resolve, reject)=>
-            {surface, wait} = pattern
+            {surface, wait, type} = pattern
+            if /^alternativestart\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)
+              [__, match] = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type)
+              arr = match.split(/[\,\.]/)
+              if arr.length > 0
+                animId = Number(SurfaceUtil.choice(arr))
+                @play animId, -> resolve()
+                return
+            if /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)
+              [__, match] = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type)
+              arr = match.split(/[\,\.]/)
+              if arr.length > 0
+                animId = Number(SurfaceUtil.choice(arr))
+                @stop(animId)
+                resolve()
+                return
             @layers[anim.is] = pattern
             @render()
             # ex. 100-200 ms wait

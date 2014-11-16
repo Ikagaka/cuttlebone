@@ -8,6 +8,8 @@ class SurfaceUtil
   composeElements: (elements)->
     if elements.length is 0 then return
     {canvas, type, x, y} = elements[0]
+    x = Number(x)
+    y = Number(y)
     offsetX = offsetY = 0
     switch type
       when "base"        then @overlayfast(canvas, offsetX,     offsetY)
@@ -47,6 +49,8 @@ class SurfaceUtil
     @cnv.height = cnv.height
     @overlayfast(cnv, 0, 0)
     undefined
+
+  @choice = (ary)-> ary[Math.round(Math.random()*(ary.length-1))]
 
   @clear = (cnv)->
     cnv.width = cnv.width

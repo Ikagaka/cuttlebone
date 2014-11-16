@@ -88,7 +88,6 @@ declare class Shell {
 
 
 declare module Shell {
-  function choice<T>(arr: T[]): T; // unstable
   function createBases(surfaces: Surfaces): Surfaces; // unstable
   function loadSurfaces(surfaces: Surfaces, callback: (error: any, surfaces: Surfaces) => void ): void; // unstable
   function loadElements(surfaces: Surfaces, directory: JSZipDirectory, callback: (error: any, surfaces: Surfaces) => void ): void; // unstable

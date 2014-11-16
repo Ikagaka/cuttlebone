@@ -2,7 +2,7 @@
 var Shell;
 
 Shell = (function() {
-  var $, Nar, Promise, Surface, SurfacesTxt2Yaml, URL, _;
+  var $, Nar, Promise, Surface, SurfaceUtil, SurfacesTxt2Yaml, URL, _;
 
   _ = window["_"];
 
@@ -13,6 +13,8 @@ Shell = (function() {
   Promise = window["Promise"];
 
   Surface = window["Surface"];
+
+  SurfaceUtil = window["SurfaceUtil"];
 
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"];
 
@@ -56,7 +58,7 @@ Shell = (function() {
     var hits, srfs, type, _ref, _ref1, _surfaceId;
     type = scopeId === 0 ? "sakura" : "kero";
     if (Array.isArray((_ref = this.surfaces.aliases) != null ? (_ref1 = _ref[type]) != null ? _ref1[surfaceId] : void 0 : void 0)) {
-      _surfaceId = Number(Shell.choice(this.surfaces.aliases[type][surfaceId]));
+      _surfaceId = Number(SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]));
     } else {
       _surfaceId = surfaceId;
     }
@@ -68,10 +70,6 @@ Shell = (function() {
       return null;
     }
     return new Surface(canvas, scopeId, hits[0], this.surfaces);
-  };
-
-  Shell.choice = function(ary) {
-    return ary[Math.round(Math.random() * (ary.length - 1))];
   };
 
   Shell.createBases = function(surfaces) {
