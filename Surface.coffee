@@ -93,6 +93,14 @@ class Surface
         =>
           new Promise (resolve, reject)=>
             {surface, wait, type} = pattern
+            if /^start\,\d+/.test(type)
+              animId = Number(type.split(",")[1])
+              @play animId, -> resolve()
+              return
+            if /^stop\,\d+/.test(type)
+              animId = Number(type.split(",")[1])
+              @stop animId, -> resolve()
+              return
             if /^alternativestart\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)
               [__, match] = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type)
               arr = match.split(/[\,\.]/)
