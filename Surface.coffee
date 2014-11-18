@@ -1,6 +1,7 @@
 
 
 class Surface
+
   $ = window["Zepto"]
   _ = window["_"]
   Promise = window["Promise"]
@@ -11,8 +12,8 @@ class Surface
     @regions = srf.regions || {}
     @animations = srf.animations || {}
     @bufferCanvas = SurfaceUtil.copy(@baseSurface)
-    @stopFlags = []
-    @layers = []
+    @stopFlags = {}
+    @layers = {}
     @destructed = false
     @talkCount = 0
     $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
@@ -59,24 +60,31 @@ class Surface
     SurfaceUtil.clear(@element)
     $(@element).off() # g.c.
     @destructed = true
-    @layers = []
+    @layers = {}
     undefined
 
   render: ->
     srfs = @surfaces.surfaces
-    elements = @layers.reduce(((arr, layer)=>
-      if !layer then return arr
-      {surface, type, x, y} = layer
-      if surface is "-1" then return arr
-      hits = Object
-        .keys(srfs)
-        .filter((name)-> srfs[name].is is surface)
-      if hits.length is 0 then return arr
-      arr.concat({type, x, y, canvas: srfs[hits[hits.length-1]].baseSurface})
-    ), [])
+    patterns = Object
+      .keys(@layers)
+      .sort((layerNumA, layerNumB)-> if Number(layerNumA) > Number(layerNumB) then 1 else -1)
+      .map((key)=> @layers[key])
+      .reduce(((arr, pat)=>
+        {surface, type, x, y} = pat
+        if surface is "-1" then return arr
+        hits = Object.keys(srfs)
+          .filter((key)-> srfs[key].is is surface)
+        if hits.length is 0 then return arr
+        arr.concat({
+          type: type,
+          x: Number(x),
+          y: Number(y),
+          canvas: srfs[hits[hits.length-1]].baseSurface
+        })
+      ), [])
     SurfaceUtil.clear(@bufferCanvas)
     util = new SurfaceUtil(@bufferCanvas)
-    util.composeElements([{"type": "base", "canvas": @baseSurface}].concat(elements))
+    util.composeElements([{"type": "base", "canvas": @baseSurface}].concat(patterns))
     SurfaceUtil.clear(@element)
     util2 = new SurfaceUtil(@element)
     util2.init(@bufferCanvas)

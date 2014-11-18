@@ -53,13 +53,19 @@ class Shell
       if !srfs[name].elements
         srfs[name].baseSurface = cnv
       else
-        sortedElm = Object
-          .keys(srfs[name].elements)
-          .sort((a, b)-> if a.is > b.is then 1 else -1)
-          .map (key)-> srfs[name].elements[key]
-        baseSurface = sortedElm[0].canvas || srfs[name].baseSurface
+        elms = srfs[name].elements
+        sortedElms = Object
+          .keys(elms)
+          .map((key)->
+            is: Number(elms[key].is)
+            x:  Number(elms[key].x)
+            y: Number(elms[key].y)
+            canvas: elms[key].canvas
+            type: elms[key].type)
+          .sort((elmA, elmB)-> if elmA.is > elmB.is then 1 else -1)
+        baseSurface = sortedElms[0].canvas || srfs[name].baseSurface
         srfutil = new SurfaceUtil(baseSurface)
-        srfutil.composeElements(sortedElm)
+        srfutil.composeElements(sortedElms)
         srfs[name].baseSurface = baseSurface
     surfaces
 

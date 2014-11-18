@@ -76,24 +76,31 @@ Shell = (function() {
     var srfs;
     srfs = surfaces.surfaces;
     Object.keys(srfs).forEach(function(name) {
-      var baseSurface, cnv, sortedElm, srfutil;
+      var baseSurface, cnv, elms, sortedElms, srfutil;
       srfs[name].is = srfs[name].is;
       cnv = srfs[name].baseSurface;
       if (!srfs[name].elements) {
         return srfs[name].baseSurface = cnv;
       } else {
-        sortedElm = Object.keys(srfs[name].elements).sort(function(a, b) {
-          if (a.is > b.is) {
+        elms = srfs[name].elements;
+        sortedElms = Object.keys(elms).map(function(key) {
+          return {
+            is: Number(elms[key].is),
+            x: Number(elms[key].x),
+            y: Number(elms[key].y),
+            canvas: elms[key].canvas,
+            type: elms[key].type
+          };
+        }).sort(function(elmA, elmB) {
+          if (elmA.is > elmB.is) {
             return 1;
           } else {
             return -1;
           }
-        }).map(function(key) {
-          return srfs[name].elements[key];
         });
-        baseSurface = sortedElm[0].canvas || srfs[name].baseSurface;
+        baseSurface = sortedElms[0].canvas || srfs[name].baseSurface;
         srfutil = new SurfaceUtil(baseSurface);
-        srfutil.composeElements(sortedElm);
+        srfutil.composeElements(sortedElms);
         return srfs[name].baseSurface = baseSurface;
       }
     });

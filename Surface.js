@@ -21,8 +21,8 @@ Surface = (function() {
     this.regions = srf.regions || {};
     this.animations = srf.animations || {};
     this.bufferCanvas = SurfaceUtil.copy(this.baseSurface);
-    this.stopFlags = [];
-    this.layers = [];
+    this.stopFlags = {};
+    this.layers = {};
     this.destructed = false;
     this.talkCount = 0;
     $(this.element).on("click", (function(_this) {
@@ -145,33 +145,40 @@ Surface = (function() {
     SurfaceUtil.clear(this.element);
     $(this.element).off();
     this.destructed = true;
-    this.layers = [];
+    this.layers = {};
     return void 0;
   };
 
   Surface.prototype.render = function() {
-    var elements, srfs, util, util2;
+    var patterns, srfs, util, util2;
     srfs = this.surfaces.surfaces;
-    elements = this.layers.reduce(((function(_this) {
-      return function(arr, layer) {
+    patterns = Object.keys(this.layers).sort(function(layerNumA, layerNumB) {
+      if (Number(layerNumA) > Number(layerNumB)) {
+        return 1;
+      } else {
+        return -1;
+      }
+    }).map((function(_this) {
+      return function(key) {
+        return _this.layers[key];
+      };
+    })(this)).reduce(((function(_this) {
+      return function(arr, pat) {
         var hits, surface, type, x, y;
-        if (!layer) {
-          return arr;
-        }
-        surface = layer.surface, type = layer.type, x = layer.x, y = layer.y;
+        surface = pat.surface, type = pat.type, x = pat.x, y = pat.y;
         if (surface === "-1") {
           return arr;
         }
-        hits = Object.keys(srfs).filter(function(name) {
-          return srfs[name].is === surface;
+        hits = Object.keys(srfs).filter(function(key) {
+          return srfs[key].is === surface;
         });
         if (hits.length === 0) {
           return arr;
         }
         return arr.concat({
           type: type,
-          x: x,
-          y: y,
+          x: Number(x),
+          y: Number(y),
           canvas: srfs[hits[hits.length - 1]].baseSurface
         });
       };
@@ -183,7 +190,7 @@ Surface = (function() {
         "type": "base",
         "canvas": this.baseSurface
       }
-    ].concat(elements));
+    ].concat(patterns));
     SurfaceUtil.clear(this.element);
     util2 = new SurfaceUtil(this.element);
     util2.init(this.bufferCanvas);
