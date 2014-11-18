@@ -1,6 +1,6 @@
 
 declare class Surface {
-  constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceName: string, surfaces: Surfaces); // unstable
+  constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceName: string, surfaces: Surfaces, callback?: () => void); // unstable
   destructor(): void; // stable
   render(): void; // unstable
   play(animationId: number, callback?: () => void): void; // unstable

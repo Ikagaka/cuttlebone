@@ -30,7 +30,7 @@ class Shell
         @surfaces = Shell.createBases(loadedElmSurfaces)
         callback(null)
 
-  attachSurface: (canvas, scopeId, surfaceId)->
+  attachSurface: (canvas, scopeId, surfaceId, callback=->)->
     type = if scopeId is 0 then "sakura" else "kero"
     if Array.isArray(@surfaces.aliases?[type]?[surfaceId])
     then _surfaceId = Number(SurfaceUtil.choice(@surfaces.aliases[type][surfaceId]))
@@ -41,7 +41,7 @@ class Shell
       .filter((name)-> Number(srfs[name].is) is _surfaceId)
     if hits.length is 0
     then return null
-    new Surface(canvas, scopeId, hits[0], @surfaces)
+    new Surface(canvas, scopeId, hits[0], @surfaces, callback)
 
 
 

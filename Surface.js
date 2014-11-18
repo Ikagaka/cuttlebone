@@ -10,12 +10,15 @@ Surface = (function() {
 
   Promise = window["Promise"];
 
-  function Surface(element, scopeId, surfaceName, surfaces) {
+  function Surface(element, scopeId, surfaceName, surfaces, callback) {
     var srf;
     this.element = element;
     this.scopeId = scopeId;
     this.surfaceName = surfaceName;
     this.surfaces = surfaces;
+    if (callback == null) {
+      callback = function() {};
+    }
     srf = this.surfaces.surfaces[surfaceName];
     this.baseSurface = srf.baseSurface;
     this.regions = srf.regions || {};
@@ -111,7 +114,7 @@ Surface = (function() {
               }
             });
           case "runonce":
-            return _this.play(animationId, function() {});
+            return _this.play(animationId, callback);
           case "never":
             break;
           case "bind":

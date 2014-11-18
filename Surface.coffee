@@ -6,7 +6,7 @@ class Surface
   _ = window["_"]
   Promise = window["Promise"]
 
-  constructor: (@element, @scopeId, @surfaceName, @surfaces)->
+  constructor: (@element, @scopeId, @surfaceName, @surfaces, callback=->)->
     srf = @surfaces.surfaces[surfaceName]
     @baseSurface = srf.baseSurface
     @regions = srf.regions || {}
@@ -38,7 +38,7 @@ class Surface
           when "random"    then Surface.random   ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
           when "periodic"  then Surface.periodic ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
           when "always"    then Surface.always    (callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)
-          when "runonce"   then @play(animationId, ->)
+          when "runonce"   then @play(animationId, callback)
           when "never"     then ;
           when "bind"      then ;
           when "yen-e"
