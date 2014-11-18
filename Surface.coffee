@@ -209,7 +209,7 @@ class Surface
     callback -> Surface.always(callback)
 
   @isHit = (canvas, x, y)->
-    ctx = canvas.getContext "2d"
-    imgdata = ctx.getImageData(0, 0, x, y)
+    ctx = canvas.getContext("2d")
+    imgdata = ctx.getImageData(0, 0, x+1, y+1)
     data = imgdata.data
     data[data.length-1] isnt 0

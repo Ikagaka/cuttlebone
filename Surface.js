@@ -406,7 +406,7 @@ Surface = (function() {
   Surface.isHit = function(canvas, x, y) {
     var ctx, data, imgdata;
     ctx = canvas.getContext("2d");
-    imgdata = ctx.getImageData(0, 0, x, y);
+    imgdata = ctx.getImageData(0, 0, x + 1, y + 1);
     data = imgdata.data;
     return data[data.length - 1] !== 0;
   };
