@@ -38,7 +38,7 @@ Surface = (function() {
     })(this));
     $(this.element).on("dblclick", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnDoubleMouseClick", function($ev) {
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDoubleClick", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };

@@ -18,7 +18,7 @@ class Surface
     @talkCount = 0
     @talkCounts = {}
     $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
-    $(@element).on "dblclick",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnDoubleMouseClick", ($ev)=> $(@element).trigger($ev))
+    $(@element).on "dblclick",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDoubleClick", ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousedown", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mouseup",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
