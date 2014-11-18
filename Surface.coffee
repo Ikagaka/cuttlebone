@@ -15,6 +15,8 @@ class Surface
     @stopFlags = {}
     @layers = {}
     @destructed = false
+    @talkCount = 0
+    @talkCounts = {}
     $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
     $(@element).on "dblclick",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnDoubleMouseClick", ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
@@ -39,16 +41,8 @@ class Surface
           when "runonce"   then @play(animationId, callback)
           when "never"     then ;
           when "bind"      then ;
-          when "yen-e"
-            $(@element).on "IkagakaYenEEvent", (ev)=>
-              if !@destructed and !@stopFlags[animationId]
-              then @play(animationId)
-          when "talk"
-            talkCount = 0
-            $(@element).on "IkagakaTalkEvent", (ev)=>
-              talkCount++
-              if !@destructed and !@stopFlags[animationId] and talkCount % n is 0
-              then @play(animationId)
+          when "yen-e"     then ;
+          when "talk"      then @talkCounts[name] = n;
           else
             if /^bind(?:\+(\d+))/.test(interval) then ;
             console.error(@animations[name])
@@ -61,11 +55,22 @@ class Surface
     @layers = {}
     undefined
 
-  talk: ->
+  YenE: ->
     Object
       .keys(@animations)
-      .filter((name)=> @animations[name].interval is "talk")
+      .filter((name)=>
+        @animations[name].interval is "yen-e" and
+        @talkCount % @talkCounts[name] is 0)
       .forEach (name)=> @play(Number(@animations[name].is))
+
+  talk: ->
+    @talkCount++
+    Object.keys(@animations)
+      .filter((name)=>
+        /^talk/.test(@animations[name].interval) and
+        @talkCount % @talkCounts[name] is 0)
+      .forEach (name)=> @play(Number(@animations[name].is))
+
 
   render: ->
     srfs = @surfaces.surfaces

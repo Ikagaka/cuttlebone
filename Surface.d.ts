@@ -4,6 +4,7 @@ declare class Surface {
   destructor(): void; // stable
   render(): void; // unstable
   talk(): void; // unstable
+  YenE(): void; // unstable
   play(animationId: number, callback?: () => void): void; // unstable
   stop(animationId: number): void; // unstable
   bind(animationId: number): void; // unstable
@@ -13,6 +14,7 @@ declare class Surface {
   baseSurface: HTMLCanvasElement; // unstable
   bufferCanvas: HTMLCanvasElement; // unstable
   stopFlags: { [is: number]: boolean; }; // unstable
+  talkCount: number; // unstable
   layers: { [is: number]: {
     type: string;
     surface: string;

@@ -27,6 +27,8 @@ Surface = (function() {
     this.stopFlags = {};
     this.layers = {};
     this.destructed = false;
+    this.talkCount = 0;
+    this.talkCounts = {};
     $(this.element).on("click", (function(_this) {
       return function(ev) {
         return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
@@ -64,7 +66,7 @@ Surface = (function() {
     })(this));
     Object.keys(this.animations).forEach((function(_this) {
       return function(name) {
-        var animationId, interval, n, pattern, talkCount, tmp, _is, _ref;
+        var animationId, interval, n, pattern, tmp, _is, _ref;
         _ref = _this.animations[name], _is = _ref.is, interval = _ref.interval, pattern = _ref.pattern;
         animationId = Number(_is);
         interval = interval || "";
@@ -109,19 +111,9 @@ Surface = (function() {
           case "bind":
             break;
           case "yen-e":
-            return $(_this.element).on("IkagakaYenEEvent", function(ev) {
-              if (!_this.destructed && !_this.stopFlags[animationId]) {
-                return _this.play(animationId);
-              }
-            });
+            break;
           case "talk":
-            talkCount = 0;
-            return $(_this.element).on("IkagakaTalkEvent", function(ev) {
-              talkCount++;
-              if (!_this.destructed && !_this.stopFlags[animationId] && talkCount % n === 0) {
-                return _this.play(animationId);
-              }
-            });
+            return _this.talkCounts[name] = n;
           default:
             if (/^bind(?:\+(\d+))/.test(interval)) {
 
@@ -141,10 +133,23 @@ Surface = (function() {
     return void 0;
   };
 
-  Surface.prototype.talk = function() {
+  Surface.prototype.YenE = function() {
     return Object.keys(this.animations).filter((function(_this) {
       return function(name) {
-        return _this.animations[name].interval === "talk";
+        return _this.animations[name].interval === "yen-e" && _this.talkCount % _this.talkCounts[name] === 0;
+      };
+    })(this)).forEach((function(_this) {
+      return function(name) {
+        return _this.play(Number(_this.animations[name].is));
+      };
+    })(this));
+  };
+
+  Surface.prototype.talk = function() {
+    this.talkCount++;
+    return Object.keys(this.animations).filter((function(_this) {
+      return function(name) {
+        return /^talk/.test(_this.animations[name].interval) && _this.talkCount % _this.talkCounts[name] === 0;
       };
     })(this)).forEach((function(_this) {
       return function(name) {

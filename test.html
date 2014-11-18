@@ -62,7 +62,13 @@ function loadHandler(nar, err){
 
     var surface;
 
-    changeSurface(21);
+    changeSurface(0);
+
+    setInterval(function(){
+      if(surface != null){
+        surface.talk();
+      }
+    }, 100);
 
     function changeSurface(n){
       if(surface != null){
