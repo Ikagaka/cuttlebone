@@ -3,6 +3,7 @@ declare class Surface {
   constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceName: string, surfaces: Surfaces, callback?: () => void); // unstable
   destructor(): void; // stable
   render(): void; // unstable
+  talk(): void; // unstable
   play(animationId: number, callback?: () => void): void; // unstable
   stop(animationId: number): void; // unstable
   bind(animationId: number): void; // unstable
@@ -20,7 +21,6 @@ declare class Surface {
     y: string;
   }; }; // unstable
   destructed: boolean; // unstable
-  talkCount: number; // unstable
   regions: {
     [key: string]: {
       is: string;

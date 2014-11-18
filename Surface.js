@@ -27,7 +27,6 @@ Surface = (function() {
     this.stopFlags = {};
     this.layers = {};
     this.destructed = false;
-    this.talkCount = 0;
     $(this.element).on("click", (function(_this) {
       return function(ev) {
         return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
@@ -60,16 +59,6 @@ Surface = (function() {
       return function(ev) {
         return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseUp", function($ev) {
           return $(_this.element).trigger($ev);
-        });
-      };
-    })(this));
-    $(this.element).on("IkagakaTalkEvent", (function(_this) {
-      return function(ev) {
-        _this.talkCount++;
-        return Object.keys(_this.animations).filter(function(name) {
-          return _this.animations[name].interval === "talk";
-        }).forEach(function(name) {
-          return _this.play(Number(_this.animations[name].is));
         });
       };
     })(this));
@@ -150,6 +139,18 @@ Surface = (function() {
     this.destructed = true;
     this.layers = {};
     return void 0;
+  };
+
+  Surface.prototype.talk = function() {
+    return Object.keys(this.animations).filter((function(_this) {
+      return function(name) {
+        return _this.animations[name].interval === "talk";
+      };
+    })(this)).forEach((function(_this) {
+      return function(name) {
+        return _this.play(Number(_this.animations[name].is));
+      };
+    })(this));
   };
 
   Surface.prototype.render = function() {
