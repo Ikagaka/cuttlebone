@@ -2,7 +2,7 @@
 
 class Surface
 
-  $ = window["Zepto"]
+  $ = window["jQuery"]
   _ = window["_"]
   Promise = window["Promise"]
 
@@ -19,9 +19,18 @@ class Surface
     @talkCounts = {}
     $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
     $(@element).on "dblclick",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDoubleClick", ($ev)=> $(@element).trigger($ev))
-    $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousedown", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mouseup",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
+    $(@element).on "touchmove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
+    $(@element).on "touchend",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
+    $(@element).on "touchstart", do =>
+      touchOnce = false
+      (ev)=>
+        touchOnce = !touchOnce
+        if touchOnce
+          Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown", ($ev)=> $(@element).trigger($ev))
+          setTimeout((-> touchOnce = false), 500)
 
     Object
       .keys(@animations)
@@ -174,8 +183,12 @@ class Surface
 
   @processMouseEvent = (ev, scopeId, regions, eventName, callback)->
     {left, top} = $(ev.target).offset()
-    offsetX = ev.pageX - left
-    offsetY = ev.pageY - top
+    if /^touch/.test(ev.type)
+      offsetX = ev.originalEvent.changedTouches[0].pageX - left
+      offsetY = ev.originalEvent.changedTouches[0].pageY - top
+    else
+      offsetX = ev.pageX - left
+      offsetY = ev.pageY - top
     $(ev.target).css({"cursor": "default"})
     if Surface.isHit(ev.target, offsetX, offsetY)
       ev.preventDefault()

@@ -1,6 +1,6 @@
 {
   "name": "ikagaka.shell.js",
-  "version": "2.2.5",
+  "version": "2.3.0",
   "description": "",
   "url": "https://github.com/ikagaka/Shell.js",
   "keywords": [
@@ -17,7 +17,8 @@
     "ikagaka.nar.js": "",
     "surfaces_txt2yaml": "",
     "underscore": "",
-    "zepto": ""
+    "jquery": "",
+    "es6-shim": ""
   },
   "devDependencies": {
   },

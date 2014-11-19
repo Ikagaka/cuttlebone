@@ -3,12 +3,12 @@
 class Shell
 
   _ = window["_"]
-  $ = window["Zepto"]
+  $ = window["jQuery"]
   Nar = window["Nar"]
-  Promise = window["Promise"]
   Surface = window["Surface"]
   SurfaceUtil = window["SurfaceUtil"]
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
+  Promise = window["Promise"]
   URL = window["URL"]
 
   constructor: (directory)->

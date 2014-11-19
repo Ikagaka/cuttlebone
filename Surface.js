@@ -4,7 +4,7 @@ var Surface;
 Surface = (function() {
   var $, Promise, _;
 
-  $ = window["Zepto"];
+  $ = window["jQuery"];
 
   _ = window["_"];
 
@@ -43,16 +43,16 @@ Surface = (function() {
         });
       };
     })(this));
-    $(this.element).on("mousemove", (function(_this) {
+    $(this.element).on("mousedown", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseMove", function($ev) {
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDown", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
-    $(this.element).on("mousedown", (function(_this) {
+    $(this.element).on("mousemove", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDown", function($ev) {
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseMove", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
@@ -64,6 +64,37 @@ Surface = (function() {
         });
       };
     })(this));
+    $(this.element).on("touchmove", (function(_this) {
+      return function(ev) {
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseMove", function($ev) {
+          return $(_this.element).trigger($ev);
+        });
+      };
+    })(this));
+    $(this.element).on("touchend", (function(_this) {
+      return function(ev) {
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseUp", function($ev) {
+          return $(_this.element).trigger($ev);
+        });
+      };
+    })(this));
+    $(this.element).on("touchstart", (function(_this) {
+      return function() {
+        var touchOnce;
+        touchOnce = false;
+        return function(ev) {
+          touchOnce = !touchOnce;
+          if (touchOnce) {
+            Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDown", function($ev) {
+              return $(_this.element).trigger($ev);
+            });
+            return setTimeout((function() {
+              return touchOnce = false;
+            }), 500);
+          }
+        };
+      };
+    })(this)());
     Object.keys(this.animations).forEach((function(_this) {
       return function(name) {
         var animationId, interval, n, pattern, tmp, _is, _ref;
@@ -332,8 +363,13 @@ Surface = (function() {
   Surface.processMouseEvent = function(ev, scopeId, regions, eventName, callback) {
     var detail, left, offsetX, offsetY, top, _ref;
     _ref = $(ev.target).offset(), left = _ref.left, top = _ref.top;
-    offsetX = ev.pageX - left;
-    offsetY = ev.pageY - top;
+    if (/^touch/.test(ev.type)) {
+      offsetX = ev.originalEvent.changedTouches[0].pageX - left;
+      offsetY = ev.originalEvent.changedTouches[0].pageY - top;
+    } else {
+      offsetX = ev.pageX - left;
+      offsetY = ev.pageY - top;
+    }
     $(ev.target).css({
       "cursor": "default"
     });
