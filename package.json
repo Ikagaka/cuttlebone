@@ -1,7 +1,7 @@
 {
   "name": "ikagaka.shell.js",
-  "version": "2.3.0",
-  "description": "",
+  "version": "2.3.1",
+  "description": "Ukagaka SERIKO2.0 Surface Player",
   "url": "https://github.com/ikagaka/Shell.js",
   "keywords": [
     "nar",
@@ -9,6 +9,9 @@
     "unstable",
     "ukagaka"
   ],
+  "scripts": {
+    "watch": "coffee -cwb ./*.coffee"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/ikagaka/Shell.js"
