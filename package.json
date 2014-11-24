@@ -1,6 +1,6 @@
 {
   "name": "ikagaka.shell.js",
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "Ukagaka SERIKO2.0 Surface Player",
   "url": "https://github.com/ikagaka/Shell.js",
   "keywords": [
@@ -10,8 +10,8 @@
     "ukagaka"
   ],
   "scripts": {
-    "watch": "node node_modules/uupaa.watch.js --verbose --action browserify ./*.coffee",
-    "browserify": "coffee -cb ./*.coffee; browserify --standalone Shell Shell.js > Shell.browserify.js"
+    "watch": "node node_modules/uupaa.watch.js --verbose --action build ./*.coffee",
+    "build": "coffee -cb ./*.coffee"
   },
   "repository": {
     "type": "git",
