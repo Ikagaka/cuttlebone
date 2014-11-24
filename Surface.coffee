@@ -4,6 +4,9 @@ class Surface
 
   $ = window["jQuery"]
   _ = window["_"]
+
+  SurfaceUtil = window["SurfaceUtil"] || require("./SurfaceUtil.js")
+
   Promise = window["Promise"]
 
   constructor: (@element, @scopeId, @surfaceName, @surfaces, callback=->)->
@@ -238,3 +241,9 @@ class Surface
     imgdata = ctx.getImageData(0, 0, x+1, y+1)
     data = imgdata.data
     data[data.length-1] isnt 0
+
+if module?.exports?
+  module.exports = Surface
+
+if window["Ikagaka"]?
+  window["Ikagaka"]["Surface"] = Surface

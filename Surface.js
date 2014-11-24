@@ -2,11 +2,13 @@
 var Surface;
 
 Surface = (function() {
-  var $, Promise, _;
+  var $, Promise, SurfaceUtil, _;
 
   $ = window["jQuery"];
 
   _ = window["_"];
+
+  SurfaceUtil = window["SurfaceUtil"] || require("./SurfaceUtil.js");
 
   Promise = window["Promise"];
 
@@ -469,3 +471,11 @@ Surface = (function() {
   return Surface;
 
 })();
+
+if ((typeof module !== "undefined" && module !== null ? module.exports : void 0) != null) {
+  module.exports = Surface;
+}
+
+if (window["Ikagaka"] != null) {
+  window["Ikagaka"]["Surface"] = Surface;
+}

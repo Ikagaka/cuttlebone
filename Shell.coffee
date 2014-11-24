@@ -4,10 +4,12 @@ class Shell
 
   _ = window["_"]
   $ = window["jQuery"]
-  Nar = window["Nar"]
-  Surface = window["Surface"]
-  SurfaceUtil = window["SurfaceUtil"]
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
+
+  Nar = window["Nar"] || require("ikagaka.nar.js")
+  Surface = window["Surface"] || require("./Surface.js")
+  SurfaceUtil = window["SurfaceUtil"] || require("./SurfaceUtil.js")
+
   Promise = window["Promise"]
   URL = window["URL"]
 
@@ -143,3 +145,9 @@ class Shell
         obj
       ), {})
     data
+
+if module?.exports?
+  module.exports = Shell
+
+if window["Ikagaka"]?
+  Ikagaka["Shell"] = Shell
