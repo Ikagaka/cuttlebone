@@ -2,7 +2,7 @@
 var Shell;
 
 Shell = (function() {
-  var $, Nar, Promise, Surface, SurfaceUtil, SurfacesTxt2Yaml, URL, _;
+  var $, Nar, Promise, Surface, SurfaceUtil, SurfacesTxt2Yaml, URL, _, _ref, _ref1, _ref2;
 
   _ = window["_"];
 
@@ -10,11 +10,11 @@ Shell = (function() {
 
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"];
 
-  Nar = window["Nar"] || require("ikagaka.nar.js");
+  Nar = window["Nar"] || ((_ref = window["Ikagaka"]) != null ? _ref["Nar"] : void 0) || require("ikagaka.nar.js");
 
-  Surface = window["Surface"] || require("./Surface.js");
+  Surface = window["Surface"] || ((_ref1 = window["Ikagaka"]) != null ? _ref1["Surface"] : void 0) || require("./Surface.js");
 
-  SurfaceUtil = window["SurfaceUtil"] || require("./SurfaceUtil.js");
+  SurfaceUtil = window["SurfaceUtil"] || ((_ref2 = window["Ikagaka"]) != null ? _ref2["SurfaceUtil"] : void 0) || require("./SurfaceUtil.js");
 
   Promise = window["Promise"];
 
@@ -55,12 +55,12 @@ Shell = (function() {
   };
 
   Shell.prototype.attachSurface = function(canvas, scopeId, surfaceId, callback) {
-    var hits, srfs, type, _ref, _ref1, _surfaceId;
+    var hits, srfs, type, _ref3, _ref4, _surfaceId;
     if (callback == null) {
       callback = function() {};
     }
     type = scopeId === 0 ? "sakura" : "kero";
-    if (Array.isArray((_ref = this.surfaces.aliases) != null ? (_ref1 = _ref[type]) != null ? _ref1[surfaceId] : void 0 : void 0)) {
+    if (Array.isArray((_ref3 = this.surfaces.aliases) != null ? (_ref4 = _ref3[type]) != null ? _ref4[surfaceId] : void 0 : void 0)) {
       _surfaceId = Number(SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]));
     } else {
       _surfaceId = surfaceId;
@@ -234,5 +234,5 @@ if ((typeof module !== "undefined" && module !== null ? module.exports : void 0)
 }
 
 if (window["Ikagaka"] != null) {
-  Ikagaka["Shell"] = Shell;
+  window["Ikagaka"]["Shell"] = Shell;
 }

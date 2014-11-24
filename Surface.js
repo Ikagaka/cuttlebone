@@ -2,13 +2,13 @@
 var Surface;
 
 Surface = (function() {
-  var $, Promise, SurfaceUtil, _;
+  var $, Promise, SurfaceUtil, _, _ref;
 
   $ = window["jQuery"];
 
   _ = window["_"];
 
-  SurfaceUtil = window["SurfaceUtil"] || require("./SurfaceUtil.js");
+  SurfaceUtil = window["SurfaceUtil"] || ((_ref = window["Ikagaka"]) != null ? _ref["SurfaceUtil"] : void 0) || require("./SurfaceUtil.js");
 
   Promise = window["Promise"];
 
@@ -106,8 +106,8 @@ Surface = (function() {
     })(this)());
     Object.keys(this.animations).forEach((function(_this) {
       return function(name) {
-        var animationId, interval, n, pattern, tmp, _is, _ref;
-        _ref = _this.animations[name], _is = _ref.is, interval = _ref.interval, pattern = _ref.pattern;
+        var animationId, interval, n, pattern, tmp, _is, _ref1;
+        _ref1 = _this.animations[name], _is = _ref1.is, interval = _ref1.interval, pattern = _ref1.pattern;
         animationId = Number(_is);
         interval = interval || "";
         tmp = interval.split(",");
@@ -265,7 +265,7 @@ Surface = (function() {
       return function(pattern) {
         return function() {
           return new Promise(function(resolve, reject) {
-            var a, animId, arr, b, match, surface, type, wait, __, _ref, _ref1, _ref2;
+            var a, animId, arr, b, match, surface, type, wait, __, _ref1, _ref2, _ref3;
             surface = pattern.surface, wait = pattern.wait, type = pattern.type;
             if (/^start\,\d+/.test(type)) {
               animId = Number(type.split(",")[1]);
@@ -282,7 +282,7 @@ Surface = (function() {
               return;
             }
             if (/^alternativestart\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)) {
-              _ref = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref[0], match = _ref[1];
+              _ref1 = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref1[0], match = _ref1[1];
               arr = match.split(/[\,\.]/);
               if (arr.length > 0) {
                 animId = Number(SurfaceUtil.choice(arr));
@@ -293,7 +293,7 @@ Surface = (function() {
               }
             }
             if (/^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)) {
-              _ref1 = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref1[0], match = _ref1[1];
+              _ref2 = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref2[0], match = _ref2[1];
               arr = match.split(/[\,\.]/);
               if (arr.length > 0) {
                 animId = Number(SurfaceUtil.choice(arr));
@@ -304,7 +304,7 @@ Surface = (function() {
             }
             _this.layers[anim.is] = pattern;
             _this.render();
-            _ref2 = /(\d+)(?:\-(\d+))?/.exec(wait), __ = _ref2[0], a = _ref2[1], b = _ref2[2];
+            _ref3 = /(\d+)(?:\-(\d+))?/.exec(wait), __ = _ref3[0], a = _ref3[1], b = _ref3[2];
             if (b != null) {
               wait = _.random(Number(a), Number(b));
             }
@@ -370,8 +370,8 @@ Surface = (function() {
   };
 
   Surface.processMouseEvent = function(ev, scopeId, regions, eventName, callback) {
-    var detail, left, offsetX, offsetY, top, _ref;
-    _ref = $(ev.target).offset(), left = _ref.left, top = _ref.top;
+    var detail, left, offsetX, offsetY, top, _ref1;
+    _ref1 = $(ev.target).offset(), left = _ref1.left, top = _ref1.top;
     if (/^touch/.test(ev.type)) {
       offsetX = ev.originalEvent.changedTouches[0].pageX - left;
       offsetY = ev.originalEvent.changedTouches[0].pageY - top;
@@ -423,8 +423,8 @@ Surface = (function() {
         return -1;
       }
     }).filter(function(name) {
-      var bottom, left, right, top, _ref;
-      _ref = regions[name], name = _ref.name, left = _ref.left, top = _ref.top, right = _ref.right, bottom = _ref.bottom;
+      var bottom, left, right, top, _ref1;
+      _ref1 = regions[name], name = _ref1.name, left = _ref1.left, top = _ref1.top, right = _ref1.right, bottom = _ref1.bottom;
       return ((left < offsetX && offsetX < right) && (top < offsetY && offsetY < bottom)) || ((right < offsetX && offsetX < left) && (bottom < offsetY && offsetY < top));
     });
     if (hits.length !== 0) {

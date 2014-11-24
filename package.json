@@ -1,6 +1,6 @@
 {
   "name": "ikagaka.shell.js",
-  "version": "2.3.5",
+  "version": "2.3.7",
   "description": "Ukagaka SERIKO2.0 Surface Player",
   "url": "https://github.com/ikagaka/Shell.js",
   "keywords": [
@@ -10,7 +10,7 @@
     "ukagaka"
   ],
   "scripts": {
-    "watch": "node node_modules/uupaa.watch.js --verbose --action build ./*.coffee",
+    "watch": "coffee -cbw ./*.coffee",
     "build": "coffee -cb ./*.coffee"
   },
   "repository": {
@@ -25,7 +25,6 @@
     "es6-shim": ""
   },
   "devDependencies": {
-    "uupaa.watch.js": ""
   },
   "main":           "./Shell.js",
   "author":         "duxca",

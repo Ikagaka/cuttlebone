@@ -5,7 +5,7 @@ class Surface
   $ = window["jQuery"]
   _ = window["_"]
 
-  SurfaceUtil = window["SurfaceUtil"] || require("./SurfaceUtil.js")
+  SurfaceUtil = window["SurfaceUtil"] || window["Ikagaka"]?["SurfaceUtil"] || require("./SurfaceUtil.js")
 
   Promise = window["Promise"]
 
