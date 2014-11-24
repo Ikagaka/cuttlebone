@@ -29,6 +29,13 @@ Surface = (function() {
     this.destructed = false;
     this.talkCount = 0;
     this.talkCounts = {};
+    $(this.element).on("contextmenu", (function(_this) {
+      return function(ev) {
+        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
+          return $(_this.element).trigger($ev);
+        });
+      };
+    })(this));
     $(this.element).on("click", (function(_this) {
       return function(ev) {
         return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
@@ -384,6 +391,9 @@ Surface = (function() {
         $(ev.target).css({
           "cursor": "default"
         });
+      }
+      if (ev.button === 2) {
+        detail["Reference5"] = 1;
       }
       callback($.Event('IkagakaSurfaceEvent', {
         detail: detail,

@@ -17,13 +17,14 @@ class Surface
     @destructed = false
     @talkCount = 0
     @talkCounts = {}
-    $(@element).on "click",     (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
-    $(@element).on "dblclick",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDoubleClick", ($ev)=> $(@element).trigger($ev))
-    $(@element).on "mousedown", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
-    $(@element).on "mousemove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
-    $(@element).on "mouseup",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
-    $(@element).on "touchmove", (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
-    $(@element).on "touchend",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
+    $(@element).on "contextmenu",(ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
+    $(@element).on "click",      (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
+    $(@element).on "dblclick",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDoubleClick", ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mousedown",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mousemove",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mouseup",    (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
+    $(@element).on "touchmove",  (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
+    $(@element).on "touchend",   (ev)=> Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
     $(@element).on "touchstart", do =>
       touchOnce = false
       (ev)=>
@@ -196,6 +197,8 @@ class Surface
       if !!detail["Reference4"]
       then $(ev.target).css({"cursor": "pointer"})
       else $(ev.target).css({"cursor": "default"})
+      if ev.button is 2 # right click
+      then detail["Reference5"] = 1
       callback($.Event('IkagakaSurfaceEvent', { detail, bubbles: true }))
     undefined
 

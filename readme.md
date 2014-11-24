@@ -57,10 +57,38 @@ nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
 </script>
 ```
 
+## SERIKO
+
+### Compose Method
++ base
++ overlay
++ overlayfast
++ replace
++ add
++ bind
++ interpolate
++ move
++ start
++ stop
++ alternativestart
++ alternativestop
+
+### Interval
++ sometimes
++ rarely
++ random
++ periodic
++ always
++ runonce
++ never
++ bind
++ yen-e
++ talk
+
 ## SHIORI Event
 
-+ OnMouseClick, Reference0~4
-+ OnMouseDoubleClick, Reference0~4
-+ OnMouseMove, Reference0~5
-+ OnMouseUp, Reference0~4
-+ OnMouseDown, Reference0~4
++ OnMouseClick
++ OnMouseDoubleClick
++ OnMouseMove
++ OnMouseUp
++ OnMouseDown
