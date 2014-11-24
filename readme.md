@@ -56,3 +56,11 @@ nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", functio
 });
 </script>
 ```
+
+## SHIORI Event
+
++ OnMouseClick, Reference0~4
++ OnMouseDoubleClick, Reference0~4
++ OnMouseMove, Reference0~5
++ OnMouseUp, Reference0~4
++ OnMouseDown, Reference0~4
