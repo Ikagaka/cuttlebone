@@ -2,11 +2,8 @@
 
 ![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot.png )
 
-[demo](https://ikagaka.github.io/node_modules/ikagaka.shell.js/test.html)
-
-## Usage
-
-[wiki](https://github.com/Ikagaka/Shell.js/wiki/Shell.js )
++ [demo](https://ikagaka.github.io/Shell.demo/node_modules/ikagaka.shell.js/test.html)
++ [wiki](https://github.com/Ikagaka/Shell.js/wiki/Shell.js )
 
 
 ```html
