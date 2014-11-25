@@ -25,6 +25,10 @@ $(function(){
   var nar = new Nar();
 
   nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler.bind(this, nar));
+
+  $("body").click(function(ev){
+    console.log(ev);
+  });
 });
 
 

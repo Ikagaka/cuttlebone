@@ -31,58 +31,59 @@ Surface = (function() {
     this.destructed = false;
     this.talkCount = 0;
     this.talkCounts = {};
+    this.isPointerEventsShimed = false;
     $(this.element).on("contextmenu", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseClick", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("click", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseClick", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseClick", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("dblclick", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDoubleClick", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseDoubleClick", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("mousedown", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseDown", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseDown", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("mousemove", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseMove", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseMove", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("mouseup", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseUp", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseUp", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("touchmove", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseMove", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseMove", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
     })(this));
     $(this.element).on("touchend", (function(_this) {
       return function(ev) {
-        return Surface.processMouseEvent(ev, _this.scopeId, _this.regions, "OnMouseUp", function($ev) {
+        return _this.processMouseEvent(ev, "OnMouseUp", function($ev) {
           return $(_this.element).trigger($ev);
         });
       };
@@ -369,72 +370,75 @@ Surface = (function() {
     return void 0;
   };
 
-  Surface.processMouseEvent = function(ev, scopeId, regions, eventName, callback) {
-    var detail, left, offsetX, offsetY, pageX, pageY, top, _ref1, _ref2;
-    _ref1 = $(ev.target).offset(), left = _ref1.left, top = _ref1.top;
-    if (/^touch/.test(ev.type)) {
-      _ref2 = ev.originalEvent.changedTouches[0], pageX = _ref2.pageX, pageY = _ref2.pageY;
-    } else {
-      pageX = ev.pageX, pageY = ev.pageY;
-    }
-    offsetX = pageX - left;
-    offsetY = pageY - top;
+  Surface.prototype.processMouseEvent = function(ev, eventName, callback) {
+    var detail, elm, hits, left, offsetX, offsetY, pageX, pageY, top, _ref1, _ref2;
+    ev.originalEvent.preventDefault();
     $(ev.target).css({
       "cursor": "default"
     });
+    if (this.isPointerEventsShimed && ev.type === "mousemove") {
+      this.isPointerEventsShimed = false;
+      ev.originalEvent.stopPropagation();
+      return;
+    }
+    if (/^touch/.test(ev.type)) {
+      _ref1 = ev.originalEvent.changedTouches[0], pageX = _ref1.pageX, pageY = _ref1.pageY;
+    } else {
+      pageX = ev.pageX, pageY = ev.pageY;
+    }
+    _ref2 = $(ev.target).offset(), left = _ref2.left, top = _ref2.top;
+    offsetX = pageX - left;
+    offsetY = pageY - top;
     if (Surface.isHit(ev.target, offsetX, offsetY)) {
-      ev.preventDefault();
-      detail = Surface.createMouseEvent(eventName, scopeId, regions, offsetX, offsetY);
-      if (!!detail["Reference4"]) {
+      detail = {
+        "ID": eventName,
+        "Reference0": offsetX | 0,
+        "Reference1": offsetY | 0,
+        "Reference2": 0,
+        "Reference3": this.scopeId,
+        "Reference4": "",
+        "Reference5": (ev.button === 2 ? 1 : 0)
+      };
+      hits = Object.keys(this.regions).sort(function(a, b) {
+        if (a.is > b.is) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }).filter((function(_this) {
+        return function(name) {
+          var bottom, right, _ref3;
+          _ref3 = _this.regions[name], name = _ref3.name, left = _ref3.left, top = _ref3.top, right = _ref3.right, bottom = _ref3.bottom;
+          return ((left < offsetX && offsetX < right) && (top < offsetY && offsetY < bottom)) || ((right < offsetX && offsetX < left) && (bottom < offsetY && offsetY < top));
+        };
+      })(this));
+      if (hits.length !== 0) {
+        detail["Reference4"] = this.regions[hits[hits.length - 1]].name;
         $(ev.target).css({
           "cursor": "pointer"
         });
-      } else {
-        $(ev.target).css({
-          "cursor": "default"
-        });
-      }
-      if (ev.button === 2) {
-        detail["Reference5"] = 1;
       }
       callback($.Event('IkagakaSurfaceEvent', {
-        pageX: pageX,
-        pageY: pageY,
-        offsetX: offsetX,
-        offsetY: offsetY,
         detail: detail,
         bubbles: true
       }));
+    } else {
+      ev.originalEvent.stopPropagation();
+      this.isPointerEventsShimed = true;
+      $(ev.target).css({
+        display: 'none'
+      });
+      elm = document.elementFromPoint(pageX, pageY);
+      $(ev.target).css({
+        display: 'inline-block'
+      });
+      ev.isPointerEventsShimed = this.isPointerEventsShimed;
+      delete ev.target;
+      delete ev.offsetX;
+      delete ev.offsetY;
+      $(elm).trigger(ev);
     }
     return void 0;
-  };
-
-  Surface.createMouseEvent = function(eventName, scopeId, regions, offsetX, offsetY) {
-    var event, hits;
-    event = {
-      "ID": eventName,
-      "Reference0": offsetX | 0,
-      "Reference1": offsetY | 0,
-      "Reference2": 0,
-      "Reference3": scopeId,
-      "Reference4": "",
-      "Reference5": 0
-    };
-    hits = Object.keys(regions).slice().sort(function(a, b) {
-      if (a.is > b.is) {
-        return 1;
-      } else {
-        return -1;
-      }
-    }).filter(function(name) {
-      var bottom, left, right, top, _ref1;
-      _ref1 = regions[name], name = _ref1.name, left = _ref1.left, top = _ref1.top, right = _ref1.right, bottom = _ref1.bottom;
-      return ((left < offsetX && offsetX < right) && (top < offsetY && offsetY < bottom)) || ((right < offsetX && offsetX < left) && (bottom < offsetY && offsetY < top));
-    });
-    if (hits.length !== 0) {
-      event["Reference4"] = regions[hits[hits.length - 1]].name;
-    }
-    return event;
   };
 
   Surface.random = function(callback, n) {
