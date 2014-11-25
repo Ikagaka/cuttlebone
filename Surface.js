@@ -32,6 +32,7 @@ Surface = (function() {
     this.talkCount = 0;
     this.talkCounts = {};
     this.isPointerEventsShimed = false;
+    this.lastEventType = "";
     $(this.element).on("contextmenu", (function(_this) {
       return function(ev) {
         return _this.processMouseEvent(ev, "OnMouseClick", function($ev) {
@@ -376,7 +377,8 @@ Surface = (function() {
     $(ev.target).css({
       "cursor": "default"
     });
-    if (this.isPointerEventsShimed) {
+    if (this.isPointerEventsShimed && ev.type === this.lastEventType) {
+      this.lastEventType = "";
       this.isPointerEventsShimed = false;
       ev.originalEvent.stopPropagation();
       return;
@@ -425,6 +427,7 @@ Surface = (function() {
     } else {
       ev.originalEvent.stopPropagation();
       this.isPointerEventsShimed = true;
+      this.lastEventType = ev.type;
       $(ev.target).css({
         display: 'none'
       });
@@ -432,7 +435,6 @@ Surface = (function() {
       $(ev.target).css({
         display: 'inline-block'
       });
-      ev.isPointerEventsShimed = this.isPointerEventsShimed;
       delete ev.target;
       delete ev.offsetX;
       delete ev.offsetY;

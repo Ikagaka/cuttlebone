@@ -21,6 +21,7 @@ class Surface
     @talkCount = 0
     @talkCounts = {}
     @isPointerEventsShimed = false
+    @lastEventType = ""
     $(@element).on "contextmenu",(ev)=> @processMouseEvent(ev, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
     $(@element).on "click",      (ev)=> @processMouseEvent(ev, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
     $(@element).on "dblclick",   (ev)=> @processMouseEvent(ev, "OnMouseDoubleClick", ($ev)=> $(@element).trigger($ev))
@@ -188,7 +189,8 @@ class Surface
   processMouseEvent: (ev, eventName, callback)->
     ev.originalEvent.preventDefault()
     $(ev.target).css({"cursor": "default"})
-    if @isPointerEventsShimed
+    if @isPointerEventsShimed and ev.type is @lastEventType
+      @lastEventType = ""
       @isPointerEventsShimed = false
       ev.originalEvent.stopPropagation()
       return
@@ -221,10 +223,10 @@ class Surface
       # pointer-events shim
       ev.originalEvent.stopPropagation()
       @isPointerEventsShimed = true
+      @lastEventType = ev.type
       $(ev.target).css({display: 'none'})
       elm = document.elementFromPoint(pageX, pageY)
       $(ev.target).css({display: 'inline-block'})
-      ev.isPointerEventsShimed = @isPointerEventsShimed
       delete ev.target
       delete ev.offsetX
       delete ev.offsetY
