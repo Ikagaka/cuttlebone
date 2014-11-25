@@ -370,15 +370,15 @@ Surface = (function() {
   };
 
   Surface.processMouseEvent = function(ev, scopeId, regions, eventName, callback) {
-    var detail, left, offsetX, offsetY, top, _ref1;
+    var detail, left, offsetX, offsetY, pageX, pageY, top, _ref1, _ref2;
     _ref1 = $(ev.target).offset(), left = _ref1.left, top = _ref1.top;
     if (/^touch/.test(ev.type)) {
-      offsetX = ev.originalEvent.changedTouches[0].pageX - left;
-      offsetY = ev.originalEvent.changedTouches[0].pageY - top;
+      _ref2 = ev.originalEvent.changedTouches[0], pageX = _ref2.pageX, pageY = _ref2.pageY;
     } else {
-      offsetX = ev.pageX - left;
-      offsetY = ev.pageY - top;
+      pageX = ev.pageX, pageY = ev.pageY;
     }
+    offsetX = pageX - left;
+    offsetY = pageY - top;
     $(ev.target).css({
       "cursor": "default"
     });
@@ -398,6 +398,10 @@ Surface = (function() {
         detail["Reference5"] = 1;
       }
       callback($.Event('IkagakaSurfaceEvent', {
+        pageX: pageX,
+        pageY: pageY,
+        offsetX: offsetX,
+        offsetY: offsetY,
         detail: detail,
         bubbles: true
       }));

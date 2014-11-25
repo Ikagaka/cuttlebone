@@ -188,11 +188,11 @@ class Surface
   @processMouseEvent = (ev, scopeId, regions, eventName, callback)->
     {left, top} = $(ev.target).offset()
     if /^touch/.test(ev.type)
-      offsetX = ev.originalEvent.changedTouches[0].pageX - left
-      offsetY = ev.originalEvent.changedTouches[0].pageY - top
+      {pageX, pageY} = ev.originalEvent.changedTouches[0]
     else
-      offsetX = ev.pageX - left
-      offsetY = ev.pageY - top
+      {pageX, pageY} = ev
+    offsetX = pageX - left
+    offsetY = pageY - top
     $(ev.target).css({"cursor": "default"})
     if Surface.isHit(ev.target, offsetX, offsetY)
       ev.preventDefault()
@@ -202,7 +202,7 @@ class Surface
       else $(ev.target).css({"cursor": "default"})
       if ev.button is 2 # right click
       then detail["Reference5"] = 1
-      callback($.Event('IkagakaSurfaceEvent', { detail, bubbles: true }))
+      callback($.Event('IkagakaSurfaceEvent', { pageX, pageY, offsetX, offsetY, detail, bubbles: true }))
     undefined
 
   @createMouseEvent = (eventName, scopeId, regions, offsetX, offsetY)->

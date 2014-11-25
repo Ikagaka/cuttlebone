@@ -51,7 +51,7 @@ function loadHandler(nar, err){
 
     var $wrapper = $("<div style='display:inline-block;' />")
       .on("IkagakaSurfaceEvent", function(ev){
-        console.log(ev.detail);
+        console.log(ev);
       })
       .appendTo("body");
     var $canvas = $("<canvas />")
