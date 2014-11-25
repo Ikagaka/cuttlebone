@@ -376,7 +376,7 @@ Surface = (function() {
     $(ev.target).css({
       "cursor": "default"
     });
-    if (this.isPointerEventsShimed && ev.type === "mousemove") {
+    if (this.isPointerEventsShimed) {
       this.isPointerEventsShimed = false;
       ev.originalEvent.stopPropagation();
       return;

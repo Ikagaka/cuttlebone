@@ -188,7 +188,7 @@ class Surface
   processMouseEvent: (ev, eventName, callback)->
     ev.originalEvent.preventDefault()
     $(ev.target).css({"cursor": "default"})
-    if @isPointerEventsShimed and ev.type is "mousemove"
+    if @isPointerEventsShimed
       @isPointerEventsShimed = false
       ev.originalEvent.stopPropagation()
       return
