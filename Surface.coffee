@@ -203,6 +203,8 @@ class Surface
       if ev.button is 2 # right click
       then detail["Reference5"] = 1
       callback($.Event('IkagakaSurfaceEvent', { detail, bubbles: true }))
+    else
+      ev.stopPropagation()
     undefined
 
   @createMouseEvent = (eventName, scopeId, regions, offsetX, offsetY)->
