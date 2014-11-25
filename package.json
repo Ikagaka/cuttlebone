@@ -27,7 +27,7 @@
   "devDependencies": {
   },
   "main":           "./Shell.js",
-  "author":         "duxca",
+  "author":         "Ikagaka",
   "license":        "MIT",
-  "contributors":   []
+  "contributors":   ["legokichi"]
 }
