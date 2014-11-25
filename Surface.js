@@ -401,8 +401,6 @@ Surface = (function() {
         detail: detail,
         bubbles: true
       }));
-    } else {
-      ev.stopPropagation();
     }
     return void 0;
   };
