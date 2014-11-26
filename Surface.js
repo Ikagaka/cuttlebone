@@ -4,7 +4,7 @@ var Surface;
 Surface = (function() {
   var $, Promise, SurfaceUtil, _, _ref;
 
-  $ = window["jQuery"];
+  $ = window["Zepto"];
 
   _ = window["_"];
 
@@ -372,19 +372,19 @@ Surface = (function() {
   };
 
   Surface.prototype.processMouseEvent = function(ev, eventName, callback) {
-    var detail, elm, hits, left, offsetX, offsetY, pageX, pageY, top, _ref1, _ref2;
-    ev.originalEvent.preventDefault();
+    var detail, elm, hits, left, offsetX, offsetY, pageX, pageY, top, _ev, _ref1, _ref2;
+    ev.preventDefault();
     $(ev.target).css({
       "cursor": "default"
     });
     if (this.isPointerEventsShimed && ev.type === this.lastEventType) {
       this.lastEventType = "";
       this.isPointerEventsShimed = false;
-      ev.originalEvent.stopPropagation();
+      ev.stopPropagation();
       return;
     }
     if (/^touch/.test(ev.type)) {
-      _ref1 = ev.originalEvent.changedTouches[0], pageX = _ref1.pageX, pageY = _ref1.pageY;
+      _ref1 = ev.changedTouches[0], pageX = _ref1.pageX, pageY = _ref1.pageY;
     } else {
       pageX = ev.pageX, pageY = ev.pageY;
     }
@@ -425,7 +425,7 @@ Surface = (function() {
         bubbles: true
       }));
     } else {
-      ev.originalEvent.stopPropagation();
+      ev.stopPropagation();
       this.isPointerEventsShimed = true;
       this.lastEventType = ev.type;
       $(ev.target).css({
@@ -435,10 +435,9 @@ Surface = (function() {
       $(ev.target).css({
         display: 'inline-block'
       });
-      delete ev.target;
-      delete ev.offsetX;
-      delete ev.offsetY;
-      $(elm).trigger(ev);
+      _ev = $.Event(ev.type);
+      _ev.initMouseEvent(ev.type, ev.bubbles, ev.cancelable, ev.view, ev.detail, ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey, ev.button, ev.relatedTarget);
+      $(elm).trigger(_ev);
     }
     return void 0;
   };

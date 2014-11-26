@@ -3,7 +3,7 @@
 class Shell
 
   _ = window["_"]
-  $ = window["jQuery"]
+  $ = window["Zepto"]
   SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
 
   Nar         = window["Nar"]         || window["Ikagaka"]?["Nar"]         || require("ikagaka.nar.js")

@@ -2,7 +2,7 @@
 
 class Surface
 
-  $ = window["jQuery"]
+  $ = window["Zepto"]
   _ = window["_"]
 
   SurfaceUtil = window["SurfaceUtil"] || window["Ikagaka"]?["SurfaceUtil"] || require("./SurfaceUtil.js")
@@ -188,15 +188,15 @@ class Surface
     undefined
 
   processMouseEvent: (ev, eventName, callback)->
-    ev.originalEvent.preventDefault()
+    ev.preventDefault()
     $(ev.target).css({"cursor": "default"})
     if @isPointerEventsShimed and ev.type is @lastEventType
       @lastEventType = ""
       @isPointerEventsShimed = false
-      ev.originalEvent.stopPropagation()
+      ev.stopPropagation()
       return
     if /^touch/.test(ev.type)
-    then {pageX, pageY} = ev.originalEvent.changedTouches[0]
+    then {pageX, pageY} = ev.changedTouches[0]
     else {pageX, pageY} = ev
     {left, top} = $(ev.target).offset()
     offsetX = pageX - left
@@ -222,16 +222,30 @@ class Surface
       callback($.Event('IkagakaSurfaceEvent', {detail, bubbles: true }))
     else
       # pointer-events shim
-      ev.originalEvent.stopPropagation()
+      ev.stopPropagation()
       @isPointerEventsShimed = true
       @lastEventType = ev.type
       $(ev.target).css({display: 'none'})
       elm = document.elementFromPoint(pageX, pageY)
       $(ev.target).css({display: 'inline-block'})
-      delete ev.target
-      delete ev.offsetX
-      delete ev.offsetY
-      $(elm).trigger(ev)
+      _ev = $.Event(ev.type)
+      _ev.initMouseEvent(
+        ev.type,
+        ev.bubbles,
+        ev.cancelable,
+        ev.view,
+        ev.detail,
+        ev.screenX,
+        ev.screenY,
+        ev.clientX,
+        ev.clientY,
+        ev.ctrlKey,
+        ev.altKey,
+        ev.shiftKey,
+        ev.metaKey,
+        ev.button,
+        ev.relatedTarget)
+      $(elm).trigger(_ev)
     undefined
 
   @random = (callback, n)->
