@@ -61,13 +61,13 @@ Shell = (function() {
     }
     type = scopeId === 0 ? "sakura" : "kero";
     if (Array.isArray((_ref3 = this.surfaces.aliases) != null ? (_ref4 = _ref3[type]) != null ? _ref4[surfaceId] : void 0 : void 0)) {
-      _surfaceId = Number(SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]));
+      _surfaceId = SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]);
     } else {
       _surfaceId = surfaceId;
     }
     srfs = this.surfaces.surfaces;
     hits = Object.keys(srfs).filter(function(name) {
-      return Number(srfs[name].is) === _surfaceId;
+      return srfs[name].is === _surfaceId;
     });
     if (hits.length === 0) {
       return null;
@@ -80,7 +80,6 @@ Shell = (function() {
     srfs = surfaces.surfaces;
     Object.keys(srfs).forEach(function(name) {
       var baseSurface, cnv, elms, sortedElms, srfutil;
-      srfs[name].is = srfs[name].is;
       cnv = srfs[name].baseSurface;
       if (!srfs[name].elements) {
         return srfs[name].baseSurface = cnv;
@@ -88,9 +87,9 @@ Shell = (function() {
         elms = srfs[name].elements;
         sortedElms = Object.keys(elms).map(function(key) {
           return {
-            is: Number(elms[key].is),
-            x: Number(elms[key].x),
-            y: Number(elms[key].y),
+            is: elms[key].is,
+            x: elms[key].x,
+            y: elms[key].y,
             canvas: elms[key].canvas,
             type: elms[key].type
           };
@@ -199,7 +198,7 @@ Shell = (function() {
       srfs = surfaces.surfaces;
       if (!srfs[name]) {
         srfs[name] = {
-          is: "" + n
+          is: n
         };
       }
       srfs[name].file = file;
@@ -210,14 +209,18 @@ Shell = (function() {
 
   Shell.parseSurfaces = function(text) {
     var data;
-    data = SurfacesTxt2Yaml.txt_to_data(text);
+    data = SurfacesTxt2Yaml.txt_to_data(text, {
+      compatible: 'ssp-lazy'
+    });
+    console.dir(data);
+    data = $.extend(true, {}, data);
     data.surfaces = Object.keys(data.surfaces).reduce((function(obj, name) {
-      if (typeof data.surfaces[name].is === "string") {
+      if (typeof data.surfaces[name].is !== "undefined") {
         obj[name] = data.surfaces[name];
       }
       if (Array.isArray(data.surfaces[name].base)) {
         data.surfaces[name].base.forEach(function(key) {
-          return data.surfaces[name] = $.extend(true, data.surfaces[name], data.surfaces[key]);
+          return $.extend(true, data.surfaces[name], data.surfaces[key]);
         });
       }
       return obj;

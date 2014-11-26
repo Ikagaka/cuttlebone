@@ -42,7 +42,7 @@ class Surface
       .keys(@animations)
       .forEach (name)=>
         {is:_is, interval, pattern} = @animations[name]
-        animationId = Number(_is)
+        animationId = _is
         interval = interval || ""
         tmp = interval.split(",")
         interval = tmp[0]
@@ -76,7 +76,7 @@ class Surface
       .filter((name)=>
         @animations[name].interval is "yen-e" and
         @talkCount % @talkCounts[name] is 0)
-      .forEach (name)=> @play(Number(@animations[name].is))
+      .forEach (name)=> @play(@animations[name].is)
 
   talk: ->
     @talkCount++
@@ -84,7 +84,7 @@ class Surface
       .filter((name)=>
         /^talk/.test(@animations[name].interval) and
         @talkCount % @talkCounts[name] is 0)
-      .forEach (name)=> @play(Number(@animations[name].is))
+      .forEach (name)=> @play(@animations[name].is)
 
   render: ->
     srfs = @surfaces.surfaces
@@ -94,14 +94,14 @@ class Surface
       .map((key)=> @layers[key])
       .reduce(((arr, pat)=>
         {surface, type, x, y} = pat
-        if surface is "-1" then return arr
+        if surface is -1 then return arr
         hits = Object.keys(srfs)
           .filter((key)-> srfs[key].is is surface)
         if hits.length is 0 then return arr
         arr.concat({
           type: type,
-          x: Number(x),
-          y: Number(y),
+          x: x,
+          y: y,
           canvas: srfs[hits[hits.length-1]].baseSurface
         })
       ), [])
@@ -116,7 +116,7 @@ class Surface
   play: (animationId, callback=->)->
     hits = Object
       .keys(@animations)
-      .filter((name)=> Number(@animations[name].is) is animationId)
+      .filter((name)=> @animations[name].is is animationId)
     if hits.length is 0 then setTimeout(callback); return undefined
     anim = @animations[hits[hits.length-1]]
     anim.patterns
@@ -151,7 +151,8 @@ class Surface
             @render()
             # ex. 100-200 ms wait
             [__, a, b] = /(\d+)(?:\-(\d+))?/.exec(wait)
-            if b? then wait = _.random(Number(a), Number(b))
+            if !!b
+              wait = _.random(Number(a), Number(b))
             setTimeout((=>
               if @destructed # stop pattern animation.
               then reject()
@@ -169,7 +170,7 @@ class Surface
   bind: (animationId)->
     hits = Object
       .keys(@animations)
-      .filter((name)=> Number(@animations[name].is) is animationId)
+      .filter((name)=> @animations[name].is is animationId)
     if hits.length is 0 then return undefined
     anim = @animations[hits[hits.length-1]]
     if anim.patterns.length is 0 then return undefined

@@ -35,12 +35,12 @@ class Shell
   attachSurface: (canvas, scopeId, surfaceId, callback=->)->
     type = if scopeId is 0 then "sakura" else "kero"
     if Array.isArray(@surfaces.aliases?[type]?[surfaceId])
-    then _surfaceId = Number(SurfaceUtil.choice(@surfaces.aliases[type][surfaceId]))
+    then _surfaceId = SurfaceUtil.choice(@surfaces.aliases[type][surfaceId])
     else _surfaceId = surfaceId
     srfs = @surfaces.surfaces
     hits = Object
       .keys(srfs)
-      .filter((name)-> Number(srfs[name].is) is _surfaceId)
+      .filter((name)-> srfs[name].is is _surfaceId)
     if hits.length is 0
     then return null
     new Surface(canvas, scopeId, hits[0], @surfaces, callback)
@@ -50,7 +50,6 @@ class Shell
   @createBases = (surfaces)->
     srfs = surfaces.surfaces
     Object.keys(srfs).forEach (name)->
-      srfs[name].is = srfs[name].is
       cnv = srfs[name].baseSurface
       if !srfs[name].elements
         srfs[name].baseSurface = cnv
@@ -58,12 +57,12 @@ class Shell
         elms = srfs[name].elements
         sortedElms = Object
           .keys(elms)
-          .map((key)->
-            is: Number(elms[key].is)
-            x:  Number(elms[key].x)
-            y: Number(elms[key].y)
+          .map (key)->
+            is: elms[key].is
+            x:  elms[key].x
+            y: elms[key].y
             canvas: elms[key].canvas
-            type: elms[key].type)
+            type: elms[key].type
           .sort((elmA, elmB)-> if elmA.is > elmB.is then 1 else -1)
         baseSurface = sortedElms[0].canvas || srfs[name].baseSurface
         srfutil = new SurfaceUtil(baseSurface)
@@ -125,23 +124,24 @@ class Shell
       .reduce(((surfaces, [n, file])->
         name = "surface" + n
         srfs = surfaces.surfaces
-        if !srfs[name]
-          srfs[name] = {is: ""+n}
+        if !srfs[name] then srfs[name] = {is: n}
         srfs[name].file = file
         srfs[name].baseSurface = null
         surfaces
       ), surfaces)
 
   @parseSurfaces = (text)->
-    data = SurfacesTxt2Yaml.txt_to_data(text)
+    data = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
+    console.dir data
+    data = $.extend(true, {}, data)
     data.surfaces = Object
       .keys(data.surfaces)
       .reduce(((obj, name)->
-        if typeof data.surfaces[name].is is "string"
+        if typeof data.surfaces[name].is isnt "undefined"
         then obj[name] = data.surfaces[name]
         if Array.isArray(data.surfaces[name].base)
           data.surfaces[name].base.forEach (key)->
-            data.surfaces[name] = $.extend(true, data.surfaces[name], data.surfaces[key])
+            $.extend(true, data.surfaces[name], data.surfaces[key])
         obj
       ), {})
     data

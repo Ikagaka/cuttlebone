@@ -110,7 +110,7 @@ Surface = (function() {
       return function(name) {
         var animationId, interval, n, pattern, tmp, _is, _ref1;
         _ref1 = _this.animations[name], _is = _ref1.is, interval = _ref1.interval, pattern = _ref1.pattern;
-        animationId = Number(_is);
+        animationId = _is;
         interval = interval || "";
         tmp = interval.split(",");
         interval = tmp[0];
@@ -182,7 +182,7 @@ Surface = (function() {
       };
     })(this)).forEach((function(_this) {
       return function(name) {
-        return _this.play(Number(_this.animations[name].is));
+        return _this.play(_this.animations[name].is);
       };
     })(this));
   };
@@ -195,7 +195,7 @@ Surface = (function() {
       };
     })(this)).forEach((function(_this) {
       return function(name) {
-        return _this.play(Number(_this.animations[name].is));
+        return _this.play(_this.animations[name].is);
       };
     })(this));
   };
@@ -217,7 +217,7 @@ Surface = (function() {
       return function(arr, pat) {
         var hits, surface, type, x, y;
         surface = pat.surface, type = pat.type, x = pat.x, y = pat.y;
-        if (surface === "-1") {
+        if (surface === -1) {
           return arr;
         }
         hits = Object.keys(srfs).filter(function(key) {
@@ -228,8 +228,8 @@ Surface = (function() {
         }
         return arr.concat({
           type: type,
-          x: Number(x),
-          y: Number(y),
+          x: x,
+          y: y,
           canvas: srfs[hits[hits.length - 1]].baseSurface
         });
       };
@@ -255,7 +255,7 @@ Surface = (function() {
     }
     hits = Object.keys(this.animations).filter((function(_this) {
       return function(name) {
-        return Number(_this.animations[name].is) === animationId;
+        return _this.animations[name].is === animationId;
       };
     })(this));
     if (hits.length === 0) {
@@ -307,7 +307,7 @@ Surface = (function() {
             _this.layers[anim.is] = pattern;
             _this.render();
             _ref3 = /(\d+)(?:\-(\d+))?/.exec(wait), __ = _ref3[0], a = _ref3[1], b = _ref3[2];
-            if (b != null) {
+            if (!!b) {
               wait = _.random(Number(a), Number(b));
             }
             return setTimeout((function() {
@@ -341,7 +341,7 @@ Surface = (function() {
     var anim, animIds, hits, interval, pattern;
     hits = Object.keys(this.animations).filter((function(_this) {
       return function(name) {
-        return Number(_this.animations[name].is) === animationId;
+        return _this.animations[name].is === animationId;
       };
     })(this));
     if (hits.length === 0) {
