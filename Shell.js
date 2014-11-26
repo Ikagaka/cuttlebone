@@ -80,6 +80,12 @@ Shell = (function() {
     srfs = surfaces.surfaces;
     Object.keys(srfs).forEach(function(name) {
       var baseSurface, cnv, elms, sortedElms, srfutil;
+      if (!srfs[name].baseSurface) {
+        cnv = document.createElement("canvas");
+        cnv.width = 0;
+        cnv.height = 0;
+        srfs[name].baseSurface = cnv;
+      }
       cnv = srfs[name].baseSurface;
       if (!srfs[name].elements) {
         return srfs[name].baseSurface = cnv;
@@ -187,22 +193,26 @@ Shell = (function() {
   };
 
   Shell.mergeSurfacesAndSurfacesFiles = function(surfaces, directory) {
+    var srfs;
+    srfs = surfaces.surfaces;
     return Object.keys(directory).filter(function(filename) {
       return /^surface\d+\.png$/i.test(filename);
     }).map(function(filename) {
       return [Number((/^surface(\d+)\.png$/i.exec(filename) || ["", "-1"])[1]), directory[filename]];
     }).reduce((function(surfaces, _arg) {
-      var file, n, name, srfs;
+      var cnv, file, n, name;
       n = _arg[0], file = _arg[1];
       name = "surface" + n;
-      srfs = surfaces.surfaces;
       if (!srfs[name]) {
         srfs[name] = {
           is: n
         };
       }
       srfs[name].file = file;
-      srfs[name].baseSurface = null;
+      cnv = document.createElement("canvas");
+      cnv.width = 0;
+      cnv.height = 0;
+      srfs[name].baseSurface = cnv;
       return surfaces;
     }), surfaces);
   };

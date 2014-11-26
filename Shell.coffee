@@ -50,6 +50,11 @@ class Shell
   @createBases = (surfaces)->
     srfs = surfaces.surfaces
     Object.keys(srfs).forEach (name)->
+      if !srfs[name].baseSurface
+        cnv = document.createElement("canvas")
+        cnv.width = 0
+        cnv.height = 0
+        srfs[name].baseSurface = cnv
       cnv = srfs[name].baseSurface
       if !srfs[name].elements
         srfs[name].baseSurface = cnv
@@ -117,16 +122,19 @@ class Shell
     undefined
 
   @mergeSurfacesAndSurfacesFiles = (surfaces, directory)->
+    srfs = surfaces.surfaces
     Object
       .keys(directory)
       .filter((filename)-> /^surface\d+\.png$/i.test(filename))
       .map((filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), directory[filename]])
       .reduce(((surfaces, [n, file])->
         name = "surface" + n
-        srfs = surfaces.surfaces
         if !srfs[name] then srfs[name] = {is: n}
         srfs[name].file = file
-        srfs[name].baseSurface = null
+        cnv = document.createElement("canvas")
+        cnv.width = 0
+        cnv.height = 0
+        srfs[name].baseSurface = cnv
         surfaces
       ), surfaces)
 
