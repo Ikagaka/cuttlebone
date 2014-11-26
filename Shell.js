@@ -222,8 +222,6 @@ Shell = (function() {
     data = SurfacesTxt2Yaml.txt_to_data(text, {
       compatible: 'ssp-lazy'
     });
-    console.dir(data);
-    data = $.extend(true, {}, data);
     data.surfaces = Object.keys(data.surfaces).reduce((function(obj, name) {
       if (typeof data.surfaces[name].is !== "undefined") {
         obj[name] = data.surfaces[name];

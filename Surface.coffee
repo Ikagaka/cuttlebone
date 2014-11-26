@@ -228,8 +228,8 @@ class Surface
       $(ev.target).css({display: 'none'})
       elm = document.elementFromPoint(pageX, pageY)
       $(ev.target).css({display: 'inline-block'})
-      _ev = $.Event(ev.type)
-      _ev.initMouseEvent(
+      _ev = document.createEvent(ev.constructor.name)
+      _ev.initMouseEvent?(
         ev.type,
         ev.bubbles,
         ev.cancelable,
@@ -245,7 +245,7 @@ class Surface
         ev.metaKey,
         ev.button,
         ev.relatedTarget)
-      $(elm).trigger(_ev)
+      elm.dispatchEvent(_ev)
     undefined
 
   @random = (callback, n)->

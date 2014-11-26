@@ -435,9 +435,11 @@ Surface = (function() {
       $(ev.target).css({
         display: 'inline-block'
       });
-      _ev = $.Event(ev.type);
-      _ev.initMouseEvent(ev.type, ev.bubbles, ev.cancelable, ev.view, ev.detail, ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey, ev.button, ev.relatedTarget);
-      $(elm).trigger(_ev);
+      _ev = document.createEvent(ev.constructor.name);
+      if (typeof _ev.initMouseEvent === "function") {
+        _ev.initMouseEvent(ev.type, ev.bubbles, ev.cancelable, ev.view, ev.detail, ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey, ev.button, ev.relatedTarget);
+      }
+      elm.dispatchEvent(_ev);
     }
     return void 0;
   };

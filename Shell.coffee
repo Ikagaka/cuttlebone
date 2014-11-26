@@ -140,8 +140,8 @@ class Shell
 
   @parseSurfaces = (text)->
     data = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
-    console.dir data
-    data = $.extend(true, {}, data)
+    #console.dir data
+    #data = $.extend(true, {}, data)
     data.surfaces = Object
       .keys(data.surfaces)
       .reduce(((obj, name)->
