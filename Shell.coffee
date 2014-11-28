@@ -28,7 +28,7 @@ class Shell
       Shell.loadElements loadedSurfaces, @directory, (err, loadedElmSurfaces)=>
         if !!err then return callback(err)
         @surfaces = Shell.createBases(loadedElmSurfaces)
-        delete @directory
+        delete @directory # g.c.
         callback(null)
 
   attachSurface: (canvas, scopeId, surfaceId, callback=->)->
@@ -67,7 +67,8 @@ class Shell
       srfutil = new SurfaceUtil(baseSurface)
       srfutil.composeElements(sortedElms)
       srfs[name].baseSurface = baseSurface
-      delete srfs[name].file
+      delete srfs[name].file # g.c.
+      delete srfs[name].elements # g.c.
     surfaces
 
   @loadSurfaces = (surfaces, callback)->

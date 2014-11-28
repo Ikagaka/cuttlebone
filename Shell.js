@@ -109,7 +109,8 @@
         srfutil = new SurfaceUtil(baseSurface);
         srfutil.composeElements(sortedElms);
         srfs[name].baseSurface = baseSurface;
-        return delete srfs[name].file;
+        delete srfs[name].file;
+        return delete srfs[name].elements;
       });
       return surfaces;
     };
