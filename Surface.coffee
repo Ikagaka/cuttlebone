@@ -1,13 +1,9 @@
-
+$ = @Zepto
+_ = @_
+SurfaceUtil = @SurfaceUtil || @Ikagaka?["SurfaceUtil"] || require("./SurfaceUtil.js")
+Promise = @Promise
 
 class Surface
-
-  $ = window["Zepto"]
-  _ = window["_"]
-
-  SurfaceUtil = window["SurfaceUtil"] || window["Ikagaka"]?["SurfaceUtil"] || require("./SurfaceUtil.js")
-
-  Promise = window["Promise"]
 
   constructor: (@element, @scopeId, @surfaceName, @surfaces, callback=->)->
     srf = @surfaces.surfaces[surfaceName]
@@ -267,6 +263,7 @@ class Surface
 
 if module?.exports?
   module.exports = Surface
-
-if window["Ikagaka"]?
-  window["Ikagaka"]["Surface"] = Surface
+else if @Ikagaka?
+  @Ikagaka.Surface = Surface
+else
+  @Surface = Surface

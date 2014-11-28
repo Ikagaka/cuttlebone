@@ -1,6 +1,6 @@
 {
   "name": "ikagaka.shell.js",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "Ukagaka SERIKO2.0 Surface Player",
   "url": "https://github.com/ikagaka/Shell.js",
   "keywords": [
@@ -10,8 +10,8 @@
     "ukagaka"
   ],
   "scripts": {
-    "watch": "coffee -cbw ./*.coffee",
-    "build": "coffee -cb ./*.coffee"
+    "watch": "coffee -cw ./*.coffee",
+    "build": "coffee -c ./*.coffee"
   },
   "repository": {
     "type": "git",

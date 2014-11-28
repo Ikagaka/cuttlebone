@@ -93,6 +93,7 @@ class SurfaceUtil
 
 if module?.exports?
   module.exports = SurfaceUtil
-
-if window["Ikagaka"]?
-  window["Ikagaka"]["SurfaceUtil"] = SurfaceUtil
+else if @Ikagaka?
+  @Ikagaka.SurfaceUtil = SurfaceUtil
+else
+  @SurfaceUtil = SurfaceUtil

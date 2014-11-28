@@ -1,33 +1,34 @@
-<script src="./node_modules/ikagaka.nar.js/node_modules/encoding-japanese/encoding.js"></script>
-<script src="./node_modules/ikagaka.nar.js/vender/jszip.min.js"></script>
-<script src="./node_modules/ikagaka.nar.js/vender/XHRProxy.min.js"></script>
-<script src="./node_modules/ikagaka.nar.js/vender/WMDescript.js"></script>
-<script src="./node_modules/ikagaka.nar.js/Nar.js"></script>
-<script src="./node_modules/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
-<script src="./node_modules/underscore/underscore-min.js"></script>
-<script src="./node_modules/zepto/zepto.min.js"></script>
-<script src="./node_modules/es6-shim/es6-shim.min.js"></script>
-<script src="./SurfaceUtil.js"></script>
-<script src="./Surface.js"></script>
-<script src="./Shell.js"></script>
+<script src="../node_modules/ikagaka.nar.js/node_modules/encoding-japanese/encoding.js"></script>
+<script src="../node_modules/ikagaka.nar.js/vender/jszip.min.js"></script>
+<script src="../node_modules/ikagaka.nar.js/vender/XHRProxy.min.js"></script>
+<script src="../node_modules/ikagaka.nar.js/vender/WMDescript.js"></script>
+<script src="../node_modules/ikagaka.nar.js/Nar.js"></script>
+<script src="../node_modules/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
+<script src="../node_modules/underscore/underscore-min.js"></script>
+<script src="../node_modules/zepto/zepto.min.js"></script>
+<script src="../node_modules/es6-shim/es6-shim.min.js"></script>
+<script src="../SurfaceUtil.js"></script>
+<script src="../Surface.js"></script>
+<script src="../Shell.js"></script>
 <p>
   nar: <input type="file" id="nar" />
   surface: <input type="number" value="0" id="surfaceId" />
 </p>
 <script>
 $("#nar").change(function(ev){
-  var nar = new Nar();
-  nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
+  var loader = new NarLoader();
+
+  loader.loadFromBlob(ev.target.files[0], loadHandler);
   $("#nar").val("");
 });
 
 (function(){
-  var nar = new Nar();
-  nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler.bind(this, nar));
+  var loader = new NarLoader();
+  loader.loadFromURL("../node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler);
 }());
 
 
-function loadHandler(nar, err){
+function loadHandler(err, nar){
   if(!!err) return console.error(err.stack);
 
 

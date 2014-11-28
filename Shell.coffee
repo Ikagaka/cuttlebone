@@ -1,17 +1,15 @@
+_ = window["_"]
+$ = window["Zepto"]
+SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
 
+Nar         = window["Nar"]         || window["Ikagaka"]?["Nar"]         || require("ikagaka.nar.js")
+Surface     = window["Surface"]     || window["Ikagaka"]?["Surface"]     || require("./Surface.js")
+SurfaceUtil = window["SurfaceUtil"] || window["Ikagaka"]?["SurfaceUtil"] || require("./SurfaceUtil.js")
+
+Promise = window["Promise"]
+URL = window["URL"]
 
 class Shell
-
-  _ = window["_"]
-  $ = window["Zepto"]
-  SurfacesTxt2Yaml = window["SurfacesTxt2Yaml"]
-
-  Nar         = window["Nar"]         || window["Ikagaka"]?["Nar"]         || require("ikagaka.nar.js")
-  Surface     = window["Surface"]     || window["Ikagaka"]?["Surface"]     || require("./Surface.js")
-  SurfaceUtil = window["SurfaceUtil"] || window["Ikagaka"]?["SurfaceUtil"] || require("./SurfaceUtil.js")
-
-  Promise = window["Promise"]
-  URL = window["URL"]
 
   constructor: (directory)->
     if !directory["descript.txt"] then throw new Error("descript.txt not found")
@@ -159,6 +157,7 @@ class Shell
 
 if module?.exports?
   module.exports = Shell
-
-if window["Ikagaka"]?
-  window["Ikagaka"]["Shell"] = Shell
+else if @Ikagaka?
+  @Ikagaka.Shell = Shell
+else
+  @Shell = Shell
