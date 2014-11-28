@@ -30,6 +30,7 @@ class Shell
       Shell.loadElements loadedSurfaces, @directory, (err, loadedElmSurfaces)=>
         if !!err then return callback(err)
         @surfaces = Shell.createBases(loadedElmSurfaces)
+        delete @directory
         callback(null)
 
   attachSurface: (canvas, scopeId, surfaceId, callback=->)->
@@ -45,8 +46,6 @@ class Shell
     then return null
     new Surface(canvas, scopeId, hits[0], @surfaces, callback)
 
-
-
   @createBases = (surfaces)->
     srfs = surfaces.surfaces
     Object.keys(srfs).forEach (name)->
@@ -55,24 +54,22 @@ class Shell
         cnv.width = 0
         cnv.height = 0
         srfs[name].baseSurface = cnv
-      cnv = srfs[name].baseSurface
-      if !srfs[name].elements
-        srfs[name].baseSurface = cnv
-      else
-        elms = srfs[name].elements
-        sortedElms = Object
-          .keys(elms)
-          .map (key)->
-            is: elms[key].is
-            x:  elms[key].x
-            y: elms[key].y
-            canvas: elms[key].canvas
-            type: elms[key].type
-          .sort((elmA, elmB)-> if elmA.is > elmB.is then 1 else -1)
-        baseSurface = sortedElms[0].canvas || srfs[name].baseSurface
-        srfutil = new SurfaceUtil(baseSurface)
-        srfutil.composeElements(sortedElms)
-        srfs[name].baseSurface = baseSurface
+      if !srfs[name].elements then return
+      elms = srfs[name].elements
+      sortedElms = Object
+        .keys(elms)
+        .map (key)->
+          is: elms[key].is
+          x:  elms[key].x
+          y: elms[key].y
+          canvas: elms[key].canvas
+          type: elms[key].type
+        .sort((elmA, elmB)-> if elmA.is > elmB.is then 1 else -1)
+      baseSurface = sortedElms[0].canvas || srfs[name].baseSurface
+      srfutil = new SurfaceUtil(baseSurface)
+      srfutil.composeElements(sortedElms)
+      srfs[name].baseSurface = baseSurface
+      delete srfs[name].file
     surfaces
 
   @loadSurfaces = (surfaces, callback)->
@@ -105,9 +102,15 @@ class Shell
           new Promise (resolve, reject)->
             setTimeout ->
               {type, file, x, y} = elm
-              if !directory[file] then file += ".png"
-              if !directory[file] then reject(new Error(file.substr(0, file.length-4) + "element file not found"))
-              buffer = directory[file].asArrayBuffer()
+              hits = Object
+                .keys(directory)
+                .filter (path)->
+                  a = path.toLowerCase()
+                  b = file.toLowerCase()
+                  a is b || a is b+".png".toLowerCase()
+              if hits.length is 0 then return reject(new Error("element " + file + " is not found"))
+              _file = hits[hits.length-1]
+              buffer = (directory[_file] || directory[_file+".png"]).asArrayBuffer()
               url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
               SurfaceUtil.loadImage url, (err, img)->
                 URL.revokeObjectURL(url)

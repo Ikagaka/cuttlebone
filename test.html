@@ -15,35 +15,29 @@
   surface: <input type="number" value="0" id="surfaceId" />
 </p>
 <script>
-$(function(){
-
-  $("#nar").change(function(ev){
-    var nar = new Nar();
-    nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
-  });
-
+$("#nar").change(function(ev){
   var nar = new Nar();
-
-  nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler.bind(this, nar));
-
-  $("body").click(function(ev){
-    console.log(ev);
-  });
+  nar.loadFromBlob(ev.target.files[0], loadHandler.bind(this, nar));
+  $("#nar").val("");
 });
+
+(function(){
+  var nar = new Nar();
+  nar.loadFromURL("./node_modules/ikagaka.nar.js/vender/mobilemaster.nar", loadHandler.bind(this, nar));
+}());
 
 
 function loadHandler(nar, err){
   if(!!err) return console.error(err.stack);
+
 
   console.log(nar);
 
   if(nar.install["type"] === "ghost"){
     var shellDir = nar.getDirectory(/shell\/master\//);
     var shell = new Shell(shellDir);
-
   }else if(nar.install.type === "shell"){
     var shell = new Shell(nar.directory);
-
   }else{
     throw new Error("wrong nar file")
   }

@@ -48,6 +48,7 @@ Shell = (function() {
             return callback(err);
           }
           _this.surfaces = Shell.createBases(loadedElmSurfaces);
+          delete _this.directory;
           return callback(null);
         });
       };
@@ -86,31 +87,30 @@ Shell = (function() {
         cnv.height = 0;
         srfs[name].baseSurface = cnv;
       }
-      cnv = srfs[name].baseSurface;
       if (!srfs[name].elements) {
-        return srfs[name].baseSurface = cnv;
-      } else {
-        elms = srfs[name].elements;
-        sortedElms = Object.keys(elms).map(function(key) {
-          return {
-            is: elms[key].is,
-            x: elms[key].x,
-            y: elms[key].y,
-            canvas: elms[key].canvas,
-            type: elms[key].type
-          };
-        }).sort(function(elmA, elmB) {
-          if (elmA.is > elmB.is) {
-            return 1;
-          } else {
-            return -1;
-          }
-        });
-        baseSurface = sortedElms[0].canvas || srfs[name].baseSurface;
-        srfutil = new SurfaceUtil(baseSurface);
-        srfutil.composeElements(sortedElms);
-        return srfs[name].baseSurface = baseSurface;
+        return;
       }
+      elms = srfs[name].elements;
+      sortedElms = Object.keys(elms).map(function(key) {
+        return {
+          is: elms[key].is,
+          x: elms[key].x,
+          y: elms[key].y,
+          canvas: elms[key].canvas,
+          type: elms[key].type
+        };
+      }).sort(function(elmA, elmB) {
+        if (elmA.is > elmB.is) {
+          return 1;
+        } else {
+          return -1;
+        }
+      });
+      baseSurface = sortedElms[0].canvas || srfs[name].baseSurface;
+      srfutil = new SurfaceUtil(baseSurface);
+      srfutil.composeElements(sortedElms);
+      srfs[name].baseSurface = baseSurface;
+      return delete srfs[name].file;
     });
     return surfaces;
   };
@@ -159,15 +159,19 @@ Shell = (function() {
         elm = srfs[srfName].elements[elmName];
         return new Promise(function(resolve, reject) {
           return setTimeout(function() {
-            var buffer, file, type, url, x, y;
+            var buffer, file, hits, type, url, x, y, _file;
             type = elm.type, file = elm.file, x = elm.x, y = elm.y;
-            if (!directory[file]) {
-              file += ".png";
+            hits = Object.keys(directory).filter(function(path) {
+              var a, b;
+              a = path.toLowerCase();
+              b = file.toLowerCase();
+              return a === b || a === b + ".png".toLowerCase();
+            });
+            if (hits.length === 0) {
+              return reject(new Error("element " + file + " is not found"));
             }
-            if (!directory[file]) {
-              reject(new Error(file.substr(0, file.length - 4) + "element file not found"));
-            }
-            buffer = directory[file].asArrayBuffer();
+            _file = hits[hits.length - 1];
+            buffer = (directory[_file] || directory[_file + ".png"]).asArrayBuffer();
             url = URL.createObjectURL(new Blob([buffer], {
               type: "image/png"
             }));
