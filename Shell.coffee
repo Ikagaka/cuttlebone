@@ -32,7 +32,7 @@ class Shell
         callback(null)
     return
 
-  attachSurface: (canvas, scopeId, surfaceId, callback=->)->
+  attachSurface: (canvas, scopeId, surfaceId)->
     type = if scopeId is 0 then "sakura" else "kero"
     if Array.isArray(@surfaces.aliases?[type]?[surfaceId])
     then _surfaceId = SurfaceUtil.choice(@surfaces.aliases[type][surfaceId])
@@ -41,7 +41,7 @@ class Shell
     keys = Object.keys(srfs)
     hit = keys.find (name)-> srfs[name].is is _surfaceId
     if !hit then return null
-    return new Surface(canvas, scopeId, hit, @surfaces, callback)
+    return new Surface(canvas, scopeId, hit, @surfaces)
 
   @createBases = (surfaces)->
     srfs = surfaces.surfaces

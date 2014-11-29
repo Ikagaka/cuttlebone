@@ -65,7 +65,7 @@ interface Surfaces {
 
 interface Shell {
   load(callback: (error: any) => void): void;
-  attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number, callback?: () => void): Surface;
+  attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number): Surface;
   descript: { [key: string]: string; };
   surfaces: Surfaces;
 }

@@ -11,15 +11,12 @@
   Promise = this.Promise;
 
   Surface = (function() {
-    function Surface(element, scopeId, surfaceName, surfaces, callback) {
+    function Surface(element, scopeId, surfaceName, surfaces) {
       var keys, srf;
       this.element = element;
       this.scopeId = scopeId;
       this.surfaceName = surfaceName;
       this.surfaces = surfaces;
-      if (callback == null) {
-        callback = function() {};
-      }
       srf = this.surfaces.surfaces[surfaceName];
       this.baseSurface = srf.baseSurface;
       this.regions = srf.regions || {};
@@ -147,7 +144,7 @@
                 }
               });
             case "runonce":
-              return _this.play(animationId, callback);
+              return _this.play(animationId);
             case "never":
               break;
             case "bind":
@@ -269,7 +266,7 @@
       })(this));
       if (!hit) {
         setTimeout(callback);
-        return void 0;
+        return;
       }
       anim = this.animations[hit];
       lazyPromises = anim.patterns.map((function(_this) {
@@ -442,6 +439,9 @@
           display: 'none'
         });
         elm = document.elementFromPoint(pageX, pageY);
+        if (!elm) {
+          return;
+        }
         $(ev.target).css({
           display: 'inline-block'
         });

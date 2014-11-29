@@ -54,11 +54,8 @@
       })(this));
     };
 
-    Shell.prototype.attachSurface = function(canvas, scopeId, surfaceId, callback) {
+    Shell.prototype.attachSurface = function(canvas, scopeId, surfaceId) {
       var hit, keys, srfs, type, _ref3, _ref4, _surfaceId;
-      if (callback == null) {
-        callback = function() {};
-      }
       type = scopeId === 0 ? "sakura" : "kero";
       if (Array.isArray((_ref3 = this.surfaces.aliases) != null ? (_ref4 = _ref3[type]) != null ? _ref4[surfaceId] : void 0 : void 0)) {
         _surfaceId = SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]);
@@ -73,7 +70,7 @@
       if (!hit) {
         return null;
       }
-      return new Surface(canvas, scopeId, hit, this.surfaces, callback);
+      return new Surface(canvas, scopeId, hit, this.surfaces);
     };
 
     Shell.createBases = function(surfaces) {

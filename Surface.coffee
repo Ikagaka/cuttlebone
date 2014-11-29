@@ -5,7 +5,7 @@ Promise = @Promise
 
 class Surface
 
-  constructor: (@element, @scopeId, @surfaceName, @surfaces, callback=->)->
+  constructor: (@element, @scopeId, @surfaceName, @surfaces)->
     srf = @surfaces.surfaces[surfaceName]
     @baseSurface = srf.baseSurface
     @regions = srf.regions || {}
@@ -48,7 +48,7 @@ class Surface
         when "random"    then Surface.random   ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
         when "periodic"  then Surface.periodic ((callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)), n
         when "always"    then Surface.always    (callback)=> if !@destructed and !@stopFlags[animationId] then @play(animationId, callback)
-        when "runonce"   then @play(animationId, callback)
+        when "runonce"   then @play(animationId)
         when "never"     then ;
         when "bind"      then ;
         when "yen-e"     then ;
@@ -111,7 +111,7 @@ class Surface
   play: (animationId, callback=->)->
     keys = Object.keys(@animations)
     hit = keys.find (name)=> @animations[name].is is animationId
-    if !hit then setTimeout(callback); return undefined
+    if !hit then setTimeout(callback); return
     anim = @animations[hit]
     lazyPromises = anim.patterns.map (pattern)=> =>
       new Promise (resolve, reject)=>
@@ -219,6 +219,7 @@ class Surface
       @lastEventType = ev.type
       $(ev.target).css({display: 'none'})
       elm = document.elementFromPoint(pageX, pageY)
+      if !elm then return
       $(ev.target).css({display: 'inline-block'})
       _ev = document.createEvent(ev.constructor.name)
       _ev.initMouseEvent?(
