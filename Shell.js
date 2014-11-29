@@ -77,10 +77,11 @@
     };
 
     Shell.createBases = function(surfaces) {
-      var srfs;
+      var keys, srfs;
       srfs = surfaces.surfaces;
-      Object.keys(srfs).forEach(function(name) {
-        var baseSurface, cnv, elms, sortedElms, srfutil;
+      keys = Object.keys(srfs);
+      keys.forEach(function(name) {
+        var baseSurface, cnv, elms, mapped, sortedElms, srfutil, _keys;
         delete srfs[name].file;
         if (!srfs[name].baseSurface) {
           cnv = document.createElement("canvas");
@@ -92,7 +93,8 @@
           return;
         }
         elms = srfs[name].elements;
-        sortedElms = Object.keys(elms).map(function(key) {
+        _keys = Object.keys(elms);
+        mapped = _keys.map(function(key) {
           return {
             is: elms[key].is,
             x: elms[key].x,
@@ -100,7 +102,8 @@
             canvas: elms[key].canvas,
             type: elms[key].type
           };
-        }).sort(function(elmA, elmB) {
+        });
+        sortedElms = mapped.sort(function(elmA, elmB) {
           if (elmA.is > elmB.is) {
             return 1;
           } else {
@@ -151,30 +154,34 @@
     };
 
     Shell.loadElements = function(surfaces, directory, callback) {
-      var hits, keys, promises, srfs;
+      var elmName, hits, keys, promises, srfName, srfs, _i, _j, _keys, _len, _len1;
       srfs = surfaces.surfaces;
       keys = Object.keys(srfs);
       hits = keys.filter(function(name) {
         return !!srfs[name].elements;
       });
-      promises = hits.reduce((function(arr, srfName) {
-        return arr.concat(Object.keys(srfs[srfName].elements).map(function(elmName) {
-          var elm;
-          elm = srfs[srfName].elements[elmName];
-          return new Promise(function(resolve, reject) {
+      promises = [];
+      for (_i = 0, _len = hits.length; _i < _len; _i++) {
+        srfName = hits[_i];
+        _keys = Object.keys(srfs[srfName].elements);
+        for (_j = 0, _len1 = _keys.length; _j < _len1; _j++) {
+          elmName = _keys[_j];
+          promises.push(new Promise(function(resolve, reject) {
+            var elm, file, path, type, x, y;
+            elm = srfs[srfName].elements[elmName];
+            type = elm.type, file = elm.file, x = elm.x, y = elm.y;
+            keys = Object.keys(directory);
+            path = keys.find(function(path) {
+              var a, b;
+              a = path.toLowerCase();
+              b = file.toLowerCase();
+              return a === b || a === (b + ".png").toLowerCase();
+            });
+            if (!path) {
+              return reject(new Error("element " + file + " is not found"));
+            }
             return setTimeout(function() {
-              var buffer, file, path, type, url, x, y;
-              type = elm.type, file = elm.file, x = elm.x, y = elm.y;
-              keys = Object.keys(directory);
-              path = keys.find(function(path) {
-                var a, b;
-                a = path.toLowerCase();
-                b = file.toLowerCase();
-                return a === b || a === (b + ".png").toLowerCase();
-              });
-              if (!path) {
-                return reject(new Error("element " + file + " is not found"));
-              }
+              var buffer, url;
               buffer = (directory[path] || directory[path + ".png"]).asArrayBuffer();
               url = URL.createObjectURL(new Blob([buffer], {
                 type: "image/png"
@@ -188,9 +195,9 @@
                 return resolve();
               });
             });
-          });
-        }));
-      }), []);
+          }));
+        }
+      }
       Promise.all(promises).then(function() {
         return callback(null, surfaces);
       })["catch"](function(err) {
@@ -246,6 +253,8 @@
       }), {});
       return surfaces;
     };
+
+    Shell.SurfaceUtil = SurfaceUtil;
 
     return Shell;
 

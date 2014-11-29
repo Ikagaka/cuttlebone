@@ -38,7 +38,7 @@ interface Surfaces {
           is: number;
           interval: string;
           option : string;
-          patterns: { type: string; surface: number; wait: string|number; x: number; y: number; }[];
+          patterns: { type: string; surface: number; wait: string; x: number; y: number; }[];
         };
       };
       base: string[];
@@ -63,10 +63,14 @@ interface Surfaces {
   };
 }
 
-declare class Shell {
-  constructor(directory: { [filePath: string]: JSZipObject; });
-  load(callback: (error: Error|null) => void): void;
+interface Shell {
+  load(callback: (error: any) => void): void;
   attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number, callback?: () => void): Surface;
   descript: { [key: string]: string; };
   surfaces: Surfaces;
+}
+
+declare var Shell: {
+  new (directory: { [filePath: string]: JSZipObject; }): Shell;
+  SurfaceUtil: SurfaceUtil
 }

@@ -152,6 +152,8 @@ class Shell
     ), {})
     return surfaces
 
+  @SurfaceUtil = SurfaceUtil
+
 if module?.exports?
   module.exports = Shell
 else if @Ikagaka?
