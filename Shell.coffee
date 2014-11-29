@@ -30,6 +30,7 @@ class Shell
         @surfaces = Shell.createBases(loadedElmSurfaces)
         delete @directory # g.c.
         callback(null)
+    return
 
   attachSurface: (canvas, scopeId, surfaceId, callback=->)->
     type = if scopeId is 0 then "sakura" else "kero"
@@ -37,16 +38,16 @@ class Shell
     then _surfaceId = SurfaceUtil.choice(@surfaces.aliases[type][surfaceId])
     else _surfaceId = surfaceId
     srfs = @surfaces.surfaces
-    hits = Object
-      .keys(srfs)
-      .filter((name)-> srfs[name].is is _surfaceId)
-    if hits.length is 0
-    then return null
-    new Surface(canvas, scopeId, hits[0], @surfaces, callback)
+    keys = Object.keys(srfs)
+    hit = keys.find (name)-> srfs[name].is is _surfaceId
+    if !hit then return null
+    return new Surface(canvas, scopeId, hit, @surfaces, callback)
 
   @createBases = (surfaces)->
     srfs = surfaces.surfaces
-    Object.keys(srfs).forEach (name)->
+    keys = Object.keys(srfs)
+    keys.forEach (name)->
+      delete srfs[name].file # g.c.
       if !srfs[name].baseSurface
         cnv = document.createElement("canvas")
         cnv.width = 0
@@ -54,107 +55,102 @@ class Shell
         srfs[name].baseSurface = cnv
       if !srfs[name].elements then return
       elms = srfs[name].elements
-      sortedElms = Object
-        .keys(elms)
-        .map (key)->
-          is: elms[key].is
-          x:  elms[key].x
-          y: elms[key].y
-          canvas: elms[key].canvas
-          type: elms[key].type
-        .sort((elmA, elmB)-> if elmA.is > elmB.is then 1 else -1)
+      _keys = Object.keys(elms)
+      mapped = _keys.map (key)->
+        is: elms[key].is
+        x:  elms[key].x
+        y: elms[key].y
+        canvas: elms[key].canvas
+        type: elms[key].type
+      sortedElms = mapped.sort (elmA, elmB)-> if elmA.is > elmB.is then 1 else -1
       baseSurface = sortedElms[0].canvas || srfs[name].baseSurface
       srfutil = new SurfaceUtil(baseSurface)
       srfutil.composeElements(sortedElms)
       srfs[name].baseSurface = baseSurface
-      delete srfs[name].file # g.c.
       delete srfs[name].elements # g.c.
-    surfaces
+    return surfaces
 
   @loadSurfaces = (surfaces, callback)->
     srfs = surfaces.surfaces
-    promises = Object.keys(srfs)
-      .filter((name)-> !!srfs[name].file)
-      .map (name)->
-        new Promise (resolve, reject)->
+    keys = Object.keys(srfs)
+    hits = keys.filter (name)-> !!srfs[name].file
+    promises = hits.map (name)->
+      new Promise (resolve, reject)->
+        setTimeout ->
+          buffer = srfs[name].file.asArrayBuffer()
+          url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
+          SurfaceUtil.loadImage url, (err, img)->
+            URL.revokeObjectURL(url)
+            if !!err then return reject(err)
+            srfs[name].baseSurface = SurfaceUtil.transImage(img)
+            resolve()
+    Promise
+      .all(promises)
+      .then(-> callback(null, surfaces))
+      .catch((err)-> console.error(err, err.stack); callback(err, null))
+    return
+
+  @loadElements = (surfaces, directory, callback)->
+    srfs = surfaces.surfaces
+    keys = Object.keys(srfs)
+    hits = keys.filter (name)-> !!srfs[name].elements
+    promises = []
+    for srfName in hits
+      _keys = Object.keys(srfs[srfName].elements)
+      for elmName in _keys
+        promises.push new Promise (resolve, reject)->
+          elm = srfs[srfName].elements[elmName]
+          {type, file, x, y} = elm
+          keys = Object.keys(directory)
+          path = keys.find (path)->
+            a = path.toLowerCase()
+            b = file.toLowerCase()
+            a is b || a is (b+".png").toLowerCase()
+          if !path then return reject(new Error("element " + file + " is not found"))
           setTimeout ->
-            buffer = srfs[name].file.asArrayBuffer()
+            buffer = (directory[path] || directory[path+".png"]).asArrayBuffer()
             url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
             SurfaceUtil.loadImage url, (err, img)->
               URL.revokeObjectURL(url)
-              if !!err then return reject(err)
-              srfs[name].baseSurface = SurfaceUtil.transImage(img)
+              if !!err then return reject(err.error)
+              elm.canvas = SurfaceUtil.transImage(img)
               resolve()
     Promise
       .all(promises)
       .then(-> callback(null, surfaces))
       .catch((err)-> console.error(err, err.stack); callback(err, null))
-    undefined
-
-  @loadElements = (surfaces, directory, callback)->
-    srfs = surfaces.surfaces
-    promises = Object.keys(srfs)
-      .filter((name)-> !!srfs[name].elements)
-      .reduce(((arr, srfName)->
-        arr.concat Object.keys(srfs[srfName].elements).map (elmName)->
-          elm = srfs[srfName].elements[elmName]
-          new Promise (resolve, reject)->
-            setTimeout ->
-              {type, file, x, y} = elm
-              hits = Object
-                .keys(directory)
-                .filter (path)->
-                  a = path.toLowerCase()
-                  b = file.toLowerCase()
-                  a is b || a is b+".png".toLowerCase()
-              if hits.length is 0 then return reject(new Error("element " + file + " is not found"))
-              _file = hits[hits.length-1]
-              buffer = (directory[_file] || directory[_file+".png"]).asArrayBuffer()
-              url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-              SurfaceUtil.loadImage url, (err, img)->
-                URL.revokeObjectURL(url)
-                if !!err then return reject(err.error)
-                elm.canvas = SurfaceUtil.transImage(img)
-                resolve()
-      ), [])
-    Promise
-      .all(promises)
-      .then(-> callback(null, surfaces))
-      .catch((err)-> console.error(err, err.stack); callback(err, null))
-    undefined
+    return
 
   @mergeSurfacesAndSurfacesFiles = (surfaces, directory)->
     srfs = surfaces.surfaces
-    Object
-      .keys(directory)
-      .filter((filename)-> /^surface\d+\.png$/i.test(filename))
-      .map((filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), directory[filename]])
-      .reduce(((surfaces, [n, file])->
-        name = "surface" + n
-        if !srfs[name] then srfs[name] = {is: n}
-        srfs[name].file = file
-        cnv = document.createElement("canvas")
-        cnv.width = 0
-        cnv.height = 0
-        srfs[name].baseSurface = cnv
-        surfaces
-      ), surfaces)
+    keys = Object.keys(directory)
+    hits = keys.filter (filename)-> /^surface\d+\.png$/i.test(filename)
+    tuples = hits.map (filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), directory[filename]]
+    for [n, file] in tuples
+      name = Object.keys(srfs).find (name)-> srfs[name].is is n
+      name = name || "surface" + n
+      srfs[name] = srfs[name] || {is: n}
+      srfs[name].file = file
+      srfs[name].baseSurface = document.createElement("canvas")
+      srfs[name].baseSurface.width = 0
+      srfs[name].baseSurface.height = 0
+    return surfaces
 
   @parseSurfaces = (text)->
-    data = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
-    #console.dir data
-    #data = $.extend(true, {}, data)
-    data.surfaces = Object
-      .keys(data.surfaces)
-      .reduce(((obj, name)->
-        if typeof data.surfaces[name].is isnt "undefined"
-        then obj[name] = data.surfaces[name]
-        if Array.isArray(data.surfaces[name].base)
-          data.surfaces[name].base.forEach (key)->
-            $.extend(true, data.surfaces[name], data.surfaces[key])
-        obj
-      ), {})
-    data
+    surfaces = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
+    #console.dir surfaces
+    #surfaces = $.extend(true, {}, surfaces)
+    srfs = surfaces.surfaces
+    keys = Object.keys(srfs)
+    surfaces.surfaces = keys.reduce(((obj, name)->
+      if typeof srfs[name].is isnt "undefined"
+      then obj[name] = srfs[name]
+      if Array.isArray(srfs[name].base)
+        srfs[name].base.forEach (key)->
+          $.extend(true, srfs[name], srfs[key])
+      obj
+    ), {})
+    return surfaces
 
 if module?.exports?
   module.exports = Shell

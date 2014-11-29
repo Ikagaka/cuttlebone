@@ -24,40 +24,39 @@ class SurfaceUtil
         @base(copyed, offsetX, offsetY)
       else console.error(elements[0])
     @composeElements(elements.slice(1))
-    undefined
+    return
 
   base: (part, x, y)->
     SurfaceUtil.clear(@cnv)
     @overlayfast(part, x, y)
-    undefined
+    return
 
   overlayfast: (part, x, y)->
     @ctx.globalCompositeOperation = "source-over"
     @ctx.drawImage(part, x, y)
-    undefined
+    return
 
   interpolate: (part, x, y)->
     @ctx.globalCompositeOperation = "destination-over"
     @ctx.drawImage(part, x, y)
-    undefined
+    return
 
   replace: (part, x, y)->
     @ctx.clearRect(x, y, part.width, part.height)
     @overlayfast(part, x, y)
-
-    undefined
+    return
 
   init: (cnv)->
     @cnv.width = cnv.width
     @cnv.height = cnv.height
     @overlayfast(cnv, 0, 0)
-    undefined
+    return
 
   @choice = (ary)-> ary[Math.round(Math.random()*(ary.length-1))]
 
   @clear = (cnv)->
     cnv.width = cnv.width
-    undefined
+    return
 
   @copy = (cnv)->
     copy = document.createElement("canvas")
@@ -65,7 +64,7 @@ class SurfaceUtil
     copy.width  = cnv.width
     copy.height = cnv.height
     ctx.drawImage(cnv, 0, 0)
-    copy
+    return copy
 
   @transImage = (img)->
     cnv = SurfaceUtil.copy(img)
@@ -82,14 +81,14 @@ class SurfaceUtil
           data[i+3] = 0
         i += 4
     ctx.putImageData(imgdata, 0, 0)
-    cnv
+    return cnv
 
   @loadImage = (url, callback)->
     img = new Image
     img.src = url
     img.addEventListener "load", -> callback(null, img)
     img.addEventListener "error", (ev)-> console.error(ev); callback(ev.error, null)
-    undefined
+    return
 
 if module?.exports?
   module.exports = SurfaceUtil
