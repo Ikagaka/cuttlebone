@@ -153,7 +153,7 @@ class Surface
     promise = lazyPromises.reduce(((proA, proB)-> proA.then(proB)), Promise.resolve()) # Promise.resolve().then(prom).then(prom)...
     promise
       .then(=> setTimeout(callback))
-      .catch (err)-> console.error err.stack
+      .catch (err)-> if !!err then console.error err.stack
     return
 
   stop: (animationId)->

@@ -35,8 +35,8 @@ interface Surface {
 
 declare var Surface: {
   new (canvas: HTMLCanvasElement, scopeId: number, surfaceName: string, surfaces: Surfaces): Surface;
-  random(callback: (callback: () => void) => void, probability: Number): void;
+  random(  callback: (callback: () => void) => void, probability: Number): void;
   periodic(callback: (callback: () => void) => void, sec: Number): void;
-  always(callback: (callback: () => void) => void): void;
+  always(  callback: (callback: () => void) => void): void;
   isHit(cnv: HTMLCanvasElement, x: number, y: number ): boolean;
 }
