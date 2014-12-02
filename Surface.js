@@ -406,7 +406,6 @@
       offsetY = pageY - top;
       if (Surface.isHit(ev.target, offsetX, offsetY)) {
         ev.preventDefault();
-        ev.stopPropagation();
         detail = {
           "ID": eventName,
           "Reference0": offsetX | 0,
