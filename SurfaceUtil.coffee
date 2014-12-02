@@ -28,7 +28,7 @@ class SurfaceUtil
 
   base: (part, x, y)->
     SurfaceUtil.clear(@cnv)
-    @overlayfast(part, x, y)
+    @init(part, x, y)
     return
 
   overlayfast: (part, x, y)->
@@ -46,10 +46,10 @@ class SurfaceUtil
     @overlayfast(part, x, y)
     return
 
-  init: (cnv)->
+  init: (cnv, x=0, y=0)->
     @cnv.width = cnv.width
     @cnv.height = cnv.height
-    @overlayfast(cnv, 0, 0)
+    @overlayfast(cnv, x, y)
     return
 
   @choice = (ary)-> ary[Math.round(Math.random()*(ary.length-1))]

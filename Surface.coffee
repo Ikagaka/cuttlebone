@@ -99,7 +99,7 @@ class Surface
       if surface is -1 then return arr
       keys = Object.keys(srfs)
       hit = keys.find (key)-> srfs[key].is is surface
-      if !hit is 0 then return arr
+      if !hit then return arr
       arr.concat({
         type: type,
         x: x,
@@ -149,7 +149,7 @@ class Surface
         @layers[anim.is] = pattern
         @render()
         # ex. 100-200 ms wait
-        [__, a, b] = /(\d+)(?:\-(\d+))?/.exec(wait)
+        [__, a, b] = (/(\d+)(?:\-(\d+))?/.exec(wait) || ["", "0"])
         if !!b
           wait = _.random(Number(a), Number(b))
         setTimeout((=>
@@ -222,7 +222,7 @@ class Surface
       callback($.Event('IkagakaSurfaceEvent', {detail, bubbles: true }))
     else
       # pointer-events shim
-      elm = Surface.isHitBubble(ev.target)
+      elm = Surface.isHitBubble(ev.target, ev.pageX, ev.pageY)
       if !elm then return
       if /^mouse/.test(ev.type)
         @isPointerEventsShimed = true
@@ -299,7 +299,8 @@ class Surface
       $(element).show(); return elm
     unless elm instanceof HTMLCanvasElement
       $(element).show(); return elm
-    if Surface.isHit(elm, pageX, pageY)
+    {top, left} = $(elm).offset()
+    if Surface.isHit(elm, pageX-left, pageY-top)
       $(element).show(); return elm
     _elm = Surface.isHitBubble(elm, pageX, pageY)
     $(element).show(); return _elm

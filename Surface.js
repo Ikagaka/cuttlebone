@@ -235,7 +235,7 @@
           hit = keys.find(function(key) {
             return srfs[key].is === surface;
           });
-          if (!hit === 0) {
+          if (!hit) {
             return arr;
           }
           return arr.concat({
@@ -318,7 +318,7 @@
               }
               _this.layers[anim.is] = pattern;
               _this.render();
-              _ref3 = /(\d+)(?:\-(\d+))?/.exec(wait), __ = _ref3[0], a = _ref3[1], b = _ref3[2];
+              _ref3 = /(\d+)(?:\-(\d+))?/.exec(wait) || ["", "0"], __ = _ref3[0], a = _ref3[1], b = _ref3[2];
               if (!!b) {
                 wait = _.random(Number(a), Number(b));
               }
@@ -441,7 +441,7 @@
           bubbles: true
         }));
       } else {
-        elm = Surface.isHitBubble(ev.target);
+        elm = Surface.isHitBubble(ev.target, ev.pageX, ev.pageY);
         if (!elm) {
           return;
         }
@@ -505,7 +505,7 @@
     };
 
     Surface.isHitBubble = function(element, pageX, pageY) {
-      var elm, _elm;
+      var elm, left, top, _elm, _ref1;
       $(element).hide();
       elm = document.elementFromPoint(pageX, pageY);
       if (!elm) {
@@ -516,7 +516,8 @@
         $(element).show();
         return elm;
       }
-      if (Surface.isHit(elm, pageX, pageY)) {
+      _ref1 = $(elm).offset(), top = _ref1.top, left = _ref1.left;
+      if (Surface.isHit(elm, pageX - left, pageY - top)) {
         $(element).show();
         return elm;
       }

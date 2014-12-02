@@ -47,11 +47,7 @@ class Shell
     keys = Object.keys(srfs)
     keys.forEach (name)->
       delete srfs[name].file # g.c.
-      if !srfs[name].baseSurface
-        cnv = document.createElement("canvas")
-        cnv.width = 0
-        cnv.height = 0
-        srfs[name].baseSurface = cnv
+      delete srfs[name].base # g.c.
       if !srfs[name].elements then return
       elms = srfs[name].elements
       _keys = Object.keys(elms)
@@ -62,7 +58,7 @@ class Shell
         canvas: elms[key].canvas
         type: elms[key].type
       sortedElms = mapped.sort (elmA, elmB)-> if elmA.is > elmB.is then 1 else -1
-      baseSurface = sortedElms[0].canvas || srfs[name].baseSurface
+      baseSurface = srfs[name].baseSurface || sortedElms[0].canvas
       srfutil = new SurfaceUtil(baseSurface)
       srfutil.composeElements(sortedElms)
       srfs[name].baseSurface = baseSurface
@@ -105,7 +101,13 @@ class Shell
             a = path.toLowerCase()
             b = file.toLowerCase()
             a is b || a is (b+".png").toLowerCase()
-          if !path then return reject(new Error("element " + file + " is not found"))
+          if !path
+            # reject(new Error("element " + file + " is not found"))
+            elm.canvas = document.createElement("canvas")
+            elm.canvas.width = 1
+            elm.canvas.height = 1
+            resolve()
+            return
           setTimeout ->
             buffer = (directory[path] || directory[path+".png"]).asArrayBuffer()
             url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
