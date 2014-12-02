@@ -14,21 +14,20 @@ class Shell
   constructor: (directory)->
     if !directory["descript.txt"] then throw new Error("descript.txt not found")
     @directory = directory
-    @descript = Nar.parseDescript(Nar.convert(@directory["descript.txt"].asArrayBuffer()))
+    @descript = null
     @surfaces = null
 
   load: (callback)->
+    @descript = Nar.parseDescript(Nar.convert(@directory["descript.txt"].asArrayBuffer()))
     if !!@directory["surfaces.txt"]
-      buffer = @directory["surfaces.txt"].asArrayBuffer()
-      surfacesTxt = Nar.convert(buffer)
-      surfaces = Shell.parseSurfaces(surfacesTxt)
+      surfaces = Shell.parseSurfaces(Nar.convert(@directory["surfaces.txt"].asArrayBuffer()))
     else surfaces = {"surfaces": {}}
     mergedSurfaces = Shell.mergeSurfacesAndSurfacesFiles(surfaces, @directory)
     Shell.loadSurfaces mergedSurfaces, (err, loadedSurfaces)=>
       Shell.loadElements loadedSurfaces, @directory, (err, loadedElmSurfaces)=>
         if !!err then return callback(err)
         @surfaces = Shell.createBases(loadedElmSurfaces)
-        delete @directory # g.c.
+        @directory = null
         callback(null)
     return
 

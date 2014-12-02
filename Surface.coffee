@@ -24,15 +24,22 @@ class Surface
     $(@element).on "mousedown",  (ev)=> @processMouseEvent(ev, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mousemove",  (ev)=> @processMouseEvent(ev, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
     $(@element).on "mouseup",    (ev)=> @processMouseEvent(ev, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
-    $(@element).on "touchmove",  (ev)=> @processMouseEvent(ev, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
-    $(@element).on "touchend",   (ev)=> @processMouseEvent(ev, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
-    $(@element).on "touchstart", do =>
-      touchOnce = false
-      (ev)=>
-        touchOnce = !touchOnce
-        if touchOnce
-          Surface.processMouseEvent(ev, @scopeId, @regions, "OnMouseDown", ($ev)=> $(@element).trigger($ev))
-          setTimeout((-> touchOnce = false), 500)
+    do =>
+      tid = 0
+      touchCount = 0
+      touchStartTime = 0
+      $(@element).on "touchmove",  (ev)=> @processMouseEvent(ev, "OnMouseMove", ($ev)=> $(@element).trigger($ev))
+      $(@element).on "touchend",   (ev)=>
+        @processMouseEvent(ev, "OnMouseUp", ($ev)=> $(@element).trigger($ev))
+        @processMouseEvent(ev, "OnMouseClick", ($ev)=> $(@element).trigger($ev))
+        if Date.now() - touchStartTime < 500 and touchCount%2 is 0
+          @processMouseEvent(ev, "OnMouseDoubleClick", ($ev)=> $(@element).trigger($ev))
+      $(@element).on "touchstart", (ev)=>
+        touchCount++
+        touchStartTime = Date.now()
+        @processMouseEvent(ev, "OnMouseDown", ($ev)=> $(@element).trigger($ev))
+        clearTimeout(tid)
+        tid = setTimeout (=>touchCount=0), 500
 
     keys = Object.keys(@animations)
     keys.forEach (name)=>
@@ -180,12 +187,12 @@ class Surface
     return
 
   processMouseEvent: (ev, eventName, callback)->
-    ev.preventDefault()
     $(ev.target).css({"cursor": "default"})
     if @isPointerEventsShimed and ev.type is @lastEventType
       @lastEventType = ""
       @isPointerEventsShimed = false
       ev.stopPropagation()
+      ev.preventDefault()
       return
     if /^touch/.test(ev.type)
     then {pageX, pageY} = ev.changedTouches[0]
@@ -194,6 +201,8 @@ class Surface
     offsetX = pageX - left
     offsetY = pageY - top
     if Surface.isHit(ev.target, offsetX, offsetY)
+      ev.preventDefault()
+      ev.stopPropagation()
       detail =
         "ID": eventName
         "Reference0": offsetX|0
@@ -214,31 +223,54 @@ class Surface
       callback($.Event('IkagakaSurfaceEvent', {detail, bubbles: true }))
     else
       # pointer-events shim
-      ev.stopPropagation()
-      @isPointerEventsShimed = true
-      @lastEventType = ev.type
-      $(ev.target).css({display: 'none'})
-      elm = document.elementFromPoint(pageX, pageY)
+      elm = Surface.isHitBubble(ev.target)
       if !elm then return
-      $(ev.target).css({display: 'inline-block'})
-      _ev = document.createEvent(ev.constructor.name)
-      _ev.initMouseEvent?(
-        ev.type,
-        ev.bubbles,
-        ev.cancelable,
-        ev.view,
-        ev.detail,
-        ev.screenX,
-        ev.screenY,
-        ev.clientX,
-        ev.clientY,
-        ev.ctrlKey,
-        ev.altKey,
-        ev.shiftKey,
-        ev.metaKey,
-        ev.button,
-        ev.relatedTarget)
-      elm.dispatchEvent(_ev)
+      if /^mouse/.test(ev.type)
+        @isPointerEventsShimed = true
+        @lastEventType = ev.type
+        ev.preventDefault()
+        ev.stopPropagation()
+        _ev = document.createEvent("MouseEvent")
+        _ev.initMouseEvent?(
+          ev.type,
+          ev.bubbles,
+          ev.cancelable,
+          ev.view,
+          ev.detail,
+          ev.screenX,
+          ev.screenY,
+          ev.clientX,
+          ev.clientY,
+          ev.ctrlKey,
+          ev.altKey,
+          ev.shiftKey,
+          ev.metaKey,
+          ev.button,
+          ev.relatedTarget)
+        elm.dispatchEvent(_ev)
+      else if /^touch/.test(ev.type)
+        @isPointerEventsShimed = true
+        @lastEventType = ev.type
+        ev.preventDefault()
+        ev.stopPropagation()
+        touches = document.createTouchList()
+        touches[0] = document.createTouch(document.body)
+        _ev = document.createEvent("TouchEvent")
+        _ev.initTouchEvent(
+          touches,#TouchList* touches,
+          touches,#TouchList* targetTouches,
+          touches,#TouchList* changedTouches,
+          ev.type,
+          ev.view,#PassRefPtr<AbstractView> view,
+          ev.screenX,
+          ev.screenY,
+          ev.clientX,
+          ev.clientY,
+          ev.ctrlKey,
+          ev.altKey,
+          ev.shiftKey,
+          ev.metaKey)
+        elm.dispatchEvent(_ev)
     return
 
   @random = (callback, n)->
@@ -260,6 +292,18 @@ class Surface
     imgdata = ctx.getImageData(0, 0, x+1, y+1)
     data = imgdata.data
     return data[data.length-1] isnt 0
+
+  @isHitBubble = (element, pageX, pageY)->
+    $(element).hide()
+    elm = document.elementFromPoint(pageX, pageY)
+    if !elm
+      $(element).show(); return elm
+    unless elm instanceof HTMLCanvasElement
+      $(element).show(); return elm
+    if Surface.isHit(elm, pageX, pageY)
+      $(element).show(); return elm
+    _elm = Surface.isHitBubble(elm, pageX, pageY)
+    $(element).show(); return _elm
 
 if module?.exports?
   module.exports = Surface
