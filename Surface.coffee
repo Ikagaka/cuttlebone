@@ -122,29 +122,26 @@ class Surface
     anim = @animations[hit]
     lazyPromises = anim.patterns.map (pattern)=> =>
       new Promise (resolve, reject)=>
-        {surface, wait, type} = pattern
-        if /^start\,\d+/.test(type)
-          animId = Number(type.split(",")[1])
-          @play animId, -> resolve()
-          return
-        if /^stop\,\d+/.test(type)
-          animId = Number(type.split(",")[1])
-          @stop animId, -> resolve()
-          return
-        if /^alternativestart\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)
-          [__, match] = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type)
-          arr = match.split(/[\,\.]/)
-          if arr.length > 0
-            animId = Number(SurfaceUtil.choice(arr))
-            @play animId, -> resolve()
+        {surface, wait, type, animation_ids} = pattern
+        if /^start/.test(type)
+          _animId = SurfaceUtil.choice(animation_ids)
+          if !!@animations[_animId]
+            @play @animations[_animId].is, -> resolve()
             return
-        if /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)
-          [__, match] = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type)
-          arr = match.split(/[\,\.]/)
-          if arr.length > 0
-            animId = Number(SurfaceUtil.choice(arr))
-            @stop(animId)
-            resolve()
+        if /^stop\,\d+/.test(type)
+          _animId = SurfaceUtil.choice(animation_ids)
+          if !!@animations[_animId]
+            @play @animations[_animId].is, -> resolve()
+            return
+        if /^alternativestart/.test(type)
+          _animId = SurfaceUtil.choice(animation_ids)
+          if !!@animations[_animId]
+            @play @animations[_animId].is, -> resolve()
+            return
+        if /^alternativestop/.test(type)
+          _animId = SurfaceUtil.choice(animation_ids)
+          if !!@animations[_animId]
+            @play @animations[_animId].is, -> resolve()
             return
         @layers[anim.is] = pattern
         @render()

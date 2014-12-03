@@ -23,7 +23,8 @@ $("#nar").change(function(ev){
 });
 
 var loader = new Nar.Loader();
-loader.loadFromURL("../node_modules/ikagaka.nar.js/vendor/mobilemaster.nar", loadHandler);
+//loader.loadFromURL("../node_modules/ikagaka.nar.js/vendor/mobilemaster.nar", loadHandler);
+loader.loadFromURL("../OSpittan.zip", loadHandler);
 
 function loadHandler(err, nar){
   if(!!err) return console.error(err.stack);

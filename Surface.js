@@ -279,46 +279,47 @@
         return function(pattern) {
           return function() {
             return new Promise(function(resolve, reject) {
-              var a, animId, arr, b, match, surface, type, wait, __, _ref1, _ref2, _ref3;
-              surface = pattern.surface, wait = pattern.wait, type = pattern.type;
-              if (/^start\,\d+/.test(type)) {
-                animId = Number(type.split(",")[1]);
-                _this.play(animId, function() {
-                  return resolve();
-                });
-                return;
-              }
-              if (/^stop\,\d+/.test(type)) {
-                animId = Number(type.split(",")[1]);
-                _this.stop(animId, function() {
-                  return resolve();
-                });
-                return;
-              }
-              if (/^alternativestart\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)) {
-                _ref1 = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref1[0], match = _ref1[1];
-                arr = match.split(/[\,\.]/);
-                if (arr.length > 0) {
-                  animId = Number(SurfaceUtil.choice(arr));
-                  _this.play(animId, function() {
+              var a, animation_ids, b, surface, type, wait, __, _animId, _ref1;
+              surface = pattern.surface, wait = pattern.wait, type = pattern.type, animation_ids = pattern.animation_ids;
+              if (/^start/.test(type)) {
+                _animId = SurfaceUtil.choice(animation_ids);
+                if (!!_this.animations[_animId]) {
+                  _this.play(_this.animations[_animId].is, function() {
                     return resolve();
                   });
                   return;
                 }
               }
-              if (/^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.test(type)) {
-                _ref2 = /^alternativestop\,[\(\[](\d+(?:\[\,\.]\d+)*)[\)\]]/.exec(type), __ = _ref2[0], match = _ref2[1];
-                arr = match.split(/[\,\.]/);
-                if (arr.length > 0) {
-                  animId = Number(SurfaceUtil.choice(arr));
-                  _this.stop(animId);
-                  resolve();
+              if (/^stop\,\d+/.test(type)) {
+                _animId = SurfaceUtil.choice(animation_ids);
+                if (!!_this.animations[_animId]) {
+                  _this.play(_this.animations[_animId].is, function() {
+                    return resolve();
+                  });
+                  return;
+                }
+              }
+              if (/^alternativestart/.test(type)) {
+                _animId = SurfaceUtil.choice(animation_ids);
+                if (!!_this.animations[_animId]) {
+                  _this.play(_this.animations[_animId].is, function() {
+                    return resolve();
+                  });
+                  return;
+                }
+              }
+              if (/^alternativestop/.test(type)) {
+                _animId = SurfaceUtil.choice(animation_ids);
+                if (!!_this.animations[_animId]) {
+                  _this.play(_this.animations[_animId].is, function() {
+                    return resolve();
+                  });
                   return;
                 }
               }
               _this.layers[anim.is] = pattern;
               _this.render();
-              _ref3 = /(\d+)(?:\-(\d+))?/.exec(wait) || ["", "0"], __ = _ref3[0], a = _ref3[1], b = _ref3[2];
+              _ref1 = /(\d+)(?:\-(\d+))?/.exec(wait) || ["", "0"], __ = _ref1[0], a = _ref1[1], b = _ref1[2];
               if (!!b) {
                 wait = _.random(Number(a), Number(b));
               }
