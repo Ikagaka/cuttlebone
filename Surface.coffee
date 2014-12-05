@@ -167,9 +167,9 @@ class Surface
   bind: (animationId)->
     keys = Object.keys(@animations)
     hit = keys.find (name)=> @animations[name].is is animationId
-    if hit then return undefined
+    if !hit then return
     anim = @animations[hit]
-    if anim.patterns.length is 0 then return undefined
+    if anim.patterns.length is 0 then return
     interval = anim.interval
     pattern = anim.patterns[anim.patterns.length-1]
     @layers[anim.is] = pattern

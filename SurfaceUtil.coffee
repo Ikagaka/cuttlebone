@@ -52,6 +52,20 @@ class SurfaceUtil
     @overlayfast(cnv, x, y)
     return
 
+  @pna = (cnvA, cnvB)->
+    ctxA = cnvA.getContext("2d")
+    ctxB = cnvB.getContext("2d")
+    imgdataA = ctxA.getImageData(0, 0, cnvA.width, cnvA.height)
+    imgdataB = ctxB.getImageData(0, 0, cnvB.width, cnvB.height)
+    dataA = imgdataA.data
+    dataB = imgdataB.data
+    i = 0
+    while i < dataA.length
+      dataA[i+3] = dataB[i]
+      i += 4
+    ctxA.putImageData(imgdataA, 0, 0)
+    return cnvA
+
   @choice = (ary)-> ary[Math.round(Math.random()*(ary.length-1))]
 
   @clear = (cnv)->

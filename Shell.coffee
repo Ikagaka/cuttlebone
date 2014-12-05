@@ -12,24 +12,34 @@ URL = window["URL"]
 class Shell
 
   constructor: (directory)->
-    if !directory["descript.txt"] then throw new Error("descript.txt not found")
     @directory = directory
     @descript = null
     @surfaces = null
 
-  load: (callback)->
-    @descript = Nar.parseDescript(Nar.convert(@directory["descript.txt"].asArrayBuffer()))
+  load: ->
+
+    if !!@directory["descript.txt"]
+    then @descript = Nar.parseDescript(Nar.convert(@directory["descript.txt"]))
+    else @descript = {}; console.warn("descript.txt is not found")
+
     if !!@directory["surfaces.txt"]
-      surfaces = Shell.parseSurfaces(Nar.convert(@directory["surfaces.txt"].asArrayBuffer()))
-    else surfaces = {"surfaces": {}}
-    mergedSurfaces = Shell.mergeSurfacesAndSurfacesFiles(surfaces, @directory)
-    Shell.loadSurfaces mergedSurfaces, (err, loadedSurfaces)=>
-      Shell.loadElements loadedSurfaces, @directory, (err, loadedElmSurfaces)=>
-        if !!err then return callback(err)
-        @surfaces = Shell.createBases(loadedElmSurfaces)
-        @directory = null
-        callback(null)
-    return
+    then surfaces = Shell.parseSurfaces(Nar.convert(@directory["surfaces.txt"]))
+    else surfaces = {"surfaces": {}}; console.warn("surfaces.txt is not found")
+
+    prm = Promise.resolve(surfaces)
+    prm = prm.then Shell.mergeSurfacesAndSurfacesFiles(@directory)
+    prm = prm.then Shell.loadSurfaces(@directory)
+    prm = prm.then Shell.loadElements(@directory)
+    prm = prm.then Shell.createBases(@directory)
+    prm = prm.then (surfaces)=>
+      @surfaces = surfaces
+      @directory = null
+    prm = prm.catch (err)->
+      console.error err
+      err.message && console.error err.message
+      err.stack && console.error err.stack
+      throw err
+    prm
 
   attachSurface: (canvas, scopeId, surfaceId)->
     type = if scopeId is 0 then "sakura" else "kero"
@@ -42,100 +52,129 @@ class Shell
     if !hit then return null
     return new Surface(canvas, scopeId, hit, @surfaces)
 
-  @createBases = (surfaces)->
-    srfs = surfaces.surfaces
-    keys = Object.keys(srfs)
-    keys.forEach (name)->
-      delete srfs[name].file # g.c.
-      delete srfs[name].base # g.c.
-      if !srfs[name].elements then return
-      elms = srfs[name].elements
-      _keys = Object.keys(elms)
-      mapped = _keys.map (key)->
-        is: elms[key].is
-        x:  elms[key].x
-        y: elms[key].y
-        canvas: elms[key].canvas
-        type: elms[key].type
-      sortedElms = mapped.sort (elmA, elmB)-> if elmA.is > elmB.is then 1 else -1
-      baseSurface = srfs[name].baseSurface || sortedElms[0].canvas
-      srfutil = new SurfaceUtil(baseSurface)
-      srfutil.composeElements(sortedElms)
-      srfs[name].baseSurface = baseSurface
-      delete srfs[name].elements # g.c.
-    return surfaces
+  @createBases = (directory)-> (surfaces)->
+    new Promise (resolve, reject)->
+      srfs = surfaces.surfaces
+      keys = Object.keys(srfs)
+      keys.forEach (name)->
+        sortedElms = []
+        if !!srfs[name].elements
+          elms = srfs[name].elements
+          _keys = Object.keys(elms)
+          mapped = _keys.map (key)->
+            is: elms[key].is
+            x:  elms[key].x
+            y: elms[key].y
+            canvas: elms[key].canvas
+            type: elms[key].type
+          sortedElms = mapped.sort (elmA, elmB)-> if elmA.is > elmB.is then 1 else -1
+          delete srfs[name].elements # g.c.
+        baseSurface = srfs[name].baseSurface || sortedElms[0]?.canvas
+        if !baseSurface
+          console.warn(name + " does not have base surface")
+          return
+        if !!srfs[name].pnaSurface
+          baseSurface = SurfaceUtil.pna(baseSurface, srfs[name].pnaSurface)
+          delete srfs[name].pnaSurface # g.c.
+        srfutil = new SurfaceUtil(baseSurface)
+        srfutil.composeElements(sortedElms)
+        srfs[name].baseSurface = baseSurface
+      resolve(surfaces)
 
-  @loadSurfaces = (surfaces, callback)->
-    srfs = surfaces.surfaces
-    keys = Object.keys(srfs)
-    hits = keys.filter (name)-> !!srfs[name].file
-    promises = hits.map (name)->
-      new Promise (resolve, reject)->
-        setTimeout ->
-          buffer = srfs[name].file.asArrayBuffer()
-          url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-          SurfaceUtil.loadImage url, (err, img)->
-            URL.revokeObjectURL(url)
-            if !!err then return reject(err)
-            srfs[name].baseSurface = SurfaceUtil.transImage(img)
-            resolve()
-    Promise
-      .all(promises)
-      .then(-> callback(null, surfaces))
-      .catch((err)-> console.error(err, err.stack); callback(err, null))
-    return
-
-  @loadElements = (surfaces, directory, callback)->
-    srfs = surfaces.surfaces
-    keys = Object.keys(srfs)
-    hits = keys.filter (name)-> !!srfs[name].elements
-    promises = []
-    for srfName in hits
-      _keys = Object.keys(srfs[srfName].elements)
-      for elmName in _keys
-        promises.push new Promise (resolve, reject)->
-          elm = srfs[srfName].elements[elmName]
-          {type, file, x, y} = elm
-          keys = Object.keys(directory)
-          path = keys.find (path)->
-            a = path.toLowerCase()
-            b = file.toLowerCase()
-            a is b || a is (b+".png").toLowerCase()
-          if !path
-            # reject(new Error("element " + file + " is not found"))
-            elm.canvas = document.createElement("canvas")
-            elm.canvas.width = 1
-            elm.canvas.height = 1
-            resolve()
-            return
-          setTimeout ->
-            buffer = (directory[path] || directory[path+".png"]).asArrayBuffer()
+  @loadElements = (directory)-> (surfaces)->
+    new Promise (resolve, reject)->
+      srfs = surfaces.surfaces
+      keys = Object.keys(srfs)
+      hits = keys.filter (name)-> !!srfs[name].elements
+      promises = []
+      hits.forEach (srfName)->
+        elmKeys = Object.keys(srfs[srfName].elements)
+        elmKeys.forEach (elmName)->
+          promises.push new Promise (resolve, reject)->
+            elm = srfs[srfName].elements[elmName]
+            {type, file, x, y} = elm
+            keys = Object.keys(directory)
+            path = keys.find (path)->
+              a = path.toLowerCase()
+              b = file.toLowerCase()
+              if a is b then return true
+              if a is (b+".png").toLowerCase()
+                console.warn("element file " + b + " is need '.png' extension")
+                return true
+              return false
+            if !path
+              console.warn "element " + file + " is not found"
+              elm.canvas = document.createElement("canvas")
+              elm.canvas.width = 1
+              elm.canvas.height = 1
+              resolve()
+              return
+            buffer = (directory[path] || directory[path+".png"])
             url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
             SurfaceUtil.loadImage url, (err, img)->
               URL.revokeObjectURL(url)
               if !!err then return reject(err.error)
               elm.canvas = SurfaceUtil.transImage(img)
               resolve()
-    Promise
-      .all(promises)
-      .then(-> callback(null, surfaces))
-      .catch((err)-> console.error(err, err.stack); callback(err, null))
-    return
+      prm = Promise.all(promises)
+      prm = prm.then -> resolve(surfaces)
+      prm = prm.catch(reject)
+      prm
 
-  @mergeSurfacesAndSurfacesFiles = (surfaces, directory)->
-    srfs = surfaces.surfaces
-    keys = Object.keys(directory)
-    hits = keys.filter (filename)-> /^surface\d+\.png$/i.test(filename)
-    tuples = hits.map (filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), directory[filename]]
-    for [n, file] in tuples
-      name = Object.keys(srfs).find (name)-> srfs[name].is is n
-      name = name || "surface" + n
-      srfs[name] = srfs[name] || {is: n}
-      srfs[name].file = file
-      srfs[name].baseSurface = document.createElement("canvas")
-      srfs[name].baseSurface.width = 0
-      srfs[name].baseSurface.height = 0
-    return surfaces
+  @loadSurfaces = (directory)-> (surfaces)->
+    new Promise (resolve, reject)->
+      srfs = surfaces.surfaces
+      keys = Object.keys(srfs)
+      promises = []
+      hits = keys.filter (name)-> !!srfs[name].buffer
+      hits.forEach (name)->
+        promises.push new Promise (resolve, reject)->
+          buffer = srfs[name].buffer
+          url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
+          SurfaceUtil.loadImage url, (err, img)->
+            URL.revokeObjectURL(url)
+            if !!err then return reject(err)
+            delete srfs[name].buffer # g.c.
+            srfs[name].baseSurface = SurfaceUtil.transImage(img)
+            resolve()
+      _hits = keys.filter (name)-> !!srfs[name].pnabuffer
+      _hits.forEach (name)->
+        promises.push new Promise (resolve, reject)->
+          buffer = srfs[name].pnabuffer
+          url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
+          SurfaceUtil.loadImage url, (err, img)->
+            URL.revokeObjectURL(url)
+            if !!err then return reject(err)
+            delete srfs[name].pnabuffer # g.c.
+            srfs[name].pnaSurface = SurfaceUtil.copy(img)
+            resolve()
+      prm = Promise.all(promises)
+      prm = prm.then -> resolve(surfaces)
+      prm = prm.catch(reject)
+      prm
+
+  @mergeSurfacesAndSurfacesFiles = (directory)-> (surfaces)->
+    new Promise (resolve, reject)->
+      srfs = surfaces.surfaces
+      keys = Object.keys(directory)
+      hits = keys.filter (filename)-> /^surface\d+\.png$/i.test(filename)
+      tuples = hits.map (filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), directory[filename]]
+      tuples.forEach ([n, buffer])->
+        name = Object.keys(srfs).find (name)-> srfs[name].is is n
+        name = name || "surface" + n
+        srfs[name] = srfs[name] || {is: n}
+        srfs[name].buffer = buffer
+        srfs[name].baseSurface = document.createElement("canvas")
+        srfs[name].baseSurface.width = 1
+        srfs[name].baseSurface.height = 1
+      pnahits = keys.filter (filename)-> /^surface\d+\.pna$/i.test(filename)
+      pnatuples = pnahits.map (filename)-> [Number((/^surface(\d+)\.pna$/i.exec(filename) or ["", "-1"])[1]), directory[filename]]
+      pnatuples.forEach ([n, buffer])->
+        name = Object.keys(srfs).find (name)-> srfs[name].is is n
+        name = name || "surface" + n
+        srfs[name] = srfs[name] || {is: n}
+        srfs[name].pnabuffer = buffer
+      resolve(surfaces)
 
   @parseSurfaces = (text)->
     surfaces = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
@@ -149,6 +188,7 @@ class Shell
       if Array.isArray(srfs[name].base)
         srfs[name].base.forEach (key)->
           $.extend(true, srfs[name], srfs[key])
+        delete srfs[name].base # g.c.
       obj
     ), {})
     return surfaces

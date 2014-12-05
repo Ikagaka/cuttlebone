@@ -360,12 +360,12 @@
           return _this.animations[name].is === animationId;
         };
       })(this));
-      if (hit) {
-        return void 0;
+      if (!hit) {
+        return;
       }
       anim = this.animations[hit];
       if (anim.patterns.length === 0) {
-        return void 0;
+        return;
       }
       interval = anim.interval;
       pattern = anim.patterns[anim.patterns.length - 1];
