@@ -43,7 +43,7 @@ function loadHandler(err, nar){
     throw new Error("wrong nar file");
   }
 
-  shell.load().then(function(){
+  shell.load().then(function(shell){
     if(!!err) return console.error(err.stack);
 
     console.log(shell);

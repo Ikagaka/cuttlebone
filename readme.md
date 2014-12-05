@@ -37,9 +37,7 @@ loader.loadFromURL("./node_modules/ikagaka.nar.js/vendor/mobilemaster.nar", func
 
   }
 
-  shell.load(function(err){
-    if(!!err) return console.error(err.stack);
-
+  shell.load().then(function(){
     console.log(shell);
 
     var surface = shell.attachSurface($("#surface")[0], 0, 7);

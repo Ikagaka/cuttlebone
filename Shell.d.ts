@@ -64,7 +64,7 @@ interface Surfaces {
 }
 
 interface Shell {
-  load(): Promise<null>;
+  load(): Promise<Shell>;
   attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number): Surface;
   descript: { [key: string]: string; };
   surfaces: Surfaces;

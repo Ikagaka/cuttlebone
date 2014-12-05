@@ -34,6 +34,7 @@ class Shell
     prm = prm.then (surfaces)=>
       @surfaces = surfaces
       @directory = null
+      return @
     prm = prm.catch (err)->
       console.error err
       err.message && console.error err.message
