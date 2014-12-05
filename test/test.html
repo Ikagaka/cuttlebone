@@ -23,8 +23,7 @@ $("#nar").change(function(ev){
 });
 
 var loader = new Nar.Loader();
-//loader.loadFromURL("../node_modules/ikagaka.nar.js/vendor/mobilemaster.nar", loadHandler);
-loader.loadFromURL("../OSpittan.zip", loadHandler);
+loader.loadFromURL("../node_modules/ikagaka.nar.js/vendor/mobilemaster.nar", loadHandler);
 
 function loadHandler(err, nar){
   if(!!err) return console.error(err.stack);
@@ -46,8 +45,8 @@ function loadHandler(err, nar){
     console.log(shell);
 
     var $wrapper = $("<div style='display:inline-block;' />")
-      .on("IkagakaSurfaceEvent", function(ev){
-        console.log(ev.detail.ID);
+      .on("IkagakaDOMEvent", function(ev){
+        console.log(ev.detail);
       })
       .appendTo("body");
     var $canvas = $("<canvas />")
