@@ -18,12 +18,12 @@ class Surface
     @talkCounts = {}
     @isPointerEventsShimed = false
     @lastEventType = ""
-    $(@element).on "contextmenu",(ev)=> @processMouseEvent(ev, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
-    $(@element).on "click",      (ev)=> @processMouseEvent(ev, "OnMouseClick",       ($ev)=> $(@element).trigger($ev))
-    $(@element).on "dblclick",   (ev)=> @processMouseEvent(ev, "OnMouseDoubleClick", ($ev)=> $(@element).trigger($ev))
-    $(@element).on "mousedown",  (ev)=> @processMouseEvent(ev, "OnMouseDown",        ($ev)=> $(@element).trigger($ev))
-    $(@element).on "mousemove",  (ev)=> @processMouseEvent(ev, "OnMouseMove",        ($ev)=> $(@element).trigger($ev))
-    $(@element).on "mouseup",    (ev)=> @processMouseEvent(ev, "OnMouseUp",          ($ev)=> $(@element).trigger($ev))
+    $(@element).on "contextmenu",(ev)=> @processMouseEvent(ev, "mouseclick",    ($ev)=> $(@element).trigger($ev))
+    $(@element).on "click",      (ev)=> @processMouseEvent(ev, "mouseclick",    ($ev)=> $(@element).trigger($ev))
+    $(@element).on "dblclick",   (ev)=> @processMouseEvent(ev, "mousedblclick", ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mousedown",  (ev)=> @processMouseEvent(ev, "mousedown",     ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mousemove",  (ev)=> @processMouseEvent(ev, "mousemove",     ($ev)=> $(@element).trigger($ev))
+    $(@element).on "mouseup",    (ev)=> @processMouseEvent(ev, "mouseup",       ($ev)=> $(@element).trigger($ev))
     do =>
       tid = 0
       touchCount = 0
@@ -167,9 +167,9 @@ class Surface
   bind: (animationId)->
     keys = Object.keys(@animations)
     hit = keys.find (name)=> @animations[name].is is animationId
-    if hit then return undefined
+    if !hit then return
     anim = @animations[hit]
-    if anim.patterns.length is 0 then return undefined
+    if anim.patterns.length is 0 then return
     interval = anim.interval
     pattern = anim.patterns[anim.patterns.length-1]
     @layers[anim.is] = pattern
@@ -200,13 +200,13 @@ class Surface
     if Surface.isHit(ev.target, offsetX, offsetY)
       ev.preventDefault()
       detail =
-        "ID": eventName
-        "Reference0": offsetX|0
-        "Reference1": offsetY|0
-        "Reference2": 0
-        "Reference3": @scopeId
-        "Reference4": ""
-        "Reference5": (if ev.button is 2 then 1 else 0)
+        "type": eventName
+        "offsetX": offsetX|0
+        "offsetY": offsetY|0
+        "wheel": 0
+        "scope": @scopeId
+        "region": ""
+        "button": (if ev.button is 2 then 1 else 0)
       keys = Object.keys(@regions)
       sorted = keys.sort (a, b)-> if a.is > b.is then 1 else -1
       hit = sorted.find (name)=>
@@ -214,9 +214,9 @@ class Surface
         (left < offsetX < right and top < offsetY < bottom) or
         (right < offsetX < left and bottom < offsetY < top)
       if !!hit
-        detail["Reference4"] = @regions[hit].name
+        detail["region"] = @regions[hit].name
         $(ev.target).css({"cursor": "pointer"})
-      callback($.Event('IkagakaSurfaceEvent', {detail, bubbles: true }))
+      callback($.Event('IkagakaDOMEvent', {detail, bubbles: true }))
     else
       # pointer-events shim
       elm = Surface.isHitBubble(ev.target, ev.pageX, ev.pageY)

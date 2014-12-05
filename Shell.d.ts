@@ -64,13 +64,13 @@ interface Surfaces {
 }
 
 interface Shell {
-  load(callback: (error: any) => void): void;
+  load(): Promise<null>;
   attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number): Surface;
   descript: { [key: string]: string; };
   surfaces: Surfaces;
 }
 
 declare var Shell: {
-  new (directory: { [filePath: string]: JSZipObject; }): Shell;
+  new (directory: { [filepath: string]: ArrayBuffer; }): Shell;
   SurfaceUtil: SurfaceUtil
 }

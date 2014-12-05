@@ -23,8 +23,7 @@ $("#nar").change(function(ev){
 });
 
 var loader = new Nar.Loader();
-//loader.loadFromURL("../node_modules/ikagaka.nar.js/vendor/mobilemaster.nar", loadHandler);
-loader.loadFromURL("../OSpittan.zip", loadHandler);
+loader.loadFromURL("../node_modules/ikagaka.nar.js/vendor/mobilemaster.nar", loadHandler);
 
 function loadHandler(err, nar){
   if(!!err) return console.error(err.stack);
@@ -32,7 +31,11 @@ function loadHandler(err, nar){
   console.log(nar);
 
   if(nar.install["type"] === "ghost"){
-    var shellDir = nar.getDirectory(/shell\/master\//);
+    var dic = nar.getDirectory(/shell\/master\//);
+    var shellDir = Object.keys(dic).reduce(function(_dic, path){
+      _dic[path] = dic[path].asArrayBuffer();
+      return _dic;
+    }, {});
     var shell = new Shell(shellDir);
   }else if(nar.install.type === "shell"){
     var shell = new Shell(nar.directory);
@@ -40,22 +43,20 @@ function loadHandler(err, nar){
     throw new Error("wrong nar file");
   }
 
-  shell.load(function(err){
+  shell.load().then(function(){
     if(!!err) return console.error(err.stack);
 
     console.log(shell);
 
-    var $wrapper = $("<div style='display:inline-block;' />")
-      .on("IkagakaSurfaceEvent", function(ev){
-        console.log(ev.detail.ID);
-      })
-      .appendTo("body");
+    var $wrapper = $("<div />")
     var $canvas = $("<canvas />")
-      .appendTo($wrapper);
 
-    $("#surfaceId").change(function(ev){
-      changeSurface(Number($(ev.target).val()));
-    });
+    $wrapper.on("IkagakaDOMEvent", function(ev){ console.log(ev.detail); });
+
+    $canvas.appendTo($wrapper);
+    $wrapper.appendTo("body");
+
+    $("#surfaceId").change(function(ev){ changeSurface(Number($(ev.target).val())); });
 
     var surface;
 
@@ -72,6 +73,12 @@ function loadHandler(err, nar){
         surface.destructor();
       }
       surface = shell.attachSurface($canvas[0], 0, n);
+      if(surface != null){
+        surface.bind(30);
+        surface.bind(31);
+        surface.bind(32);
+        surface.bind(50);
+      }
 
       console.log(surface);
     }
