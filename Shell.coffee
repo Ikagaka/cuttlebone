@@ -177,10 +177,14 @@ class Shell
         srfs[name].pnabuffer = buffer
       resolve(surfaces)
 
+
+  # expand SurfacesTxtYaml Object "base" property
   @parseSurfaces = (text)->
     surfaces = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
-    #console.dir surfaces
+    #console.log surfaces
+    #console.log JSON.stringify(surfaces, null, "  ")
     #surfaces = $.extend(true, {}, surfaces)
+    surfaces.surfaces = surfaces.surfaces || {}
     srfs = surfaces.surfaces
     keys = Object.keys(srfs)
     surfaces.surfaces = keys.reduce(((obj, name)->

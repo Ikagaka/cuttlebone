@@ -10,7 +10,7 @@ class Surface
     @baseSurface = srf.baseSurface
     @regions = srf.regions || {}
     @animations = srf.animations || {}
-    @bufferCanvas = SurfaceUtil.copy(@baseSurface)
+    @bufferCanvas = SurfaceUtil.copy(@baseSurface || document.createElement("canvas"))
     @stopFlags = {}
     @layers = {}
     @destructed = false
@@ -109,10 +109,12 @@ class Surface
     ), [])
     SurfaceUtil.clear(@bufferCanvas)
     util = new SurfaceUtil(@bufferCanvas)
-    util.composeElements([{"type": "base", "canvas": @baseSurface}].concat(patterns))
-    SurfaceUtil.clear(@element)
-    util2 = new SurfaceUtil(@element)
-    util2.init(@bufferCanvas)
+    if !!@baseSurface or patterns.length > 0
+      base = @baseSurface || patterns[0].canvas
+      util.composeElements([{"type": "base", "canvas": base}].concat(patterns))
+      SurfaceUtil.clear(@element)
+      util2 = new SurfaceUtil(@element)
+      util2.init(@bufferCanvas)
     return
 
   play: (animationId, callback=->)->

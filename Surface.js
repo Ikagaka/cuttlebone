@@ -21,7 +21,7 @@
       this.baseSurface = srf.baseSurface;
       this.regions = srf.regions || {};
       this.animations = srf.animations || {};
-      this.bufferCanvas = SurfaceUtil.copy(this.baseSurface);
+      this.bufferCanvas = SurfaceUtil.copy(this.baseSurface || document.createElement("canvas"));
       this.stopFlags = {};
       this.layers = {};
       this.destructed = false;
@@ -209,7 +209,7 @@
     };
 
     Surface.prototype.render = function() {
-      var keys, mapped, patterns, sorted, srfs, util, util2;
+      var base, keys, mapped, patterns, sorted, srfs, util, util2;
       srfs = this.surfaces.surfaces;
       keys = Object.keys(this.layers);
       sorted = keys.sort(function(layerNumA, layerNumB) {
@@ -248,15 +248,18 @@
       })(this)), []);
       SurfaceUtil.clear(this.bufferCanvas);
       util = new SurfaceUtil(this.bufferCanvas);
-      util.composeElements([
-        {
-          "type": "base",
-          "canvas": this.baseSurface
-        }
-      ].concat(patterns));
-      SurfaceUtil.clear(this.element);
-      util2 = new SurfaceUtil(this.element);
-      util2.init(this.bufferCanvas);
+      if (!!this.baseSurface || patterns.length > 0) {
+        base = this.baseSurface || patterns[0].canvas;
+        util.composeElements([
+          {
+            "type": "base",
+            "canvas": base
+          }
+        ].concat(patterns));
+        SurfaceUtil.clear(this.element);
+        util2 = new SurfaceUtil(this.element);
+        util2.init(this.bufferCanvas);
+      }
     };
 
     Surface.prototype.play = function(animationId, callback) {

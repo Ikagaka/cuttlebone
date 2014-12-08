@@ -15,6 +15,14 @@
   surface: <input type="number" value="0" id="surfaceId" />
 </p>
 <script>
+/*
+Nar.Loader.wget("./surfaces.txt", "text", function(err, data){
+  var parsed = Shell.parseSurfaces(data);
+  console.log(parsed.surfaces.surface0);
+})*/
+
+
+
 $("#nar").change(function(ev){
   var loader = new Nar.Loader();
   var file = ev.target.files[0];
