@@ -216,6 +216,7 @@ class Surface
         (left < offsetX < right and top < offsetY < bottom) or
         (right < offsetX < left and bottom < offsetY < top)
       if !!hit
+        ev.stopPropagation()
         detail["region"] = @regions[hit].name
         $(ev.target).css({"cursor": "pointer"})
       callback($.Event('IkagakaDOMEvent', {detail, bubbles: true }))

@@ -435,6 +435,7 @@
           };
         })(this));
         if (!!hit) {
+          ev.stopPropagation();
           detail["region"] = this.regions[hit].name;
           $(ev.target).css({
             "cursor": "pointer"
