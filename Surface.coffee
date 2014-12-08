@@ -247,13 +247,26 @@ class Surface
           ev.button,
           ev.relatedTarget)
         elm.dispatchEvent(_ev)
-      else if /^touch/.test(ev.type)
+      else if /^touch/.test(ev.type) and !!document.createTouchList
         @isPointerEventsShimed = true
         @lastEventType = ev.type
         ev.preventDefault()
         ev.stopPropagation()
         touches = document.createTouchList()
-        touches[0] = document.createTouch(document.body)
+        touches[0] = document.createTouch(
+          document.body,
+          ev.target,
+          0, #identifier
+          ev.pageX,
+          ev.pageY,
+          ev.screenX,
+          ev.screenY,
+          ev.clientX,
+          ev.clientY,
+          1, #radiusX
+          1, #radiusY
+          0, #rotationAngle
+          1.0); #force
         _ev = document.createEvent("TouchEvent")
         _ev.initTouchEvent(
           touches,#TouchList* touches,

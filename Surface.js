@@ -460,13 +460,13 @@
             _ev.initMouseEvent(ev.type, ev.bubbles, ev.cancelable, ev.view, ev.detail, ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey, ev.button, ev.relatedTarget);
           }
           elm.dispatchEvent(_ev);
-        } else if (/^touch/.test(ev.type)) {
+        } else if (/^touch/.test(ev.type) && !!document.createTouchList) {
           this.isPointerEventsShimed = true;
           this.lastEventType = ev.type;
           ev.preventDefault();
           ev.stopPropagation();
           touches = document.createTouchList();
-          touches[0] = document.createTouch(document.body);
+          touches[0] = document.createTouch(document.body, ev.target, 0, ev.pageX, ev.pageY, ev.screenX, ev.screenY, ev.clientX, ev.clientY, 1, 1, 0, 1.0);
           _ev = document.createEvent("TouchEvent");
           _ev.initTouchEvent(touches, touches, touches, ev.type, ev.view, ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey);
           elm.dispatchEvent(_ev);
