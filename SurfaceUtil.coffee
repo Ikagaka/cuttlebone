@@ -11,7 +11,7 @@ class SurfaceUtil
     offsetX = offsetY = 0
     switch type
       when "base"        then @base(       canvas, offsetX,     offsetY)
-      when "overlay"     then @overlayfast(canvas, offsetX + x, offsetY + y)
+      when "overlay"     then @overlay(    canvas, offsetX + x, offsetY + y)
       when "overlayfast" then @overlayfast(canvas, offsetX + x, offsetY + y)
       when "replace"     then @replace(    canvas, offsetX + x, offsetY + y)
       when "add"         then @overlayfast(canvas, offsetX + x, offsetY + y)
@@ -29,6 +29,14 @@ class SurfaceUtil
   base: (part, x, y)->
     SurfaceUtil.clear(@cnv)
     @init(part, x, y)
+    return
+
+  overlay: (part, x, y)->
+    @ctx.globalCompositeOperation = "source-over"
+    if @cnv.width < part.width or @cnv.height < part.height
+      @base(part, x, y)
+    else
+      @ctx.drawImage(part, x, y)
     return
 
   overlayfast: (part, x, y)->
