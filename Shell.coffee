@@ -74,6 +74,7 @@ class Shell
         if !baseSurface
           console.warn(name + " does not have base surface")
           return
+        baseSurface = SurfaceUtil.copy(baseSurface)
         if !!srfs[name].pnaSurface
           baseSurface = SurfaceUtil.pna(baseSurface, srfs[name].pnaSurface)
           delete srfs[name].pnaSurface # g.c.

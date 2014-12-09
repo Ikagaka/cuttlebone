@@ -56,7 +56,7 @@ function loadHandler(err, nar){
 
     console.log(shell);
 
-    var $wrapper = $("<div />")
+    var $wrapper = $("<div style='display:inline-block;' />")
     var $canvas = $("<canvas />")
 
     $wrapper.on("IkagakaDOMEvent", function(ev){ console.log(ev.detail); });
