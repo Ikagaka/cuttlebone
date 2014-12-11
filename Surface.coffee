@@ -213,7 +213,7 @@ class Surface
       keys = Object.keys(@regions)
       sorted = keys.sort (a, b)-> if a.is > b.is then 1 else -1
       hit = sorted.find (name)=>
-        {type, name, left, top, right, bottom, coordinates, radius} = @regions[name]
+        {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = @regions[name]
         switch type
           when "rect"
             (left < offsetX < right and top < offsetY < bottom) or
@@ -224,8 +224,7 @@ class Surface
             Math.pow((offsetX-(left+width/2))/(width/2), 2) +
             Math.pow((offsetY-(top+height/2))/(height/2), 2) < 1
           when "circle"
-            Math.pow(offsetX-(top+radius), 2)+Math.pow(offsetY-(left+radius), 2) /
-            Math.pow(radius/2, 2) < 1
+            Math.pow((offsetX-center_x)/radius, 2)+Math.pow((offsetY-center_y)/radius, 2) < 1
           when "polygon"
             ptC = {x:offsetX, y:offsetY}
             tuples = coordinates.reduce(((arr, {x, y}, i)->
