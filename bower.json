@@ -1,0 +1,28 @@
+{
+  "name": "ikagaka.shell.js",
+  "description": "Ukagaka Shell Surface Player",
+  "dependencies": {
+    "ikagaka.nar.js": "Ikagaka/Nar.js",
+    "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
+    "underscore": "~1.7.0",
+    "zepto": "~1.1.4",
+    "es6-shim": "~0.21.1"
+  },
+  "main": [
+    "Shell.js",
+    "Surface.js",
+    "SurfaceUtil.js"
+  ],
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules"
+  ],
+  "exportsOverride": {
+    "ikagaka.nar.js": {
+      "js": [
+        "Nar.js"
+      ]
+    }
+  }
+}
