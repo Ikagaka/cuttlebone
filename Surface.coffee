@@ -61,8 +61,9 @@ class Surface
         when "yen-e"     then ;
         when "talk"      then @talkCounts[name] = n;
         else
-          if /^bind(?:\+(\d+))/.test(interval) then ;
-          console.error(@animations[name])
+          if /^bind(?:\+(\d+))/.test(interval)
+          then ;
+          else console.error(@animations[name])
     @render()
 
   destructor: ->

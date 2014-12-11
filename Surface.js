@@ -162,8 +162,9 @@
             default:
               if (/^bind(?:\+(\d+))/.test(interval)) {
 
+              } else {
+                return console.error(_this.animations[name]);
               }
-              return console.error(_this.animations[name]);
           }
         };
       })(this));
