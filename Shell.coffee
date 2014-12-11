@@ -81,11 +81,10 @@ class Shell
         if !baseSurface
           console.warn(name + " does not have base surface")
           return
-        baseSurface = SurfaceUtil.copy(baseSurface)
-        baseSurface = SurfaceUtil.transImage(baseSurface)
-        srfutil = new SurfaceUtil(baseSurface)
+        _baseSurface = SurfaceUtil.copy(baseSurface)
+        srfutil = new SurfaceUtil(_baseSurface)
         srfutil.composeElements(sortedElms)
-        srfs[name].baseSurface = baseSurface
+        srfs[name].baseSurface = _baseSurface
       resolve(surfaces)
 
   @loadElements = (directory)-> (surfaces)->
@@ -138,7 +137,8 @@ class Shell
       promises = hits.map (name)->
         _prm = Promise.resolve(srfs[name].filename)
         _prm = _prm.then(Shell.loadPNGAndPNA(directory))
-        _prm = _prm.then (cnv)-> srfs[name].baseSurface = cnv
+        _prm = _prm.then (cnv)->
+          srfs[name].baseSurface = cnv
         _prm = _prm.catch(reject)
         _prm
       prm = Promise.all(promises)
@@ -155,25 +155,24 @@ class Shell
           URL.revokeObjectURL(url)
           reject(err)
         else
-          cnv = SurfaceUtil.copy(img)
           URL.revokeObjectURL(url)
-          filename = filename.replace(/\.png$/, ".pna")
-          if !directory[filename.replace(/\.png$/, ".pna")]
-          then resolve(SurfaceUtil.transImage(cnv))
+          pnafilename = filename.replace(/\.png$/i, ".pna")
+          cnv = SurfaceUtil.transImage(img)
+          if !directory[pnafilename]
+          then resolve(SurfaceUtil.transImage(img))
           else
-            buffer = directory[filename]
+            buffer = directory[pnafilename]
             url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-            SurfaceUtil.loadImage url, (err, img)->
+            SurfaceUtil.loadImage url, (err, pnaimg)->
               if !!err
                 URL.revokeObjectURL(url)
-                resolve(SurfaceUtil.transImage(cnv))
+                console.warn "cannot read pna file", filename, pnafilename, err
+                resolve(SurfaceUtil.transImage(img))
               else
-                pnacnv = SurfaceUtil.copy(img)
+                cnv = SurfaceUtil.copy(img)
+                pnacnv = SurfaceUtil.copy(pnaimg)
                 URL.revokeObjectURL(url)
-                cnv = SurfaceUtil.pna(cnv, pnacnv)
-                resolve(cnv)
-
-
+                resolve(SurfaceUtil.pna(cnv, pnacnv))
 
 
 
