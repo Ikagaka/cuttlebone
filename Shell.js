@@ -26,20 +26,31 @@
     }
 
     Shell.prototype.load = function() {
-      var prm, surfaces;
+      var hits, keys, prm, surfaces;
       if (!!this.directory["descript.txt"]) {
         this.descript = Nar.parseDescript(Nar.convert(this.directory["descript.txt"]));
       } else {
         this.descript = {};
         console.warn("descript.txt is not found");
       }
-      if (!!this.directory["surfaces.txt"]) {
-        surfaces = Shell.parseSurfaces(Nar.convert(this.directory["surfaces.txt"]));
-      } else {
+      keys = Object.keys(this.directory);
+      hits = keys.filter(function(name) {
+        return /surfaces\d*\.txt$/.test(name);
+      });
+      if (hits.length === 0) {
+        console.warn("surfaces.txt is not found");
         surfaces = {
           "surfaces": {}
         };
-        console.warn("surfaces.txt is not found");
+      } else {
+        surfaces = hits.reduce(((function(_this) {
+          return function(obj, name) {
+            var _srfs;
+            console.log(name);
+            _srfs = Shell.parseSurfaces(Nar.convert(_this.directory[name]));
+            return $.extend(true, obj, _srfs);
+          };
+        })(this)), {});
       }
       prm = Promise.resolve(surfaces);
       prm = prm.then(Shell.mergeSurfacesAndSurfacesFiles(this.directory));

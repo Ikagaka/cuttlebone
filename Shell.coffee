@@ -22,9 +22,17 @@ class Shell
     then @descript = Nar.parseDescript(Nar.convert(@directory["descript.txt"]))
     else @descript = {}; console.warn("descript.txt is not found")
 
-    if !!@directory["surfaces.txt"]
-    then surfaces = Shell.parseSurfaces(Nar.convert(@directory["surfaces.txt"]))
-    else surfaces = {"surfaces": {}}; console.warn("surfaces.txt is not found")
+    keys = Object.keys(@directory)
+    hits = keys.filter (name)-> /surfaces\d*\.txt$/.test(name)
+    if hits.length is 0
+      console.warn("surfaces.txt is not found")
+      surfaces = {"surfaces": {}}
+    else
+      surfaces = hits.reduce(((obj, name)=>
+        console.log name
+        _srfs = Shell.parseSurfaces(Nar.convert(@directory[name]))
+        $.extend(true, obj, _srfs)
+      ), {})
 
     prm = Promise.resolve(surfaces)
     prm = prm.then Shell.mergeSurfacesAndSurfacesFiles(@directory)
