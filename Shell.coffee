@@ -75,9 +75,7 @@ class Shell
           console.warn(name + " does not have base surface")
           return
         baseSurface = SurfaceUtil.copy(baseSurface)
-        if !!srfs[name].pnaSurface
-          baseSurface = SurfaceUtil.pna(baseSurface, srfs[name].pnaSurface)
-          delete srfs[name].pnaSurface # g.c.
+        baseSurface = SurfaceUtil.transImage(baseSurface)
         srfutil = new SurfaceUtil(baseSurface)
         srfutil.composeElements(sortedElms)
         srfs[name].baseSurface = baseSurface
@@ -92,32 +90,34 @@ class Shell
       hits.forEach (srfName)->
         elmKeys = Object.keys(srfs[srfName].elements)
         elmKeys.forEach (elmName)->
-          promises.push new Promise (resolve, reject)->
-            elm = srfs[srfName].elements[elmName]
-            {type, file, x, y} = elm
-            keys = Object.keys(directory)
-            path = keys.find (path)->
-              a = path.toLowerCase()
-              b = file.toLowerCase()
-              if a is b then return true
-              if a is (b+".png").toLowerCase()
-                console.warn("element file " + b + " is need '.png' extension")
-                return true
-              return false
-            if !path
-              console.warn "element " + file + " is not found"
-              elm.canvas = document.createElement("canvas")
-              elm.canvas.width = 1
-              elm.canvas.height = 1
-              resolve()
-              return
-            buffer = (directory[path] || directory[path+".png"])
-            url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-            SurfaceUtil.loadImage url, (err, img)->
-              URL.revokeObjectURL(url)
-              if !!err then return reject(err.error)
-              elm.canvas = SurfaceUtil.transImage(img)
-              resolve()
+          elm = srfs[srfName].elements[elmName]
+          {type, file, x, y} = elm
+          keys = Object.keys(directory)
+          path = keys.find (path)->
+            a = path.toLowerCase()
+            b = file.toLowerCase()
+            if a is b then return true
+            if a is (b+".png").toLowerCase()
+              console.warn("element file " + b + " is need '.png' extension")
+              return true
+            return false
+          if !path
+            console.warn "element " + file + " is not found"
+            elm.canvas = document.createElement("canvas")
+            elm.canvas.width = 1
+            elm.canvas.height = 1
+            return
+          if !!directory[path]
+          then filename = path
+          else if !!directory[path + ".png"]
+          then filename = path + ".png"
+          else filename = null
+          if !!filename
+            _prm = Promise.resolve(filename)
+            _prm = _prm.then(Shell.loadPNGAndPNA(directory))
+            _prm = _prm.then (cnv)-> elm.canvas = cnv
+            _prm = _prm.catch(reject)
+            promises.push _prm
       prm = Promise.all(promises)
       prm = prm.then -> resolve(surfaces)
       prm = prm.catch(reject)
@@ -127,55 +127,63 @@ class Shell
     new Promise (resolve, reject)->
       srfs = surfaces.surfaces
       keys = Object.keys(srfs)
-      promises = []
-      hits = keys.filter (name)-> !!srfs[name].buffer
-      hits.forEach (name)->
-        promises.push new Promise (resolve, reject)->
-          buffer = srfs[name].buffer
-          url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-          SurfaceUtil.loadImage url, (err, img)->
-            URL.revokeObjectURL(url)
-            if !!err then return reject(err)
-            delete srfs[name].buffer # g.c.
-            srfs[name].baseSurface = SurfaceUtil.transImage(img)
-            resolve()
-      _hits = keys.filter (name)-> !!srfs[name].pnabuffer
-      _hits.forEach (name)->
-        promises.push new Promise (resolve, reject)->
-          buffer = srfs[name].pnabuffer
-          url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-          SurfaceUtil.loadImage url, (err, img)->
-            URL.revokeObjectURL(url)
-            if !!err then return reject(err)
-            delete srfs[name].pnabuffer # g.c.
-            srfs[name].pnaSurface = SurfaceUtil.copy(img)
-            resolve()
+      hits = keys.filter (name)-> !!srfs[name].filename
+      promises = hits.map (name)->
+        _prm = Promise.resolve(srfs[name].filename)
+        _prm = _prm.then(Shell.loadPNGAndPNA(directory))
+        _prm = _prm.then (cnv)-> srfs[name].baseSurface = cnv
+        _prm = _prm.catch(reject)
+        _prm
       prm = Promise.all(promises)
       prm = prm.then -> resolve(surfaces)
       prm = prm.catch(reject)
       prm
+
+  @loadPNGAndPNA = (directory)-> (filename)->
+    new Promise (resolve, reject)->
+      buffer = directory[filename]
+      url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
+      SurfaceUtil.loadImage url, (err, img)->
+        if !!err
+          URL.revokeObjectURL(url)
+          reject(err)
+        else
+          cnv = SurfaceUtil.copy(img)
+          URL.revokeObjectURL(url)
+          filename = filename.replace(/\.png$/, ".pna")
+          if !directory[filename.replace(/\.png$/, ".pna")]
+          then resolve(SurfaceUtil.transImage(cnv))
+          else
+            buffer = directory[filename]
+            url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
+            SurfaceUtil.loadImage url, (err, img)->
+              if !!err
+                URL.revokeObjectURL(url)
+                resolve(SurfaceUtil.transImage(cnv))
+              else
+                pnacnv = SurfaceUtil.copy(img)
+                URL.revokeObjectURL(url)
+                cnv = SurfaceUtil.pna(cnv, pnacnv)
+                resolve(cnv)
+
+
+
+
 
   @mergeSurfacesAndSurfacesFiles = (directory)-> (surfaces)->
     new Promise (resolve, reject)->
       srfs = surfaces.surfaces
       keys = Object.keys(directory)
       hits = keys.filter (filename)-> /^surface\d+\.png$/i.test(filename)
-      tuples = hits.map (filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), directory[filename]]
-      tuples.forEach ([n, buffer])->
+      tuples = hits.map (filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), filename]
+      tuples.forEach ([n, filename])->
         name = Object.keys(srfs).find (name)-> srfs[name].is is n
         name = name || "surface" + n
         srfs[name] = srfs[name] || {is: n}
-        srfs[name].buffer = buffer
+        srfs[name].filename = filename
         srfs[name].baseSurface = document.createElement("canvas")
         srfs[name].baseSurface.width = 1
         srfs[name].baseSurface.height = 1
-      pnahits = keys.filter (filename)-> /^surface\d+\.pna$/i.test(filename)
-      pnatuples = pnahits.map (filename)-> [Number((/^surface(\d+)\.pna$/i.exec(filename) or ["", "-1"])[1]), directory[filename]]
-      pnatuples.forEach ([n, buffer])->
-        name = Object.keys(srfs).find (name)-> srfs[name].is is n
-        name = name || "surface" + n
-        srfs[name] = srfs[name] || {is: n}
-        srfs[name].pnabuffer = buffer
       resolve(surfaces)
 
 

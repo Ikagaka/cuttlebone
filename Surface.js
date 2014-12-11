@@ -78,7 +78,7 @@
           touchCount = 0;
           touchStartTime = 0;
           $(_this.element).on("touchmove", function(ev) {
-            return _this.processMouseEvent(ev, "OnMouseMove", function($ev) {
+            return _this.processMouseEvent(ev, "mousemove", function($ev) {
               return $(_this.element).trigger($ev);
             });
           });
@@ -86,11 +86,11 @@
             _this.processMouseEvent(ev, "mouseup", function($ev) {
               return $(_this.element).trigger($ev);
             });
-            _this.processMouseEvent(ev, "click", function($ev) {
+            _this.processMouseEvent(ev, "mouseclick", function($ev) {
               return $(_this.element).trigger($ev);
             });
             if (Date.now() - touchStartTime < 500 && touchCount % 2 === 0) {
-              return _this.processMouseEvent(ev, "dblclick", function($ev) {
+              return _this.processMouseEvent(ev, "mousedblclick", function($ev) {
                 return $(_this.element).trigger($ev);
               });
             }
@@ -98,7 +98,7 @@
           return $(_this.element).on("touchstart", function(ev) {
             touchCount++;
             touchStartTime = Date.now();
-            _this.processMouseEvent(ev, "mousemove", function($ev) {
+            _this.processMouseEvent(ev, "mousedown", function($ev) {
               return $(_this.element).trigger($ev);
             });
             clearTimeout(tid);

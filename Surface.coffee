@@ -28,16 +28,16 @@ class Surface
       tid = 0
       touchCount = 0
       touchStartTime = 0
-      $(@element).on "touchmove",  (ev)=> @processMouseEvent(ev, "OnMouseMove", ($ev)=> $(@element).trigger($ev))
+      $(@element).on "touchmove",  (ev)=> @processMouseEvent(ev, "mousemove", ($ev)=> $(@element).trigger($ev))
       $(@element).on "touchend",   (ev)=>
         @processMouseEvent(ev, "mouseup", ($ev)=> $(@element).trigger($ev))
-        @processMouseEvent(ev, "click", ($ev)=> $(@element).trigger($ev))
+        @processMouseEvent(ev, "mouseclick", ($ev)=> $(@element).trigger($ev))
         if Date.now() - touchStartTime < 500 and touchCount%2 is 0
-          @processMouseEvent(ev, "dblclick", ($ev)=> $(@element).trigger($ev))
+          @processMouseEvent(ev, "mousedblclick", ($ev)=> $(@element).trigger($ev))
       $(@element).on "touchstart", (ev)=>
         touchCount++
         touchStartTime = Date.now()
-        @processMouseEvent(ev, "mousemove", ($ev)=> $(@element).trigger($ev))
+        @processMouseEvent(ev, "mousedown", ($ev)=> $(@element).trigger($ev))
         clearTimeout(tid)
         tid = setTimeout (=>touchCount=0), 500
 
