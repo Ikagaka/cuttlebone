@@ -213,19 +213,19 @@ class Surface
       keys = Object.keys(@regions)
       sorted = keys.sort (a, b)-> if a.is > b.is then 1 else -1
       hit = sorted.find (name)=>
-        {type, name, left, top, right, bottom, coordinates} = @regions[name]
+        {type, name, left, top, right, bottom, coordinates, radius} = @regions[name]
         switch type
           when "rect"
             (left < offsetX < right and top < offsetY < bottom) or
             (right < offsetX < left and bottom < offsetY < top)
           when "ellipse"
-            width = Math.abs(right - left)/2
-            height = Math.abs(bottom - top)/2
-            Math.pow(offsetX+width/2, 2)/Math.pow(width, 2) +
-            Math.pow(offsetY+height/2, 2)/Math.pow(height, 2) < 1
+            width = Math.abs(right - left)
+            height = Math.abs(bottom - top)
+            Math.pow((offsetX-(left+width/2))/(width/2), 2) +
+            Math.pow((offsetY-(top+height/2))/(height/2), 2) < 1
           when "circle"
-            Math.pow(offsetX+top, 2)+Math.pow(offsetY+left, 2) /
-            Math.pow(right/2, 2) < 1
+            Math.pow(offsetX-(top+radius), 2)+Math.pow(offsetY-(left+radius), 2) /
+            Math.pow(radius/2, 2) < 1
           when "polygon"
             ptC = {x:offsetX, y:offsetY}
             tuples = coordinates.reduce(((arr, {x, y}, i)->
@@ -235,12 +235,16 @@ class Surface
               ]
               arr
             ), [])
-            mapped = tuples.map ([ptA, ptB])->
-              vctA = [ptB.x-ptA.x, ptB.y-ptA.y, 0]
-              vctB = [ptC.x-ptA.x, ptC.y-ptA.y, 0]
-              # cross product z element
-              vctA[0]*vctB[1] - vctA[1]*vctB[0]
-            mapped.every((x)-> x<0) or mapped.every((x)-> x>0)
+            deg = tuples.reduce(((sum, [ptA, ptB])->
+              vctA = [ptA.x-ptC.x, ptA.y-ptC.y]
+              vctB = [ptB.x-ptC.x, ptB.y-ptC.y]
+              dotP = vctA[0]*vctB[0] + vctA[1]*vctB[1]
+              absA = Math.sqrt vctA.map((a)-> Math.pow(a, 2)).reduce (a, b)-> a+b
+              absB = Math.sqrt vctB.map((a)-> Math.pow(a, 2)).reduce (a, b)-> a+b
+              rad = Math.acos(dotP/(absA*absB))
+              sum + rad
+            ), 0)
+            deg/(2*Math.PI) >= 1
           else
             console.warn @surfaceName, name, @regions[name]
             false

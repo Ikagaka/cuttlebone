@@ -163,7 +163,7 @@
                   return true;
                 }
                 if (a === (b + ".png").toLowerCase()) {
-                  console.warn("element file " + b + " is need '.png' extension");
+                  console.warn("element file " + b + " need '.png' extension");
                   return true;
                 }
                 return false;

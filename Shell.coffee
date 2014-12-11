@@ -105,7 +105,7 @@ class Shell
             b = file.toLowerCase()
             if a is b then return true
             if a is (b+".png").toLowerCase()
-              console.warn("element file " + b + " is need '.png' extension")
+              console.warn("element file " + b + " need '.png' extension")
               return true
             return false
           if !path
