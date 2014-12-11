@@ -29,7 +29,6 @@ class Shell
       surfaces = {"surfaces": {}}
     else
       surfaces = hits.reduce(((obj, name)=>
-        console.log name
         _srfs = Shell.parseSurfaces(Nar.convert(@directory[name]))
         $.extend(true, obj, _srfs)
       ), {})

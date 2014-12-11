@@ -46,7 +46,6 @@
         surfaces = hits.reduce(((function(_this) {
           return function(obj, name) {
             var _srfs;
-            console.log(name);
             _srfs = Shell.parseSurfaces(Nar.convert(_this.directory[name]));
             return $.extend(true, obj, _srfs);
           };

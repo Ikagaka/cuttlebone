@@ -63,7 +63,7 @@ class Surface
         else
           if /^bind(?:\+(\d+))/.test(interval)
           then ;
-          else console.error(@animations[name])
+          else console.warn(@animations[name])
     @render()
 
   destructor: ->
@@ -213,9 +213,37 @@ class Surface
       keys = Object.keys(@regions)
       sorted = keys.sort (a, b)-> if a.is > b.is then 1 else -1
       hit = sorted.find (name)=>
-        {name, left, top, right, bottom} = @regions[name]
-        (left < offsetX < right and top < offsetY < bottom) or
-        (right < offsetX < left and bottom < offsetY < top)
+        {type, name, left, top, right, bottom, coordinates} = @regions[name]
+        switch type
+          when "rect"
+            (left < offsetX < right and top < offsetY < bottom) or
+            (right < offsetX < left and bottom < offsetY < top)
+          when "ellipse"
+            width = Math.abs(right - left)/2
+            height = Math.abs(bottom - top)/2
+            Math.pow(offsetX+width/2, 2)/Math.pow(width, 2) +
+            Math.pow(offsetY+height/2, 2)/Math.pow(height, 2) < 1
+          when "circle"
+            Math.pow(offsetX+top, 2)+Math.pow(offsetY+left, 2) /
+            Math.pow(right/2, 2) < 1
+          when "polygon"
+            ptC = {x:offsetX, y:offsetY}
+            tuples = coordinates.reduce(((arr, {x, y}, i)->
+              arr.push [
+                coordinates[i],
+                (if !!coordinates[i+1] then coordinates[i+1] else coordinates[0])
+              ]
+              arr
+            ), [])
+            mapped = tuples.map ([ptA, ptB])->
+              vctA = [ptB.x-ptA.x, ptB.y-ptA.y, 0]
+              vctB = [ptC.x-ptA.x, ptC.y-ptA.y, 0]
+              # cross product z element
+              vctA[0]*vctB[1] - vctA[1]*vctB[0]
+            mapped.every((x)-> x<0) or mapped.every((x)-> x>0)
+          else
+            console.warn @surfaceName, name, @regions[name]
+            false
       if !!hit
         ev.stopPropagation() if /^touch/.test(ev.type) # when touching stop drug
         detail["region"] = @regions[hit].name
