@@ -1,0 +1,13 @@
+descript
+{
+version,1
+}
+
+surface0
+{
+}
+
+surface.append0,1,2
+{
+collision0,56,58,132,91,Head
+}

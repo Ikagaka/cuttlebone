@@ -1,0 +1,38 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/Users/yohsukeino/.nvm/v0.12.0/bin/node',
+1 verbose cli   '/Users/yohsukeino/.nvm/v0.12.0/bin/npm',
+1 verbose cli   'run',
+1 verbose cli   'init' ]
+2 info using npm@2.5.1
+3 info using node@v0.12.0
+4 verbose run-script [ 'preinit', 'init', 'postinit' ]
+5 info preinit ikagaka.shell.js@3.1.0
+6 info init ikagaka.shell.js@3.1.0
+7 verbose unsafe-perm in lifecycle true
+8 info ikagaka.shell.js@3.1.0 Failed to exec init script
+9 verbose stack Error: ikagaka.shell.js@3.1.0 init: `npm update; bower update; tsd update; grunt run`
+9 verbose stack Exit status 3
+9 verbose stack     at EventEmitter.<anonymous> (/Users/yohsukeino/.nvm/v0.12.0/lib/node_modules/npm/lib/utils/lifecycle.js:213:16)
+9 verbose stack     at EventEmitter.emit (events.js:110:17)
+9 verbose stack     at ChildProcess.<anonymous> (/Users/yohsukeino/.nvm/v0.12.0/lib/node_modules/npm/lib/utils/spawn.js:14:12)
+9 verbose stack     at ChildProcess.emit (events.js:110:17)
+9 verbose stack     at maybeClose (child_process.js:1008:16)
+9 verbose stack     at Process.ChildProcess._handle.onexit (child_process.js:1080:5)
+10 verbose pkgid ikagaka.shell.js@3.1.0
+11 verbose cwd /Users/yohsukeino/GitHub/Ikagaka/Shell.js
+12 error Darwin 14.0.0
+13 error argv "/Users/yohsukeino/.nvm/v0.12.0/bin/node" "/Users/yohsukeino/.nvm/v0.12.0/bin/npm" "run" "init"
+14 error node v0.12.0
+15 error npm  v2.5.1
+16 error code ELIFECYCLE
+17 error ikagaka.shell.js@3.1.0 init: `npm update; bower update; tsd update; grunt run`
+17 error Exit status 3
+18 error Failed at the ikagaka.shell.js@3.1.0 init script 'npm update; bower update; tsd update; grunt run'.
+18 error This is most likely a problem with the ikagaka.shell.js package,
+18 error not with npm itself.
+18 error Tell the author that this fails on your system:
+18 error     npm update; bower update; tsd update; grunt run
+18 error You can get their info via:
+18 error     npm owner ls ikagaka.shell.js
+18 error There is likely additional logging output above.
+19 verbose exit [ 1, true ]
