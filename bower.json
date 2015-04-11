@@ -1,12 +1,21 @@
 {
   "name": "ikagaka.shell.js",
-  "description": "Ukagaka Shell Surface Player",
+  "version": "3.1.x",
+  "description": "Ukagaka Shell Player",
+  "license": "MIT",
+  "authors": ["Legokichi Duckscallion <legokichi@duxca.com>"],
   "dependencies": {
     "ikagaka.nar.js": "Ikagaka/Nar.js",
     "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
     "underscore": "~1.7.0",
     "zepto": "~1.1.4",
     "es6-shim": "~0.21.1"
+  },
+  "devDependencies": {
+    "qunit": "~1.17.1",
+    "power-assert": "~0.10.2",
+    "empower": "~0.10.0",
+    "power-assert-formatter": "~0.10.2"
   },
   "main": [
     "Shell.js",
