@@ -1,11 +1,9 @@
 {
   "name": "ikagaka.shell.js",
-  "version": "3.1.x",
-  "description": "Ukagaka Shell Player",
+  "version": "4.x",
+  "description": "Ukagaka Shell Renderer",
   "license": "MIT",
-  "authors": [
-    "Legokichi Duckscallion <legokichi@duxca.com>"
-  ],
+  "authors": ["Legokichi Duckscallion <legokichi@duxca.com>"],
   "dependencies": {
     "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
     "lodash": "*",
@@ -16,9 +14,7 @@
     "qunit": "~1.17.1"
   },
   "main": [
-    "Shell.js",
-    "Surface.js",
-    "SurfaceUtil.js"
+    "release/Shell.js",
   ],
   "ignore": [
     "**/.*",
@@ -26,10 +22,5 @@
     "node_modules"
   ],
   "exportsOverride": {
-    "ikagaka.nar.js": {
-      "js": [
-        "Nar.js"
-      ]
-    }
   }
 }
