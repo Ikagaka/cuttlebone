@@ -9,14 +9,14 @@ $ ->
 
   NarLoader.loadFromURL("../nar/origin.nar").then (nanikaDir)->
     console.log balloonDir = nanikaDir.asArrayBuffer()
-    console.log nmdmgr = new cuttlebone.Shell.NamedManager()
+    console.log nmdmgr = new cuttlebone.NamedManager()
     $(nmdmgr.element).appendTo("body")
     NarLoader.loadFromURL("../nar/mobilemaster.nar").then(onNarLoad)
 
 onNarLoad = (nanikaDir)->
   console.log shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer()
-  console.log shell = new cuttlebone.Shell.Shell(shellDir)
-  console.log balloon = new cuttlebone.Shell.Balloon(balloonDir)
+  console.log shell = new cuttlebone.Shell(shellDir)
+  console.log balloon = new cuttlebone.Balloon(balloonDir)
   Promise.all([shell.load(), balloon.load()])
   .then ([shell, balloon])->
     console.log shell, balloon

@@ -15,7 +15,7 @@
     });
     return NarLoader.loadFromURL("../nar/origin.nar").then(function(nanikaDir) {
       console.log(balloonDir = nanikaDir.asArrayBuffer());
-      console.log(nmdmgr = new cuttlebone.Shell.NamedManager());
+      console.log(nmdmgr = new cuttlebone.NamedManager());
       $(nmdmgr.element).appendTo("body");
       return NarLoader.loadFromURL("../nar/mobilemaster.nar").then(onNarLoad);
     });
@@ -24,8 +24,8 @@
   onNarLoad = function(nanikaDir) {
     var balloon, shell, shellDir;
     console.log(shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer());
-    console.log(shell = new cuttlebone.Shell.Shell(shellDir));
-    console.log(balloon = new cuttlebone.Shell.Balloon(balloonDir));
+    console.log(shell = new cuttlebone.Shell(shellDir));
+    console.log(balloon = new cuttlebone.Balloon(balloonDir));
     return Promise.all([shell.load(), balloon.load()]).then(function(arg) {
       var balloon, hwnd, named, shell, wait;
       shell = arg[0], balloon = arg[1];

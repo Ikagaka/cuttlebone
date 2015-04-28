@@ -1,13 +1,15 @@
-cuttlebone = global["cuttlebone"] || {}
+cuttlebone = {}
 
-cuttlebone["Shell"] = cuttlebone["Shell"] || {}
-cuttlebone["Shell"]["NamedManager"] = NamedManager
-cuttlebone["Shell"]["Named"] = Named
-cuttlebone["Shell"]["Scope"] = Scope
-cuttlebone["Shell"]["Shell"] = Shell
-cuttlebone["Shell"]["Surface"] = Surface
-cuttlebone["Shell"]["SurfaceUtil"] = SurfaceUtil
-cuttlebone["Shell"]["Balloon"] = Balloon
-cuttlebone["Shell"]["BalloonSurface"] = BalloonSurface
+cuttlebone["NamedManager"] = NamedManager
+cuttlebone["Named"] = Named
+cuttlebone["Scope"] = Scope
+cuttlebone["Shell"] = Shell
+cuttlebone["Surface"] = Surface
+cuttlebone["SurfaceUtil"] = SurfaceUtil
+cuttlebone["Balloon"] = Balloon
+cuttlebone["BalloonSurface"] = BalloonSurface
 
 global["cuttlebone"] = cuttlebone
+
+if module?.exports?
+  module.exports = cuttlebone

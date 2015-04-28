@@ -2282,27 +2282,29 @@
 
   })();
 
-  cuttlebone = global["cuttlebone"] || {};
+  cuttlebone = {};
 
-  cuttlebone["Shell"] = cuttlebone["Shell"] || {};
+  cuttlebone["NamedManager"] = NamedManager;
 
-  cuttlebone["Shell"]["NamedManager"] = NamedManager;
+  cuttlebone["Named"] = Named;
 
-  cuttlebone["Shell"]["Named"] = Named;
+  cuttlebone["Scope"] = Scope;
 
-  cuttlebone["Shell"]["Scope"] = Scope;
+  cuttlebone["Shell"] = Shell;
 
-  cuttlebone["Shell"]["Shell"] = Shell;
+  cuttlebone["Surface"] = Surface;
 
-  cuttlebone["Shell"]["Surface"] = Surface;
+  cuttlebone["SurfaceUtil"] = SurfaceUtil;
 
-  cuttlebone["Shell"]["SurfaceUtil"] = SurfaceUtil;
+  cuttlebone["Balloon"] = Balloon;
 
-  cuttlebone["Shell"]["Balloon"] = Balloon;
-
-  cuttlebone["Shell"]["BalloonSurface"] = BalloonSurface;
+  cuttlebone["BalloonSurface"] = BalloonSurface;
 
   global["cuttlebone"] = cuttlebone;
+
+  if ((typeof module !== "undefined" && module !== null ? module.exports : void 0) != null) {
+    module.exports = cuttlebone;
+  }
 
 }).call(this);
 
