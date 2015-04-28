@@ -6,5 +6,142 @@
 <script src="../bower_components/lodash/lodash.min.js"></script>
 <script src="../bower_components/zepto/zepto.min.js"></script>
 <script src="../release/cuttlebone.js"></script>
-<script src="playground.js"></script>
+<style>
+textarea {
+  width: 100%;
+  height: 500px;
+}
+</style>
 <p>nar: <input type="file" id="nar" /></p>
+<fieldset>
+<legend>boot</legend>
+<p><textarea id="code">
+var nmdmgr = null;
+var balloonDir = null;
+
+$(function() {
+  $("#nar").change(function(ev) {
+    var file = ev.target.files[0];
+    NarLoader.loadFromBlob(file).then(onNarLoad);
+    $(this).val(null);
+  });
+  NarLoader.loadFromURL("../nar/origin.nar").then(function(nanikaDir) {
+    balloonDir = nanikaDir.asArrayBuffer();
+    nmdmgr = new cuttlebone.NamedManager();
+    $(nmdmgr.element).appendTo("body");
+    NarLoader.loadFromURL("../nar/mobilemaster.nar").then(onNarLoad);
+  });
+});
+
+function onNarLoad(nanikaDir) {
+  var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
+  var shell = new cuttlebone.Shell(shellDir);
+  var balloon = new cuttlebone.Balloon(balloonDir);
+  Promise.all([shell.load(), balloon.load()]).then(function(arg) {
+    var shell = arg[0];
+    var balloon = arg[1];
+    var hwnd = nmdmgr.materialize(shell, balloon);
+    var named = nmdmgr.named(hwnd);
+
+    named.on("mousedown", onEvent);
+    named.on("mousemove", onEvent);
+    named.on("mouseup", onEvent);
+    named.on("mouseclick", onEvent);
+    named.on("mousedblclick", onEvent);
+    named.on("balloonclick", onEvent);
+    named.on("balloondblclick", onEvent);
+    named.on("anchorselect", onEvent);
+    named.on("anchorselectex", onEvent);
+    named.on("raise", onEvent);
+    named.on("choiceselectex", onEvent);
+    named.on("choiceselect", onEvent);
+
+    named.load().then(function(){
+      $("#run").click(function(){
+        nmdmgr.namedies.forEach(function(named){
+          eval($("#snipet").val());
+        });
+      }).click();
+    });
+
+  })["catch"](function(err) { console.error(err, err.stack); });
+}
+
+function wait(ms, callback) {
+  return function(ctx) {
+    return new Promise(function(resolve) {
+      setTimeout((function() {
+        callback(ctx);
+        return resolve(ctx);
+      }), ms);
+    });
+  };
+}
+
+function onEvent(ev) {
+  console.log(ev);
+}
+
+$(function(){
+  $("#born").click(function(){
+    eval($("#code").val());
+  });
+});
+
+$(function(){
+  $("#kill").click(function(){
+    nmdmgr.destructor();
+  })
+});
+</textarea></p>
+<p>
+  <input type="button" id="born" value="born" />
+  <input type="button" id="kill" value="kill" />
+</p>
+</fieldset>
+<fieldset>
+<legend>sakura script</legend>
+<p><textarea id="snipet">
+Promise.resolve(named)
+.then(wait(0, function(named) { named.scope(0); }))
+.then(wait(0, function(named) { named.scope().surface(0); }))
+.then(wait(0, function(named) { named.scope().blimp().clear(); }))
+.then(wait(0, function(named) { named.scope(1); }))
+.then(wait(0, function(named) { named.scope().surface(10); }))
+.then(wait(0, function(named) { named.scope().blimp().clear(); }))
+.then(wait(0, function(named) { named.scope(0); }))
+.then(wait(0, function(named) { named.scope().blimp(0); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("H"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("e"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk(","); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("w"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("r"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("d"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("!"); }))
+.then(wait(160, function(named) { named.scope(1); }))
+.then(wait(0, function(named) { named.scope().blimp().anchorBegin("AnchorID"); }))
+.then(wait(0, function(named) { named.scope().blimp().talk("anchor"); }))
+.then(wait(0, function(named) { named.scope().blimp().anchorEnd(); }))
+.then(wait(0, function(named) { named.scope().blimp().br(); }))
+.then(wait(0, function(named) { named.scope().blimp().talk("<" + "script>alert(1);<" + "/script>"); }))
+.then(wait(0, function(named) { named.scope().blimp().br(); }))
+.then(wait(0, function(named) { named.scope().blimp().choice("choice", "ChoceID"); }))
+.then(wait(0, function(named) { named.scope().blimp().br(); }))
+.then(wait(0, function(named) { named.scope().blimp().talk("hi."); }))
+.then(wait(0, function(named) { named.scope().blimp().showWait(); }))
+.then(wait(3000, function(named) { named.scope().blimp().talk("stop wait"); }))
+</textarea></p>
+<p>
+  <input type="button" id="run" value="run" />
+</p>
+</fieldset>
+<script>
+$(function(){
+  eval($("#code").val());
+});
+</script>

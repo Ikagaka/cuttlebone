@@ -5,8 +5,8 @@
   "license": "MIT",
   "authors": ["legokichi"],
   "dependencies": {
-    "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
-    "narloader": "#fc0f19a3e854c31c81aa5b7141b509d7d9165134",
+    "surfaces_txt2yaml": "*",
+    "narloader": "*",
     "lodash": "*",
     "zepto": "*"
   },
