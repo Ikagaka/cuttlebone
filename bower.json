@@ -3,7 +3,9 @@
   "version": "4.x",
   "description": "Ukagaka Shell Renderer",
   "license": "MIT",
-  "authors": ["Legokichi Duckscallion <legokichi@duxca.com>"],
+  "authors": [
+    "Legokichi Duckscallion <legokichi@duxca.com>"
+  ],
   "dependencies": {
     "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
     "lodash": "*",
@@ -11,7 +13,7 @@
     "narloader": "*"
   },
   "devDependencies": {
-    "qunit": "~1.17.1"
+    "qunit": "*"
   },
   "main": [
     "release/Shell.js",

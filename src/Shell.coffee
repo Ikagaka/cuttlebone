@@ -8,7 +8,7 @@ class Shell
   load: ->
 
     if !!@directory["descript.txt"]
-    then @descript = Shell.parseDescript(Shell.convert(@directory["descript.txt"]))
+    then @descript = Util.parseDescript(Util.convert(@directory["descript.txt"]))
     else @descript = {}; console.warn("descript.txt is not found")
 
     keys = Object.keys(@directory)
@@ -18,7 +18,7 @@ class Shell
       surfaces = {"surfaces": {}}
     else
       surfaces = hits.reduce(((obj, name)=>
-        _srfs = Shell.parseSurfaces(Shell.convert(@directory[name]))
+        _srfs = Shell.parseSurfaces(Util.convert(@directory[name]))
         $.extend(true, obj, _srfs)
       ), {})
 
@@ -45,7 +45,7 @@ class Shell
     else _surfaceId = surfaceId
     srfs = @surfaces.surfaces
     keys = Object.keys(srfs)
-    hit = keys.find (name)-> srfs[name].is is _surfaceId
+    hit = keys.filter((name)-> srfs[name].is is _surfaceId)[0]
     if !hit then return null
     return new Surface(canvas, scopeId, hit, @surfaces)
 
@@ -88,7 +88,7 @@ class Shell
           elm = srfs[srfName].elements[elmName]
           {type, file, x, y} = elm
           keys = Object.keys(directory)
-          path = keys.find (path)->
+          path = keys.filter((path)->
             a = path.toLowerCase()
             b = file.toLowerCase()
             if a is b then return true
@@ -96,6 +96,7 @@ class Shell
               console.warn("element file " + b + " need '.png' extension")
               return true
             return false
+          )[0]
           if !path
             console.warn "element " + file + " is not found"
             elm.canvas = document.createElement("canvas")
@@ -172,7 +173,7 @@ class Shell
       hits = keys.filter (filename)-> /^surface\d+\.png$/i.test(filename)
       tuples = hits.map (filename)-> [Number((/^surface(\d+)\.png$/i.exec(filename) or ["", "-1"])[1]), filename]
       tuples.forEach ([n, filename])->
-        name = Object.keys(srfs).find (name)-> srfs[name].is is n
+        name = Object.keys(srfs).filter((name)-> srfs[name].is is n)[0]
         name = name || "surface" + n
         srfs[name] = srfs[name] || {is: n}
         srfs[name].filename = filename
@@ -201,9 +202,3 @@ class Shell
       obj
     ), {})
     return surfaces
-
-  @convert = (buffer)->
-    Encoding.codeToString(Encoding.convert(new Uint8Array(buffer), 'UNICODE', 'AUTO'))
-
-  @parseDescript = (text)->
-    Descript.parse(text)

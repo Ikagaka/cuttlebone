@@ -15,7 +15,7 @@ class Balloon
   load: ->
 
     if !!@directory["descript.txt"]
-    then @descript = Nar.parseDescript(Nar.convert(@directory["descript.txt"]))
+    then @descript = Util.parseDescript(Util.convert(@directory["descript.txt"]))
     else @descript = {}; console.warn("descript.txt is not found")
 
     prm = Promise.resolve(@balloons)
@@ -43,7 +43,7 @@ class Balloon
       hits = keys.filter (filepath)-> /balloon([sk])(\d+)s\.txt$/.test(filepath)
       hits.forEach (filepath)->
         buffer = directory[filepath]
-        _descript = Nar.parseDescript(Nar.convert(buffer))
+        _descript = Util.parseDescript(Util.convert(buffer))
         [__, type, n] = /balloon([sk])(\d+)s\.txt$/.exec(filepath)
         switch type
           when "s" then balloons["sakura"][Number(n)].descript = $.extend(true, _descript, descript)

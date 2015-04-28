@@ -1,5 +1,6 @@
 class NamedManager
   constructor: ->
+    console.log $
     @$namedMgr = $("<div />").addClass("namedMgr")
     $style = $("<style scoped />").html(@style)
     @$namedMgr.append($style)

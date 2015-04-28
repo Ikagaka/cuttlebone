@@ -7,3 +7,10 @@ NarLoader        = global["NarLoader"]
 SurfacesTxt2Yaml = global["SurfacesTxt2Yaml"]
 _                = global["_"]
 $                = global["Zepto"]
+
+Util =
+  convert: (buffer)->
+    Encoding.codeToString(Encoding.convert(new Uint8Array(buffer), 'UNICODE', 'AUTO'))
+
+  parseDescript: (text)->
+    NarLoader.Descript.parse(text)

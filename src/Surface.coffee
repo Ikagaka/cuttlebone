@@ -1,7 +1,7 @@
 class Surface
 
   constructor: (@element, @scopeId, @surfaceName, @surfaces)->
-    srf = @surfaces.surfaces[surfaceName]
+    srf = @surfaces.surfaces[@surfaceName]
     @baseSurface = srf.baseSurface
     @regions = srf.regions || {}
     @animations = srf.animations || {}
@@ -94,7 +94,7 @@ class Surface
       {surface, type, x, y} = pat
       if surface is -1 then return arr
       keys = Object.keys(srfs)
-      hit = keys.find (key)-> srfs[key].is is surface
+      hit = keys.filter((key)-> srfs[key].is is surface)[0]
       if !hit then return arr
       arr.concat({
         type: type,
@@ -115,7 +115,7 @@ class Surface
 
   play: (animationId, callback=->)->
     keys = Object.keys(@animations)
-    hit = keys.find (name)=> @animations[name].is is animationId
+    hit = keys.filter((name)=> @animations[name].is is animationId)[0]
     if !hit then setTimeout(callback); return
     anim = @animations[hit]
     lazyPromises = anim.patterns.map (pattern)=> =>
@@ -164,7 +164,7 @@ class Surface
 
   bind: (animationId)->
     keys = Object.keys(@animations)
-    hit = keys.find (name)=> @animations[name].is is animationId
+    hit = keys.filter((name)=> @animations[name].is is animationId)[0]
     if !hit then return
     anim = @animations[hit]
     if anim.patterns.length is 0 then return
@@ -207,7 +207,7 @@ class Surface
         "button": (if ev.button is 2 then 1 else 0)
       keys = Object.keys(@regions)
       sorted = keys.sort (a, b)-> if a.is > b.is then 1 else -1
-      hit = sorted.find (name)=>
+      hit = sorted.filter((name)=>
         {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = @regions[name]
         switch type
           when "rect"
@@ -242,6 +242,7 @@ class Surface
           else
             console.warn @surfaceName, name, @regions[name]
             false
+      )[0]
       if !!hit
         ev.stopPropagation() if /^touch/.test(ev.type) # when touching stop drug
         detail["region"] = @regions[hit].name
