@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "unit.js",
+  "sourceRoot": "..",
+  "sources": [
+    "tests/unit.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;AAAA;AAAA"
+}
