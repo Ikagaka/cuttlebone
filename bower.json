@@ -1,11 +1,9 @@
 {
-  "name": "ikagaka.shell.js",
-  "version": "4.x",
-  "description": "Ukagaka Shell Renderer",
+  "name": "cuttlebone",
+  "version": "0.0.0",
+  "description": "Ukagaka Shell Renderer for Web Browser",
   "license": "MIT",
-  "authors": [
-    "Legokichi Duckscallion <legokichi@duxca.com>"
-  ],
+  "authors": ["legokichi"],
   "dependencies": {
     "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
     "lodash": "*",
@@ -16,12 +14,13 @@
     "qunit": "*"
   },
   "main": [
-    "release/Shell.js",
+    "release/cuttlebone.js",
   ],
   "ignore": [
     "**/.*",
     "bower_components",
-    "node_modules"
+    "node_modules",
+    "nar"
   ],
   "exportsOverride": {
   }

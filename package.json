@@ -1,25 +1,28 @@
 {
-  "name": "ikagaka.shell.js",
-  "version": "4.0.0",
-  "description": "Ukagaka Shell Renderer",
-  "url": "https://github.com/ikagaka/Shell.js",
-  "keywords": ["unstable", "ikagaka", "ukagaka"],
+  "name": "cuttlebone",
+  "version": "0.0.0",
+  "description": "Ukagaka Shell Renderer for Web Browser",
+  "url": "https://github.com/ikagaka/cuttlebone.js",
+  "keywords": ["unstable", "ikagaka", "ukagaka", "cuttlebone"],
   "scripts": {
-    "test": "open tests/index.html",
-    "init": "npm update; bower update; npm run build; npm run test",
-    "build": "coffee -c --join release/Shell.js -- src/header.coffee src/*.coffee src/footer.coffee; coffee -c tests/tests.coffee"
+    "test": "npm run test-playground",
+    "test-playground": "open tests/playground.html",
+    "build": "npm run build-src; npm run build-test",
+    "build-src": "coffee -cm --join release/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
+    "build-test": "coffee -cm tests/*.coffee",
+    "init": "npm update; bower update; npm run build; npm run test"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ikagaka/Shell.js"
+    "url": "https://github.com/ikagaka/cuttlebone"
   },
   "dependencies": {
   },
   "devDependencies": {
     "coffee-script": ""
   },
-  "bugs":           {"url": "https://github.com/Ikagaka/Shell.js/issues"},
-  "main":           "release/Shell.js",
+  "bugs":           {"url": "https://github.com/Ikagaka/cuttlebone/issues"},
+  "main":           "release/cuttlebone.js",
   "author":         "Ikagaka",
   "license":        "MIT",
   "contributors":   ["legokichi"]
