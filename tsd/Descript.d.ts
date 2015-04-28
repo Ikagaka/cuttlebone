@@ -1,3 +1,3 @@
 interface Descript {
-  [key: string]: string; }
+  [key: string]: string;
 }
