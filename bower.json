@@ -13,9 +13,7 @@
   "devDependencies": {
     "qunit": "*"
   },
-  "main": [
-    "release/cuttlebone.js",
-  ],
+  "main": "release/cuttlebone.js",
   "ignore": [
     "**/.*",
     "bower_components",
