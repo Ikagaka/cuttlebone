@@ -3,21 +3,20 @@ balloonDir = null
 
 $ ->
   $("#nar").change (ev)->
-    loader = new Nar.Loader()
     file = ev.target.files[0]
     NarLoader.loadFromBlob(file).then(onNarLoad)
     $(this).val(null)
 
   NarLoader.loadFromURL("../nar/origin.nar").then (nanikaDir)->
     console.log balloonDir = nanikaDir.asArrayBuffer()
-    console.log nmdmgr = new Ikagaka.Shell.NamedManager()
+    console.log nmdmgr = new cuttlebone.Shell.NamedManager()
     $(nmdmgr.element).appendTo("body")
     NarLoader.loadFromURL("../nar/mobilemaster.nar").then(onNarLoad)
 
 onNarLoad = (nanikaDir)->
   console.log shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer()
-  console.log shell = new Ikagaka.Shell.Shell(shellDir)
-  console.log balloon = new Ikagaka.Shell.Balloon(balloonDir)
+  console.log shell = new cuttlebone.Shell.Shell(shellDir)
+  console.log balloon = new cuttlebone.Shell.Balloon(balloonDir)
   Promise.all([shell.load(), balloon.load()])
   .then ([shell, balloon])->
     console.log shell, balloon

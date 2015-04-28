@@ -3,7 +3,7 @@
   "file": "unit.js",
   "sourceRoot": "..",
   "sources": [
-    "tests/unit.coffee"
+    "test/unit.coffee"
   ],
   "names": [],
   "mappings": ";AAAA;AAAA;AAAA"

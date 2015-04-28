@@ -1,9 +1,6 @@
 # cuttlebone
 
-Ukagaka Shell Renderer for Web Browser
+ukagaka shell renderer for web browser
 
-![screenshot](https://raw.githubusercontent.com/Ikagaka/cuttlebone/master/screenshot1.png )
-![screenshot](https://raw.githubusercontent.com/Ikagaka/cuttlebone/master/screenshot2.gif )
-
-+ [demo](https://ikagaka.github.io/cuttlebone.demo/tests/index.html)
++ [demo](https://ikagaka.github.io/cuttlebone/demo/)
 + [wiki](https://github.com/Ikagaka/cuttlebone/wiki/)

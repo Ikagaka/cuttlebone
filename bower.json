@@ -1,14 +1,14 @@
 {
   "name": "cuttlebone",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "ukagaka shell renderer for web browser",
   "license": "MIT",
   "authors": ["legokichi"],
   "dependencies": {
     "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
+    "narloader": "#fc0f19a3e854c31c81aa5b7141b509d7d9165134",
     "lodash": "*",
-    "zepto": "*",
-    "narloader": "*"
+    "zepto": "*"
   },
   "devDependencies": {
     "qunit": "*"
