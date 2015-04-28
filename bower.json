@@ -1,7 +1,7 @@
 {
   "name": "cuttlebone",
   "version": "0.0.0",
-  "description": "Ukagaka Shell Renderer for Web Browser",
+  "description": "ukagaka shell renderer for web browser",
   "license": "MIT",
   "authors": ["legokichi"],
   "dependencies": {
