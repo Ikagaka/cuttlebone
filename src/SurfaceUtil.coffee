@@ -58,6 +58,25 @@ class SurfaceUtil
     @overlayfast(cnv, x, y)
     return
 
+  rendRegion: ({type, name, left, top, right, bottom, coordinates, radius, center_x, center_y})->
+    @ctx.strokeStyle = "#00FF00"
+    switch type
+      when "rect"
+        @ctx.rect(left, top, right-left, bottom-top)
+      when "ellipse"
+        @ctx.rect(left, top, right-left, bottom-top)
+      when "circle"
+        @ctx.rect(left, top, right-left, bottom-top)
+      when "polygon"
+        @ctx.rect(left, top, right-left, bottom-top)
+    @ctx.stroke()
+    @ctx.font = "35px";
+    @ctx.strokeStyle = "white"
+    @ctx.strokeText(type+":"+name, left, top)
+    @ctx.fillStyle = "black"
+    @ctx.fillText(type+":"+name, left, top)
+    return
+
   @pna = (cnvA, cnvB)->
     ctxA = cnvA.getContext("2d")
     ctxB = cnvB.getContext("2d")

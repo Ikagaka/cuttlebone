@@ -13,5 +13,15 @@ declare module cuttlebone {
     interpolate(part: HTMLCanvasElement, x: number, y: number): void;
     replace(    part: HTMLCanvasElement, x: number, y: number): void;
     init(cnv: HTMLCanvasElement): void;
+    rendRegion(region: {
+      is: number,
+      name: string,
+      type: string,
+      left: number,
+      top: number,
+      right: number,
+      bottom: number,
+      coordinates: {x: number; y: number;}[]
+    }): void;
   }
 }

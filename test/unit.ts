@@ -28,7 +28,7 @@ prmNar.then((nanikaDir)=>{
         var srf = shell2.surfaces.surfaces["surface0"];
         assert.ok(srf.is === 0);
         assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
-        assert.ok(srf.baseSurface.height = 445);
+        assert.ok(srf.baseSurface.height === 445);
         assert.ok(srf.baseSurface.width === 182);
         assert.ok(srf.regions["collision0"].name === "Head");
         assert.ok(srf.animations["animation0"].interval === "periodic,5");
@@ -46,14 +46,44 @@ prmNar.then((nanikaDir)=>{
         var srf = shell2.surfaces.surfaces["surface10"];
         assert.ok(srf.is === 10);
         assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
-        assert.ok(srf.baseSurface.height === 445);
+        assert.ok(srf.baseSurface.height === 210);
         assert.ok(srf.baseSurface.width === 230);
         assert.ok(srf.regions["collision0"].name === "Screen");
         assert.ok(srf.animations["animation20"].interval === "bind");
       });
+      QUnit.test("draw surface0", (assert)=> {
+        var cnv = document.createElement("canvas");
+        var srf = shell2.attachSurface(cnv, 0, 0);
+        srf.isRegionVisible = true;
+        console.dir(srf);
+        srf.bind(30);
+        srf.bind(31);
+        srf.bind(32);
+        srf.bind(50);
+        setPictureFrame(assert.test.testName, cnv);
+        assert.ok(true);
+      });
+      QUnit.test("draw surface10", (assert)=> {
+        var cnv = document.createElement("canvas");
+        var srf = shell2.attachSurface(cnv, 1, 10);
+        srf.isRegionVisible = true;
+        console.dir(srf);
+        setPictureFrame(assert.test.testName, cnv);
+        assert.ok(true);
+      });
       done1();
     });
   });
+
+  function setPictureFrame(title: string, cnv: HTMLCanvasElement): void {
+    var fieldset = document.createElement("fieldset");
+    var legend = document.createElement("legend");
+    legend.appendChild(document.createTextNode(title));
+    fieldset.appendChild(cnv);
+    fieldset.appendChild(legend);
+    fieldset.style.display = "inline-block";
+    document.body.appendChild(fieldset);
+  }
 });
 
 

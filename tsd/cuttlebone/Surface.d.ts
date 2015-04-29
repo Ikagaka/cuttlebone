@@ -31,6 +31,7 @@ declare module cuttlebone {
         option : string;
         patterns: { type: string; surface: number; wait: string; x: number; y: number; }[];
     }; };
+    isRegionVisible: boolean;
     destructor(): void;
     render(): void;
     talk(): void;

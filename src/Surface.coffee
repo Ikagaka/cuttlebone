@@ -12,6 +12,7 @@ class Surface
     @talkCount = 0
     @talkCounts = {}
     @isPointerEventsShimed = false
+    @isRegionVisible = false
     @lastEventType = ""
     $(@element).on "contextmenu",(ev)=> @processMouseEvent(ev, "mouseclick",    ($ev)=> $(@element).trigger($ev))
     $(@element).on "click",      (ev)=> @processMouseEvent(ev, "mouseclick",    ($ev)=> $(@element).trigger($ev))
@@ -111,6 +112,10 @@ class Surface
       SurfaceUtil.clear(@element)
       util2 = new SurfaceUtil(@element)
       util2.init(@bufferCanvas)
+      if @isRegionVisible
+        Object.keys(@regions).forEach (name)=>
+          util2.rendRegion(@regions[name]);
+          return
     return
 
   play: (animationId, callback=->)->
