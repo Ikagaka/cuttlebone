@@ -2,10 +2,10 @@
 
 # import thirdparty libraries
 global           = ((this || 0).self || global)
-Encoding         = global["Encoding"]
-SurfacesTxt2Yaml = global["SurfacesTxt2Yaml"]
-_                = global["_"]
-$                = global["Zepto"]
+Encoding         = global["Encoding"] or require("encoding-japanese")
+SurfacesTxt2Yaml = global["SurfacesTxt2Yaml"] or require("surfaces_txt2yaml")
+_                = global["_"] or require("lodash")
+$                = global["Zepto"] or require("zepto")
 
 Util =
   convert: (buffer)->

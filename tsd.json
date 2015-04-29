@@ -1,0 +1,15 @@
+{
+  "version": "v4",
+  "repo": "borisyankov/DefinitelyTyped",
+  "ref": "master",
+  "path": "typings",
+  "bundle": "typings/tsd.d.ts",
+  "installed": {
+    "qunit/qunit.d.ts": {
+      "commit": "5cd28fd0e38cbe8a4eb54e90e88f0917a91d7da1"
+    },
+    "bluebird/bluebird.d.ts": {
+      "commit": "5cd28fd0e38cbe8a4eb54e90e88f0917a91d7da1"
+    }
+  }
+}

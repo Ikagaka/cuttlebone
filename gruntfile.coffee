@@ -6,16 +6,24 @@ module.exports = (grunt) ->
       server:
         options:
           port: 8888
-          livereload: true
 
     watch:
-      scripts:
-        files: ['**/*.coffee'],
-        tasks: ['shell:build']
+      src:
+        files: ['src/*.coffee'],
+        tasks: ['shell:build-src']
+        options:
+          livereload: true
+      test:
+        files: ['test/*.ts', "ts/*.d.ts"],
+        tasks: ['shell:build-test']
+        options:
+          livereload: true
 
     shell:
-      build:
-        command: -> "npm run build"
+      "build-src":
+        command: -> "npm run build-src"
+      "build-test":
+        command: -> "npm run build-test"
 
   grunt.loadNpmTasks 'grunt-contrib-connect'
   grunt.loadNpmTasks 'grunt-contrib-watch'

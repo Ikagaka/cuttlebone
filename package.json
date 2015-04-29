@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm run build-src; npm run build-test",
     "build-src": "node node_modules/coffee-script/bin/coffee -cm --join lib/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
-    "build-test": "node node_modules/coffee-script/bin/coffee -c test/*.coffee",
+    "build-test": "node node_modules/typescript/bin/tsc test/*.ts",
     "watch": "npm run build; grunt",
     "init": "npm update; bower update; npm run build; npm run watch"
   },
@@ -21,7 +21,8 @@
     "coffee-script": "",
     "grunt-contrib-connect": "",
     "grunt-contrib-watch": "",
-    "grunt-shell": ""
+    "grunt-shell": "",
+    "typescript": ""
   },
   "bugs":           {"url": "https://github.com/Ikagaka/cuttlebone/issues"},
   "main":           "lib/cuttlebone.js",
