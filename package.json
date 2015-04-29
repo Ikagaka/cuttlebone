@@ -9,7 +9,8 @@
     "build-src": "node node_modules/coffee-script/bin/coffee -cm --join lib/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
     "build-test": "node node_modules/typescript/bin/tsc test/*.ts",
     "watch": "npm run build; grunt",
-    "init": "npm update; bower update; npm run build; npm run watch"
+    "update": "npm update; bower update; tsd update --save --overwrite; ",
+    "init": "npm run update; npm run build; npm run watch"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 /// <reference path="../typings/tsd.d.ts" />
-/// <reference path="../ts/NarLoader.d.ts" />
-/// <reference path="../ts/cuttlebone.d.ts" />
+/// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
+/// <reference path="../tsd/cuttlebone/cuttlebone.d.ts" />
 
 QUnit.module("cuttlebone.Shell");
 
