@@ -7,6 +7,7 @@ declare module cuttlebone {
     load(): Promise<Shell>;
     attatchSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number): Surface;
     descript: { [key: string]: string; };
+    directory: { [path: string]: ArrayBuffer; };
     surfaces: Surfaces;
   }
 }

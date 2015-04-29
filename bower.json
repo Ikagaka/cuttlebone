@@ -3,12 +3,16 @@
   "version": "0.0.1",
   "description": "ukagaka shell renderer for web browser",
   "license": "MIT",
-  "authors": ["legokichi"],
+  "authors": [
+    "legokichi"
+  ],
   "dependencies": {
     "surfaces_txt2yaml": "*",
     "narloader": "*",
     "lodash": "*",
-    "zepto": "*"
+    "zepto": "*",
+    "empower": "~0.11.0",
+    "power-assert-formatter": "~0.11.0"
   },
   "devDependencies": {
     "qunit": ""
@@ -19,6 +23,5 @@
     "bower_components",
     "node_modules"
   ],
-  "exportsOverride": {
-  }
+  "exportsOverride": {}
 }

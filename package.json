@@ -3,11 +3,17 @@
   "version": "0.0.3",
   "description": "ukagaka shell renderer for web browser",
   "url": "https://github.com/ikagaka/cuttlebone.js",
-  "keywords": ["unstable", "ikagaka", "ukagaka", "cuttlebone"],
+  "keywords": [
+    "unstable",
+    "ikagaka",
+    "ukagaka",
+    "cuttlebone"
+  ],
   "scripts": {
     "build": "npm run build-src; npm run build-test",
     "build-src": "node node_modules/coffee-script/bin/coffee -cm --join lib/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
-    "build-test": "node node_modules/typescript/bin/tsc test/*.ts",
+    "build-test": "node node_modules/typescript/bin/tsc test/*.ts; npm run espower",
+    "espower": "node node_modules/espower-cli/bin/cmd.js test/unit.js > test/unit.esp.js",
     "watch": "npm run build; npm run watch-dialog; grunt",
     "watch-dialog": "echo '\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n!!!!!!! http://localhost:8888/test/ !!!!!!!\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n'",
     "update": "npm update; bower update; tsd update --save --overwrite; ",
@@ -17,18 +23,23 @@
     "type": "git",
     "url": "https://github.com/ikagaka/cuttlebone"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "coffee-script": "",
+    "espower-cli": "^0.2.0",
     "grunt-contrib-connect": "",
     "grunt-contrib-watch": "",
     "grunt-shell": "",
     "typescript": ""
   },
-  "bugs":           {"url": "https://github.com/Ikagaka/cuttlebone/issues"},
-  "main":           "lib/cuttlebone.js",
-  "author":         "Ikagaka",
-  "license":        "MIT",
-  "contributors":   ["legokichi", "narazaka"]
+  "bugs": {
+    "url": "https://github.com/Ikagaka/cuttlebone/issues"
+  },
+  "main": "lib/cuttlebone.js",
+  "author": "Ikagaka",
+  "license": "MIT",
+  "contributors": [
+    "legokichi",
+    "narazaka"
+  ]
 }

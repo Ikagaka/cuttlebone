@@ -9,7 +9,6 @@ interface Surfaces {
   surfaces: {
     [key: string]: {
       is: number;
-      filename: string;
       characters: { sakura: string; };
       points: {
         centerx: number;
