@@ -12,7 +12,7 @@
   },
   "devDependencies": {
   },
-  "main": "release/cuttlebone.js",
+  "main": "lib/cuttlebone.js",
   "ignore": [
     "**/.*",
     "bower_components",

@@ -6,7 +6,7 @@
   "keywords": ["unstable", "ikagaka", "ukagaka", "cuttlebone"],
   "scripts": {
     "build": "npm run build-src; npm run build-test",
-    "build-src": "node node_modules/coffee-script/bin/coffee -cm --join release/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
+    "build-src": "node node_modules/coffee-script/bin/coffee -cm --join lib/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
     "build-test": "node node_modules/coffee-script/bin/coffee -c test/*.coffee",
     "watch": "npm run build; grunt",
     "init": "npm update; bower update; npm run build; npm run watch"
@@ -24,8 +24,8 @@
     "grunt-shell": ""
   },
   "bugs":           {"url": "https://github.com/Ikagaka/cuttlebone/issues"},
-  "main":           "release/cuttlebone.js",
+  "main":           "lib/cuttlebone.js",
   "author":         "Ikagaka",
   "license":        "MIT",
-  "contributors":   ["legokichi"]
+  "contributors":   ["legokichi", "narazaka"]
 }
