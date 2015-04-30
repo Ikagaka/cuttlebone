@@ -47,22 +47,40 @@ prmNar.then(function (nanikaDir) {
                 assert.ok(srf.regions["collision0"].name === "Screen");
                 assert.ok(srf.animations["animation20"].interval === "bind");
             });
-            QUnit.test("draw surface0", function (assert) {
+            /*QUnit.test("draw surface0", (assert)=> {
+              var cnv = document.createElement("canvas");
+              var srf = shell2.attachSurface(cnv, 0, 0);
+              srf.isRegionVisible = true;
+              console.dir(srf);
+              srf.bind(30);
+              srf.bind(31);
+              srf.bind(32);
+              srf.bind(50);
+              setPictureFrame(assert.test.testName, cnv);
+              assert.ok(true);
+            });*/
+            QUnit.test("draw surface2", function (assert) {
                 var cnv = document.createElement("canvas");
-                var srf = shell2.attachSurface(cnv, 0, 0);
+                var srf = shell2.attachSurface(cnv, 0, 2);
                 srf.isRegionVisible = true;
                 console.dir(srf);
-                srf.bind(30);
-                srf.bind(31);
-                srf.bind(32);
-                srf.bind(50);
+                srf.render();
                 setPictureFrame(assert.test.testName, cnv);
+                var c = cuttlebone.SurfaceUtil.copy(srf.baseSurface);
+                console.log(c, "c");
+                document.body.appendChild(c);
+                setTimeout(function () {
+                    var d = cuttlebone.SurfaceUtil.copy(srf.baseSurface);
+                    console.log(d, "d");
+                    document.body.appendChild(d);
+                }, 1000);
                 assert.ok(true);
             });
             QUnit.test("draw surface10", function (assert) {
                 var cnv = document.createElement("canvas");
                 var srf = shell2.attachSurface(cnv, 1, 10);
                 srf.isRegionVisible = true;
+                srf.render(); // renderされないと表示しないため(\s[10]はアニメーションがない)
                 console.dir(srf);
                 setPictureFrame(assert.test.testName, cnv);
                 assert.ok(true);
@@ -71,6 +89,7 @@ prmNar.then(function (nanikaDir) {
         });
     });
     function setPictureFrame(title, cnv) {
+        cnv.addEventListener("IkagakaDOMEvent", function (ev) { return console.log(ev.detail); });
         var fieldset = document.createElement("fieldset");
         var legend = document.createElement("legend");
         legend.appendChild(document.createTextNode(title));

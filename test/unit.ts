@@ -51,7 +51,7 @@ prmNar.then((nanikaDir)=>{
         assert.ok(srf.regions["collision0"].name === "Screen");
         assert.ok(srf.animations["animation20"].interval === "bind");
       });
-      QUnit.test("draw surface0", (assert)=> {
+      /*QUnit.test("draw surface0", (assert)=> {
         var cnv = document.createElement("canvas");
         var srf = shell2.attachSurface(cnv, 0, 0);
         srf.isRegionVisible = true;
@@ -62,11 +62,30 @@ prmNar.then((nanikaDir)=>{
         srf.bind(50);
         setPictureFrame(assert.test.testName, cnv);
         assert.ok(true);
+      });*/
+      QUnit.test("draw surface2", (assert)=> {
+        var cnv = document.createElement("canvas");
+        var srf = shell2.attachSurface(cnv, 0, 2);
+        srf.isRegionVisible = true;
+        console.dir(srf);
+        srf.render();
+        setPictureFrame(assert.test.testName, cnv);
+        
+        var c = cuttlebone.SurfaceUtil.copy(srf.baseSurface);
+        console.log(c, "c")
+        document.body.appendChild(c)
+        setTimeout(()=>{
+          var d = cuttlebone.SurfaceUtil.copy(srf.baseSurface);
+          console.log(d, "d")
+          document.body.appendChild(d);
+        }, 1000);
+        assert.ok(true);
       });
       QUnit.test("draw surface10", (assert)=> {
         var cnv = document.createElement("canvas");
         var srf = shell2.attachSurface(cnv, 1, 10);
         srf.isRegionVisible = true;
+        srf.render(); // renderされないと表示しないため(\s[10]はアニメーションがない)
         console.dir(srf);
         setPictureFrame(assert.test.testName, cnv);
         assert.ok(true);
@@ -76,6 +95,7 @@ prmNar.then((nanikaDir)=>{
   });
 
   function setPictureFrame(title: string, cnv: HTMLCanvasElement): void {
+    cnv.addEventListener("IkagakaDOMEvent", (ev)=> console.log(ev.detail) );
     var fieldset = document.createElement("fieldset");
     var legend = document.createElement("legend");
     legend.appendChild(document.createTextNode(title));

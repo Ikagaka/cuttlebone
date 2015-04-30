@@ -72,9 +72,9 @@ class SurfaceUtil
     @ctx.stroke()
     @ctx.font = "35px";
     @ctx.strokeStyle = "white"
-    @ctx.strokeText(type+":"+name, left, top)
+    @ctx.strokeText(type+":"+name, left+5, top+10)
     @ctx.fillStyle = "black"
-    @ctx.fillText(type+":"+name, left, top)
+    @ctx.fillText(type+":"+name, left+5, top+10)
     return
 
   @pna = (cnvA, cnvB)->

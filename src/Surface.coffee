@@ -105,14 +105,15 @@ class Surface
       })
     ), [])
     SurfaceUtil.clear(@bufferCanvas)
-    util = new SurfaceUtil(@bufferCanvas)
     if !!@baseSurface or patterns.length > 0
+      util = new SurfaceUtil(@bufferCanvas)
       base = @baseSurface || patterns[0].canvas
       util.composeElements([{"type": "base", "canvas": base}].concat(patterns))
       SurfaceUtil.clear(@element)
       util2 = new SurfaceUtil(@element)
       util2.init(@bufferCanvas)
       if @isRegionVisible
+        util2.ctx.fillText(@surfaceName, 5, 10)
         Object.keys(@regions).forEach (name)=>
           util2.rendRegion(@regions[name]);
           return
