@@ -1,0 +1,114 @@
+
+<script src="../bower_components/bluebird/js/browser/bluebird.min.js"></script>
+<script src="../bower_components/encoding-japanese/encoding.js"></script>
+<script src="../bower_components/jszip/dist/jszip.min.js"></script>
+<script src="../bower_components/narloader/NarLoader.js"></script>
+<script src="../bower_components/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
+<script src="../bower_components/lodash/lodash.min.js"></script>
+<script src="../bower_components/zepto/zepto.min.js"></script>
+<script src="../bower_components/ikagaka.sakurascriptplayer.js/lib/sakurascriptplayer.js"></script>
+<script src="../lib/cuttlebone.js"></script>
+<script src="WMURLShortener.min.js"></script>
+<script src="WMDataURIScheme.min.js"></script>
+<script>
+$(function(){
+  if(sessionStorage["#code"]){
+    $("#code").val(sessionStorage["#code"]);
+  }
+
+  if(location.hash.length > 0){
+    var base64 = location.hash.slice(1);
+    WMDataURIScheme.DataURIToString("data:text/plain;charset=utf-8;base64," + base64, function(err, code){
+      if(err) throw err;
+      $("#code").val(code);
+    });
+  }
+
+  $("#code").keypress(function(){
+    sessionStorage["#code"] = $("#code").val();
+  });
+
+  $("#tweet").mousedown(function(){
+    var code = $("#code").val();
+    WMDataURIScheme.StringToDataURI(code, "text/plain", function(err, scheme){
+      if(err) throw err;
+      var base64 = scheme.split(",")[1];
+      var url = location.protocol + '//' +
+                location.hostname +
+                ":" + location.port +
+                location.pathname +
+                "#" + base64;
+      var shrn = new WMURLShortener()
+      shrn.shorten(url, function(err, surl){
+        console.log(err)
+        if(err) surl = url;
+        $("#tweet").attr("href", "https://twitter.com/share?hashtags="+encodeURIComponent("MARICHANG")+"&url="+encodeURIComponent(surl));
+      });
+    });
+  });
+
+  var nmdmgr = new cuttlebone.NamedManager();
+  $(nmdmgr.element).appendTo("body");
+  Promise.all([
+    NarLoader.loadFromURL("../bower_components/cuttlebone/nar/origin.nar").then(balloonLoadReady),
+    NarLoader.loadFromURL("../bower_components/cuttlebone/nar/mobilemaster.nar").then(shellLoadReady)
+  ])
+  .then(namedMaterializeReady(nmdmgr))
+  .then(sSPlayReady);
+});
+
+function balloonLoadReady(nnkDir){
+  var balloonDir = nnkDir.asArrayBuffer();
+  var balloon = new cuttlebone.Balloon(balloonDir);
+  return balloon.load();
+}
+
+function shellLoadReady(nnkDir){
+  var shellDir = nnkDir.getDirectory("shell/master").asArrayBuffer();
+  var shell = new cuttlebone.Shell(shellDir);
+  return shell.load();
+}
+
+function namedMaterializeReady (nmdmgr){
+  return function(tuple) {
+    console.log(nmdmgr, tuple)
+    var hwnd = nmdmgr.materialize(tuple[1], tuple[0]);
+    var named = nmdmgr.named(hwnd);
+    return named.load();
+  };
+}
+
+function sSPlayReady(named) {
+  var ssp = new SakuraScriptPlayer(named);
+  $("#play").click(function(){
+    var ss = $("#code").val().split("\n").join("\\n");
+    ssp.play(ss);
+  }).click();
+}
+</script>
+<style>
+#code {
+  width: 300px;
+  height: 300px;
+}
+#wrapper {
+  display: inline-block;
+}
+</style>
+<h1>マリちゃんトークチャレンジ！</h1>
+<p>マリちゃんに恥ずかしいセリフを言わせてTwitterで共有しよう！</p>
+<fieldset id="wrapper">
+<legend>台本</legend>
+<input type="button" value="play" id="play" />
+<a id="tweet" href="https://twitter.com/share" target="_blank">Tweet</a>
+<p>
+<textarea id="code" placeholder="\h\s[0]こんにちは！\w4世界！\w8">
+\h\s[0]こんにちは！\w4世界！\w8
+\u\s[10]こんにちは！\w4世界！\w8
+\h\s[1]\cもー、大井っちー、体触るのやーめーてーよー！\w8
+\u\s[10]・・・。\w8
+\h\s[2]目を離さないでって言ったのにー！\w4提督ゥ！\w4何してるデース！\w8
+\u\s[11]\cおぅ、そのへんにしときや。\e
+</textarea>
+</p>
+</fieldset>

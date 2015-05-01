@@ -8,14 +8,15 @@
   ],
   "dependencies": {
     "surfaces_txt2yaml": "*",
-    "narloader": "*",
     "lodash": "*",
     "zepto": "*",
-    "empower": "~0.11.0",
-    "power-assert-formatter": "~0.11.0"
   },
   "devDependencies": {
-    "qunit": ""
+    "ikagaka.sakurascriptplayer.js": "",
+    "narloader": "*",
+    "qunit": "",
+    "empower": "~0.11.0",
+    "power-assert-formatter": "~0.11.0"
   },
   "main": "lib/cuttlebone.js",
   "ignore": [
