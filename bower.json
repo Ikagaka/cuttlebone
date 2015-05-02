@@ -1,6 +1,6 @@
 {
   "name": "cuttlebone",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "ukagaka shell renderer for web browser",
   "license": "MIT",
   "authors": [
@@ -9,7 +9,7 @@
   "dependencies": {
     "surfaces_txt2yaml": "*",
     "lodash": "*",
-    "zepto": "*",
+    "zepto": "*"
   },
   "devDependencies": {
     "ikagaka.sakurascriptplayer.js": "",
