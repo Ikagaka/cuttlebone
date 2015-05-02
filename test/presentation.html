@@ -1,5 +1,4 @@
-
-<script src="../bower_components/bluebird/js/browser/bluebird.min.js"></script>
+<!--script src="../bower_components/bluebird/js/browser/bluebird.min.js"></script-->
 <script src="../bower_components/encoding-japanese/encoding.js"></script>
 <script src="../bower_components/jszip/dist/jszip.min.js"></script>
 <script src="../bower_components/narloader/NarLoader.js"></script>
@@ -50,23 +49,28 @@ $(function(){
   var nmdmgr = new cuttlebone.NamedManager();
   $(nmdmgr.element).appendTo("body");
   Promise.all([
-    NarLoader.loadFromURL("../bower_components/cuttlebone/nar/origin.nar").then(balloonLoadReady),
-    NarLoader.loadFromURL("../bower_components/cuttlebone/nar/mobilemaster.nar").then(shellLoadReady)
+    NarLoader.loadFromURL("../nar/mobilemaster.nar").then(balloonLoadReady("switch_L")),
+    NarLoader.loadFromURL("../nar/mobilemaster.nar").then(shellLoadReady("shell/master"))
   ])
   .then(namedMaterializeReady(nmdmgr))
   .then(sSPlayReady);
 });
-
-function balloonLoadReady(nnkDir){
-  var balloonDir = nnkDir.asArrayBuffer();
-  var balloon = new cuttlebone.Balloon(balloonDir);
-  return balloon.load();
+function balloonLoadReady(path){
+  return function(nnkDir){
+    console.log(nnkDir)
+    var balloonDir = nnkDir.getDirectory(path).asArrayBuffer();
+    var balloon = new cuttlebone.Balloon(balloonDir);
+    return balloon.load();
+  };
 }
 
-function shellLoadReady(nnkDir){
-  var shellDir = nnkDir.getDirectory("shell/master").asArrayBuffer();
-  var shell = new cuttlebone.Shell(shellDir);
-  return shell.load();
+function shellLoadReady(path){
+  return function(nnkDir){
+    console.log(nnkDir)
+    var shellDir = nnkDir.getDirectory(path).asArrayBuffer();
+    var shell = new cuttlebone.Shell(shellDir);
+    return shell.load();
+  };
 }
 
 function namedMaterializeReady (nmdmgr){
@@ -81,9 +85,52 @@ function namedMaterializeReady (nmdmgr){
 function sSPlayReady(named) {
   var ssp = new SakuraScriptPlayer(named);
   $("#play").click(function(){
-    var ss = $("#code").val().split("\n").join("\\n");
-    ssp.play(ss);
+    var sss = $("#code").val().split("\n");
+    sss.reduce(function(prm, ss){
+      var _ss = ss.replace(/[A-Za-z0-9\\\[\]]/g, "")
+      var tuple = talk(_ss);
+      return prm.then(function(){
+        return tuple[0].then(function(){
+          console.log("ssp start", ss);
+          ssp.play(ss);
+          return tuple[1];
+        });
+      });
+    }, Promise.resolve());
+
   }).click();
+}
+
+speechSynthesis.getVoices().forEach(function(voice) {
+  console.log(voice.name, voice.default ? '(default)' :'');
+});
+
+function talk(text){
+  var utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.8;
+  utterance.pitch = 1;
+  utterance.lang = "ja-JP";
+  console.log(utterance);
+  //http://stackoverflow.com/questions/21947730/chrome-speech-synthesis-with-longer-texts
+  //IMPORTANT!! Do not remove: Logging the object out fixes some onend firing issues.
+  //placing the speak invocation inside a callback fixes ordering and onend issues.
+  speechSynthesis.speak(utterance);
+  return [
+    new Promise(function(resolve, reject){
+      utterance.addEventListener("start", function(){ console.log("ssu start", text); resolve()});
+    }),
+    new Promise(function(resolve, reject){
+      utterance.addEventListener("end", function(){ console.log("ssu end"); resolve()});
+    })
+  ];
+}
+
+function wait(ms){
+  return function(context){
+    return new Promise(function(resolve, reject){
+      setTimeout(function(){ resolve(context); }, ms);
+    });
+  };
 }
 </script>
 <style>
@@ -93,6 +140,9 @@ function sSPlayReady(named) {
 }
 #wrapper {
   display: inline-block;
+}
+.blimpText {
+  font-size: 30px !important;
 }
 </style>
 <h1>マリちゃんトークチャレンジ！</h1>
