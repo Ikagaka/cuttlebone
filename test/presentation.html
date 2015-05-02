@@ -11,6 +11,7 @@
 <script src="WMDataURIScheme.min.js"></script>
 <script>
 $(function(){
+
   if(sessionStorage["#code"]){
     $("#code").val(sessionStorage["#code"]);
   }
@@ -87,7 +88,7 @@ function sSPlayReady(named) {
   $("#play").click(function(){
     var sss = $("#code").val().split("\n");
     sss.reduce(function(prm, ss){
-      var _ss = ss.replace(/[A-Za-z0-9\\\[\]]/g, "")
+      var _ss = ss.replace(/[A-Za-z0-9\\\[\]]|![<A-Za-z>]/g, "")
       var tuple = talk(_ss);
       return prm.then(function(){
         return tuple[0].then(function(){
@@ -101,12 +102,9 @@ function sSPlayReady(named) {
   }).click();
 }
 
-speechSynthesis.getVoices().forEach(function(voice) {
-  console.log(voice.name, voice.default ? '(default)' :'');
-});
-
 function talk(text){
-  var utterance = new SpeechSynthesisUtterance(text);
+  var utterance = new SpeechSynthesisUtterance();
+  utterance.text = text;
   utterance.rate = 0.8;
   utterance.pitch = 1;
   utterance.lang = "ja-JP";
@@ -115,6 +113,7 @@ function talk(text){
   //IMPORTANT!! Do not remove: Logging the object out fixes some onend firing issues.
   //placing the speak invocation inside a callback fixes ordering and onend issues.
   speechSynthesis.speak(utterance);
+  utterance.addEventListener("error", function(err){ console.error(err); reject(err); });
   return [
     new Promise(function(resolve, reject){
       utterance.addEventListener("start", function(){ console.log("ssu start", text); resolve()});
