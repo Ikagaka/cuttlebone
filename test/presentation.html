@@ -86,9 +86,10 @@ function namedMaterializeReady (nmdmgr){
 function sSPlayReady(named) {
   var ssp = new SakuraScriptPlayer(named);
   $("#play").click(function(){
-    var sss = $("#code").val().split("\n");
+    ssp.play($("#code").val().split("\n").join("\\n"));
+    /*var sss = $("#code").val().split("\n");
     sss.reduce(function(prm, ss){
-      var _ss = ss.replace(/[A-Za-z0-9\\\[\]]|![<A-Za-z>]/g, "")
+      var _ss = ss.replace(/[A-Za-z0-9\\\[\]]/g, "");
       var tuple = talk(_ss);
       return prm.then(function(){
         return tuple[0].then(function(){
@@ -97,12 +98,14 @@ function sSPlayReady(named) {
           return tuple[1];
         });
       });
-    }, Promise.resolve());
+    }, Promise.resolve());*/
 
   }).click();
 }
 
 function talk(text){
+  // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html
+  // http://www.w3.org/TR/speech-synthesis/
   var utterance = new SpeechSynthesisUtterance();
   utterance.text = text;
   utterance.rate = 0.8;
