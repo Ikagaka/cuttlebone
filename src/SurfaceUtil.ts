@@ -13,7 +13,14 @@ module cuttlebone {
       ctx.drawImage(<HTMLCanvasElement>cnv, 0, 0); // type hack
       return copy;
     }
-    export function fetchImage(url: string): Promise<HTMLImageElement> {
+    export function fetchImageFromArrayBuffer(buffer: ArrayBuffer, mimetype?:string): Promise<HTMLImageElement> {
+      var url = URL.createObjectURL(new Blob([buffer], {type: mimetype || "image/png"}));
+      fetchImageFromURL(url).then((img)=>{
+        URL.revokeObjectURL(url);
+        return Promise.resolve(img);
+      });
+    }
+    export function fetchImageFromURL(url: string): Promise<HTMLImageElement> {
       var img = new Image;
       img.src = url;
       return new Promise<HTMLImageElement>((resolve, reject)=>{

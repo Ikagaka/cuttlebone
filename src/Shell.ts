@@ -4,14 +4,14 @@
 
 module cuttlebone {
   export class Shell {
-	descript: { [key: string]: string; };
     directory: { [path: string]: ArrayBuffer; };
+	   descript: { [key: string]: string; };
     surfaces: SurfacesTxt;
     constructor(directory: { [filepath: string]: ArrayBuffer; }) {
     	this.directory = directory;
 	    this.descript = {};
 	    this.surfaces = { surfaces: {}};
-	}
+     }
   load(): Promise<Shell> {
 		if (!!this.directory["descript.txt"]) {
       this.descript = Util.parseDescript(Util.convert(this.directory["descript.txt"]));
@@ -47,7 +47,7 @@ module cuttlebone {
     return prm;
 	}
   attachSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number): Surface {
-    
+
   }
   mergeSurfacesAndSurfacesFiles(): Promise<SurfaceTxt> {}
   loadSurfaces(): Promise<SurfaceTxt> {}

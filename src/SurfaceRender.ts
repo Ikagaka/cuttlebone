@@ -100,10 +100,10 @@ module cuttlebone {
       this.ctx.clearRect(x, y, part.width, part.height);
       this.overlayfast(part, x, y);
     }
-    init(cnv: HTMLCanvasElement): void {
+    init(cnv: HTMLImageElement|HTMLCanvasElement):void {
       this.cnv.width = cnv.width;
       this.cnv.height = cnv.height;
-      this.overlayfast(cnv, 0, 0);
+      this.overlayfast(<HTMLCanvasElement>cnv, 0, 0); // type hack
     }
     drawRegion(region: SurfaceRegion): void {
       var {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = region; 

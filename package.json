@@ -11,7 +11,9 @@
   ],
   "scripts": {
     "build": "npm run build-src; npm run build-test",
-    "build-src": "node node_modules/coffee-script/bin/coffee -cm --join lib/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
+    "build-src": "npm run build-src-cs; npm run build-src-ts",
+    "build-src-cs": "node node_modules/coffee-script/bin/coffee -cm --join lib/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
+    "build-src-ts": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --out lib/cuttlebone.ts.js src/*.ts",
     "build-test": "node node_modules/typescript/bin/tsc test/*.ts; npm run espower",
     "espower": "node node_modules/espower-cli/bin/cmd.js test/unit.js > test/unit.esp.js",
     "watch": "npm run build; npm run watch-dialog; grunt",
