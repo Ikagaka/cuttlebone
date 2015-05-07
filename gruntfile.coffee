@@ -8,11 +8,13 @@ module.exports = (grunt) ->
           port: 8888
 
     watch:
+
       "src-cs":
         files: ['src/*.coffee'],
         tasks: ['shell:build-src-cs']
         options:
           livereload: true
+
       "src-ts":
         files: ['src/*.ts'],
         tasks: ['shell:build-src-ts']
@@ -36,4 +38,4 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-shell'
 
-  grunt.registerTask 'default', ['connect', 'watch']
+  grunt.registerTask 'default', ['connect']

@@ -4,7 +4,6 @@
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 
 module cuttlebone {
-  interface SurfacesJSON { [key: string]: any; };
   export class SurfaceCacheManager {
     surfaces: SurfacesTxt;
     directory: { [filepath: string]: ArrayBuffer; };
@@ -35,9 +34,9 @@ module cuttlebone {
       return Object.keys(this.directory)
         .filter((filename)=> reg.test(filename))[0] || "";
     }
-    getSurfaceDefinition(surfaceId: number): any {
-      return Object.keys(this.surfaces)
-        .filter((key)=> this.surfaces[key].is === surfaceId)[0];
+    getSurfaceDefinition(surfaceId: number): SurfaceDefinition {
+      var hits = Object.keys(this.surfaces).filter((key)=> this.surfaces.surfaces[key].is === surfaceId);
+      return this.surfaces.surfaces[hits[0]];
     }
     fetchSurfaceImage(filename: string): Promise<SurfaceRender> {
       var pnafilename = this.getPNAFilename(filename);

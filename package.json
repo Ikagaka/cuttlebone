@@ -10,15 +10,14 @@
     "cuttlebone"
   ],
   "scripts": {
-    "build": "npm run build-src; npm run build-test",
-    "build-src": "npm run build-src-cs; npm run build-src-ts",
-    "build-src-cs": "node node_modules/coffee-script/bin/coffee -cm --join lib/cuttlebone.js -- src/header.coffee src/*.coffee src/footer.coffee",
-    "build-src-ts": "node node_modules/typescript/bin/tsc --out lib/cuttlebone.ts.js src/*.ts",
-    "build-src-ts-strict": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --out lib/cuttlebone.ts.js src/*.ts",
-    "build-test": "node node_modules/typescript/bin/tsc --out test/unit.js test/*.ts; npm run espower",
-    "espower": "node node_modules/espower-cli/bin/cmd.js test/unit.js > test/unit.esp.js",
-    "watch": "npm run build; npm run watch-dialog; grunt",
-    "watch-dialog": "echo '\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n!!!!!!! http://localhost:8888/test/ !!!!!!!\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n'",
+    "build": "npm run build-src; npm run build-test; cat output/src/*.js > lib/cuttlebone.js",
+    "build-src":  "rm -rf      js/*; node node_modules/typescript/bin/tsc         --noEmitOnError --noImplicitAny --rootDir ./ --outdir output src/*.ts",
+    "build-test": "rm -rf test/js/*; node node_modules/typescript/bin/tsc         --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts",
+    "watch-src":  "rm -rf      js/*; node node_modules/typescript/bin/tsc --watch --noEmitOnError --noImplicitAny --rootDir ./ --outdir output src/*.ts",
+    "watch-test": "rm -rf test/js/*; node node_modules/typescript/bin/tsc --watch --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts",
+    "_espower": "node node_modules/espower-cli/bin/cmd.js test/js/unit.js > test/js/unit.esp.js",
+    "_watch": "npm run build; npm run watch-dialog; grunt",
+    "_watch-dialog": "echo '\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n!!!!!!! http://localhost:8888/test/ !!!!!!!\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n'",
     "update": "npm update; bower update; tsd update --save --overwrite; ",
     "init": "npm run update; npm run build; npm run watch"
   },
