@@ -3,7 +3,7 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "declaration": false,
+        "declaration": true,
         "noImplicitAny": true,
         "noEmitOnError": true,
         "removeComments": false,
@@ -18,9 +18,9 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
-        "./Surface.ts",
-        "./SurfaceCacheManager.ts",
-        "./SurfaceRender.ts",
-        "./SurfaceUtil.ts"
+        "./testSurface.ts",
+        "./testSurfaceCacheManager.ts",
+        "./testSurfaceRender.ts",
+        "./testSurfaceUtil.ts"
     ]
 }

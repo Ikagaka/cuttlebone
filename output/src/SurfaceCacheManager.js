@@ -33,7 +33,7 @@ var cuttlebone;
         };
         SurfaceCacheManager.prototype.getSurfaceDefinition = function (surfaceId) {
             var _this = this;
-            var hits = Object.keys(this.surfaces).filter(function (key) { return _this.surfaces.surfaces[key].is === surfaceId; });
+            var hits = Object.keys(this.surfaces.surfaces).filter(function (key) { return _this.surfaces.surfaces[key].is === surfaceId; });
             return this.surfaces.surfaces[hits[0]];
         };
         SurfaceCacheManager.prototype.fetchSurfaceImage = function (filename) {

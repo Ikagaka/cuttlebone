@@ -9,6 +9,7 @@ var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 prmNar.then((nanikaDir)=>{
 
   QUnit.module("cuttlebone.SurfaceCacheManager");
+
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
   var filenames = Object.keys(shellDir).filter((filename)=> /surfaces\S*\.txt$/.test(filename));
@@ -30,8 +31,10 @@ prmNar.then((nanikaDir)=>{
   });
 
   QUnit.test("SurfaceCacheManager#getPNAFilename", (assert)=> {
-    assert.ok(srfMgr.getPNAFilename(srfMgr.getSurfaceFilename(731)) === "surface0731.pna");
+    var filename = srfMgr.getSurfaceFilename(731);
+    assert.ok(srfMgr.getPNAFilename(filename) === "surface0731.pna");
   });
+  
   QUnit.test("SurfaceCacheManager#getSurfaceDefinition", (assert)=> {
     assert.ok(srfMgr.getSurfaceDefinition(0).is === 0);
   });

@@ -5,39 +5,47 @@
 
 module cuttlebone {
   export class SurfaceCacheManager {
+    
     surfaces: SurfacesTxt;
     directory: { [filepath: string]: ArrayBuffer; };
     baseSurfaceImages: {[key: number]: HTMLImageElement; };
     baseSurfaceCaches: {[key: number]: HTMLCanvasElement; };
+
     constructor(surfaces: SurfacesTxt, directory: { [filepath: string]: ArrayBuffer; }) {
       this.surfaces = surfaces;
       this.directory = directory;
       this.baseSurfaceCaches = [];
     }
+
     load(): Promise<SurfaceCacheManager> {
       return new Promise<SurfaceCacheManager>((resolve, reject)=>{
         resolve(Promise.resolve(this));
       });
     }
+
     isCached(surfaceId: number): boolean {
       return !!this.baseSurfaceCaches[surfaceId];
     }
+
     getSurfaceFilename(surfaceId: number): string {
       var reg = /^surface(\d+)\.png$/i;
       return Object.keys(this.directory)
         .filter((filename)=> reg.test(filename))
         .filter((filename)=> surfaceId === Number(reg.exec(filename)[1]))[0] || "";
     }
+
     getPNAFilename(filename: string): string {
       var pnafilename = filename.replace(/\.png$/i, ".pna");
       var reg = new RegExp(pnafilename, "i");
       return Object.keys(this.directory)
         .filter((filename)=> reg.test(filename))[0] || "";
     }
+
     getSurfaceDefinition(surfaceId: number): SurfaceDefinition {
-      var hits = Object.keys(this.surfaces).filter((key)=> this.surfaces.surfaces[key].is === surfaceId);
+      var hits = Object.keys(this.surfaces.surfaces).filter((key)=> this.surfaces.surfaces[key].is === surfaceId);
       return this.surfaces.surfaces[hits[0]];
     }
+
     fetchSurfaceImage(filename: string): Promise<SurfaceRender> {
       var pnafilename = this.getPNAFilename(filename);
       var cnv = document.createElement("canvas");
@@ -58,6 +66,7 @@ module cuttlebone {
         });
       });
     }
+
     fetchBaseSurface(surfaceId: number): Promise<HTMLCanvasElement> {
       if(this.isCached(surfaceId)) {
         return Promise.resolve(this.baseSurfaceCaches[surfaceId]);

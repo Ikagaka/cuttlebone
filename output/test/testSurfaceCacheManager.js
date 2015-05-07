@@ -24,7 +24,8 @@ prmNar.then(function (nanikaDir) {
         assert.ok(srfMgr.getSurfaceFilename(0) === "surface0.png");
     });
     QUnit.test("SurfaceCacheManager#getPNAFilename", function (assert) {
-        assert.ok(srfMgr.getPNAFilename(srfMgr.getSurfaceFilename(731)) === "surface0731.pna");
+        var filename = srfMgr.getSurfaceFilename(731);
+        assert.ok(srfMgr.getPNAFilename(filename) === "surface0731.pna");
     });
     QUnit.test("SurfaceCacheManager#getSurfaceDefinition", function (assert) {
         assert.ok(srfMgr.getSurfaceDefinition(0).is === 0);
