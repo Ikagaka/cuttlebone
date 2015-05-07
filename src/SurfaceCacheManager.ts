@@ -1,16 +1,19 @@
+/// <reference path="../typings/tsd.d.ts"/>
 /// <reference path="SurfaceUtil.ts"/>
 /// <reference path="SurfaceRender.ts"/>
+/// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 
 module cuttlebone {
   interface SurfacesJSON { [key: string]: any; };
   export class SurfaceCacheManager {
-    surfaces: SurfacesJSON;
+    surfaces: SurfacesTxt;
     directory: { [filepath: string]: ArrayBuffer; };
     baseSurfaceImages: {[key: number]: HTMLImageElement; };
     baseSurfaceCaches: {[key: number]: HTMLCanvasElement; };
-    constructor(surfaces: SurfacesJSON, directory: { [filepath: string]: ArrayBuffer; }) {
+    constructor(surfaces: SurfacesTxt, directory: { [filepath: string]: ArrayBuffer; }) {
       this.surfaces = surfaces;
       this.directory = directory;
+      this.baseSurfaceCaches = [];
     }
     load(): Promise<SurfaceCacheManager> {
       return new Promise<SurfaceCacheManager>((resolve, reject)=>{

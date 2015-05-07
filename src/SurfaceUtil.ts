@@ -1,4 +1,4 @@
-/// <reference path="../typings/bluebird/bluebird.d.ts" />
+/// <reference path="../typings/tsd.d.ts"/>
 
 module cuttlebone {
   export module SurfaceUtil {
@@ -15,7 +15,7 @@ module cuttlebone {
     }
     export function fetchImageFromArrayBuffer(buffer: ArrayBuffer, mimetype?:string): Promise<HTMLImageElement> {
       var url = URL.createObjectURL(new Blob([buffer], {type: mimetype || "image/png"}));
-      fetchImageFromURL(url).then((img)=>{
+      return fetchImageFromURL(url).then((img)=>{
         URL.revokeObjectURL(url);
         return Promise.resolve(img);
       });
@@ -38,7 +38,7 @@ module cuttlebone {
         ms++;
       }
       setTimeout((() =>
-        callback(() => random(callback, probability)) 
+        callback(() => random(callback, probability))
       ), ms * 1000);
     }
     export function periodic(callback: (callback: () => void) => void, sec: number): void {
@@ -65,7 +65,7 @@ module cuttlebone {
         width: Math.round(obj.width),
         height: Math.round(obj.height)
       };
-    }	
+    }
     export function elementFromPointWithout (element: HTMLElement, pageX: number, pageY: number): HTMLElement {
       var tmp = element.style.display;
       element.style.display = "none";

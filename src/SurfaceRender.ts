@@ -1,3 +1,4 @@
+/// <reference path="../typings/tsd.d.ts"/>
 
 module cuttlebone {
   export class SurfaceRender {
@@ -106,7 +107,7 @@ module cuttlebone {
       this.overlayfast(<HTMLCanvasElement>cnv, 0, 0); // type hack
     }
     drawRegion(region: SurfaceRegion): void {
-      var {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = region; 
+      var {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = region;
       this.ctx.strokeStyle = "#00FF00";
       switch (type) {
         case "rect":
@@ -130,4 +131,3 @@ module cuttlebone {
     }
   }
 }
-

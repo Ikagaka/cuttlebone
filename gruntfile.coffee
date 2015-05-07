@@ -8,20 +8,27 @@ module.exports = (grunt) ->
           port: 8888
 
     watch:
-      src:
+      "src-cs":
         files: ['src/*.coffee'],
-        tasks: ['shell:build-src']
+        tasks: ['shell:build-src-cs']
+        options:
+          livereload: true
+      "src-ts":
+        files: ['src/*.ts'],
+        tasks: ['shell:build-src-ts']
         options:
           livereload: true
       test:
-        files: ['test/*.ts', "ts/*.d.ts"],
+        files: ['test/*.ts', "tsd/**/*.d.ts"],
         tasks: ['shell:build-test']
         options:
           livereload: true
 
     shell:
-      "build-src":
-        command: -> "npm run build-src"
+      "build-src-cs":
+        command: -> "npm run build-src-cs"
+      "build-src-ts":
+        command: -> "npm run build-src-ts"
       "build-test":
         command: -> "npm run build-test"
 
