@@ -191,10 +191,20 @@ module cuttlebone {
     // Different interlace methods
     interlaceNone(data:Uint8Array): void {
       var png = this.png;
-      // bytes per pixel
-      var bpp = Math.max(1, png.colors * png.bitDepth / 8);
-      // color bytes per row
-      var cpr = bpp * png.width;
+
+      console.log(png.bitDepth, png.colors)
+      if(png.bitDepth < 8){
+        // bytes per pixel
+        var bpp = Math.max(1, png.colors * png.bitDepth / 8);
+        // color bytes per row
+        var cpr = bpp * png.width;
+      } else {
+        // bytes per pixel
+        var bpp = Math.max(1, png.colors * png.bitDepth / 8);
+        // color bytes per row
+        var cpr = bpp * png.width;
+      }
+      console.info(bpp, cpr);
       var pixels = new Uint8Array(new ArrayBuffer(bpp * png.width * png.height));
       var scanline: Uint8Array;
       var offset = 0;
@@ -207,7 +217,8 @@ module cuttlebone {
           case 2: this.unFilterUp(     scanline, pixels, bpp, offset, cpr); break;
           case 3: this.unFilterAverage(scanline, pixels, bpp, offset, cpr); break;
           case 4: this.unFilterPaeth(  scanline, pixels, bpp, offset, cpr); break;
-          default: throw new Error("unkown filtered scanline: " + filtertype); break;
+          default:
+            throw new Error("unkown filtered scanline: " + filtertype); break;
         }
         offset += cpr;
       }

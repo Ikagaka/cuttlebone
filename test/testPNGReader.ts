@@ -18,8 +18,7 @@ prmNar.then((nanikaDir)=>{
       var png = reader.parse();
       drawOnCanvas(filename, png, shellDir[filename]);
     }catch(err){
-      console.log(filename, reader);
-      console.error(err, err.stack)
+      console.error(filename, reader);
     }
 
   });
