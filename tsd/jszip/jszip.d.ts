@@ -172,7 +172,7 @@ declare var JSZip: {
     support: JSZipSupport;
     compressions: {
       DEFLATE: {
-        uncompress: (data: Uint8Array, options?:{raw: boolean})=> Uint8Array;
+        uncompress: (data: Uint8Array)=> Uint8Array;
       }
     }
 }

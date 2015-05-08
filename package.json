@@ -11,11 +11,11 @@
   ],
   "scripts": {
     "build": "npm run build-src; npm run build-test; npm run espower",
-    "build-src":  "rm -rf      js/*; node node_modules/typescript/bin/tsc --declaration --noEmitOnError --noImplicitAny --rootDir ./ --outdir output src/*.ts; cat output/src/*.js > lib/cuttlebone.js",
-    "build-test": "rm -rf test/js/*; node node_modules/typescript/bin/tsc               --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts; cat output/test/test*.js > output/test/all.js",
+    "build-src":  "rm -rf output/*; node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output  src/*.ts; cat output/src/*.js      > lib/cuttlebone.js",
+    "build-test": "rm -rf output/*; node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts; cat output/test/test*.js > output/test/all.js",
     "espower": "node node_modules/espower-cli/bin/cmd.js test/all.js > test/all.js",
     "update": "npm update; bower update; tsd update --save --overwrite",
-    "init": "npm run update; npm run build",
+    "init": "npm run update; npm run build; npm run start; npm run demo;",
     "demo": "open http://localhost:8000/demo/",
     "start": "Python -m SimpleHTTPServer 8000 &",
     "stop": "killall -- Python -m SimpleHTTPServer 8000; exit 0"

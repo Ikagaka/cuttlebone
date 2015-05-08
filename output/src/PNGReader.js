@@ -1,5 +1,10 @@
-/// <reference path="../tsd/pako/pako.d.ts"/>
+/// <reference path="../tsd/jszip/jszip.d.ts"/>
 // oriinal: https://github.com/arian/pngjs
+// modified by legokichi.
+// chenge:
+//   typescriptnize
+//   chenge zlib library stream.js to jszip(pako)
+//   support bitdepth 1
 var cuttlebone;
 (function (cuttlebone) {
     function equalBytes(a, b) {
@@ -90,6 +95,9 @@ var cuttlebone;
                 case 'IEND':
                     this.decodeIEND(chunk);
                     break;
+                default:
+                    console.warn("PNGReader: ", type, " is not support chunk type.");
+                    break;
             }
             return type;
         };
@@ -147,17 +155,24 @@ var cuttlebone;
             for (l = this.dataChunks.length; l--;)
                 length += this.dataChunks[l].length;
             var data = new Uint8Array(new ArrayBuffer(length));
-            console.log(data, length);
             for (i = 0, k = 0, l = this.dataChunks.length; i < l; i++) {
                 var chunk = this.dataChunks[i];
                 for (j = 0; j < chunk.length; j++)
                     data[k++] = chunk[j];
             }
+            // http://www.fileformat.info/format/png/corion.htm
+            // Deflate-compressed datastreams within PNG are stored in the "zlib"
+            // format, which has the structure:
+            // Compression method/flags code: 1 byte
+            // Additional flags/check bits:   1 byte
+            // Compressed data blocks:        n bytes
+            // Checksum:                      4 bytes
+            var rawdata = data.subarray(2, data.length - 4);
             try {
-                var _data = pako.inflate(data);
+                var _data = JSZip.compressions.DEFLATE.uncompress(rawdata);
             }
             catch (err) {
-                throw new Error(err || "pako: uncompress error");
+                throw new Error(err || "pako: zlib inflate error");
             }
             if (png.getInterlaceMethod() === 0) {
                 this.interlaceNone(_data);
@@ -178,7 +193,8 @@ var cuttlebone;
             var offset = 0;
             for (var i = 0; i < data.length; i += cpr + 1) {
                 scanline = data.subarray(i + 1, i + cpr + 1);
-                switch (readUInt8(data, i)) {
+                var filtertype = readUInt8(data, i);
+                switch (filtertype) {
                     case 0:
                         this.unFilterNone(scanline, pixels, bpp, offset, cpr);
                         break;
@@ -194,7 +210,9 @@ var cuttlebone;
                     case 4:
                         this.unFilterPaeth(scanline, pixels, bpp, offset, cpr);
                         break;
-                    default: throw new Error("unkown filtered scanline");
+                    default:
+                        throw new Error("unkown filtered scanline: " + filtertype);
+                        break;
                 }
                 offset += cpr;
             }
@@ -203,7 +221,6 @@ var cuttlebone;
         PNGReader.prototype.interlaceAdam7 = function (data) {
             throw new Error("Adam7 interlacing is not implemented yet");
         };
-        ;
         // Unfiltering
         /**
          * No filtering, direct copy
@@ -355,7 +372,7 @@ var cuttlebone;
             }
         };
         PNGReader.prototype.parse = function (options) {
-            options = options || { data: false };
+            options = options || { data: true };
             this.decodeHeader();
             while (this.i < this.bytes.length) {
                 var type = this.decodeChunk();
@@ -370,6 +387,7 @@ var cuttlebone;
         return PNGReader;
     })();
     cuttlebone.PNGReader = PNGReader;
+    ////
     var PNG = (function () {
         function PNG() {
             this.width = 0;
@@ -401,7 +419,7 @@ var cuttlebone;
             return this.bitDepth;
         };
         PNG.prototype.setBitDepth = function (bitDepth) {
-            if ([2, 4, 8, 16].indexOf(bitDepth) === -1) {
+            if ([1, 2, 4, 8, 16].indexOf(bitDepth) === -1) {
                 throw new Error("invalid bith depth " + bitDepth);
             }
             this.bitDepth = bitDepth;
@@ -453,36 +471,30 @@ var cuttlebone;
         PNG.prototype.getCompressionMethod = function () {
             return this.compressionMethod;
         };
-        ;
         PNG.prototype.setCompressionMethod = function (compressionMethod) {
             if (compressionMethod !== 0) {
                 throw new Error("invalid compression method " + compressionMethod);
             }
             this.compressionMethod = compressionMethod;
         };
-        ;
         PNG.prototype.getFilterMethod = function () {
             return this.filterMethod;
         };
-        ;
         PNG.prototype.setFilterMethod = function (filterMethod) {
             if (filterMethod !== 0) {
                 throw new Error("invalid filter method " + filterMethod);
             }
             this.filterMethod = filterMethod;
         };
-        ;
         PNG.prototype.getInterlaceMethod = function () {
             return this.interlaceMethod;
         };
-        ;
         PNG.prototype.setInterlaceMethod = function (interlaceMethod) {
             if (interlaceMethod !== 0 && interlaceMethod !== 1) {
                 throw new Error("invalid interlace method " + interlaceMethod);
             }
             this.interlaceMethod = interlaceMethod;
         };
-        ;
         PNG.prototype.setPalette = function (palette) {
             if (palette.length % 3 !== 0) {
                 throw new Error("incorrect PLTE chunk length");
@@ -492,11 +504,9 @@ var cuttlebone;
             }
             this.palette = palette;
         };
-        ;
         PNG.prototype.getPalette = function () {
             return this.palette;
         };
-        ;
         /**
          * get the pixel color on a certain location in a normalized way
          * result is an array: [red, green, blue, alpha]
@@ -507,6 +517,8 @@ var cuttlebone;
             if (x >= this.width || y >= this.height) {
                 throw new Error("x,y position out of bound");
             }
+            if (this.bitDepth === 1)
+                this.bitDepth = 8;
             var i = this.colors * this.bitDepth / 8 * (y * this.width + x);
             var pixels = this.pixels;
             switch (this.colorType) {
@@ -519,9 +531,11 @@ var cuttlebone;
                     255];
                 case 4: return [pixels[i], pixels[i], pixels[i], pixels[i + 1]];
                 case 6: return [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]];
+                default:
+                    throw new Error("invalid color type: " + this.colorType);
+                    break;
             }
         };
-        ;
         return PNG;
     })();
     cuttlebone.PNG = PNG;

@@ -1,7 +1,14 @@
-/// <reference path="../tsd/pako/pako.d.ts"/>
+/// <reference path="../tsd/jszip/jszip.d.ts"/>
 // oriinal: https://github.com/arian/pngjs
+// modified by legokichi.
+// chenge:
+//   typescriptnize
+//   chenge zlib library stream.js to jszip(pako)
+//   support bitdepth 1
+
 
 module cuttlebone {
+
   function equalBytes(a: Uint8Array, b: Uint8Array): boolean{
     if (a.length != b.length) return false;
     for (var l = a.length; l--;) if (a[l] != b[l]) return false;
@@ -14,6 +21,7 @@ module cuttlebone {
            (buffer[offset + 2] << 8) +
            (buffer[offset + 3] << 0);
   }
+
   function readUInt16(buffer: Uint8Array, offset: number): number{
     return (buffer[offset + 1] << 8) + (buffer[offset] << 0);
   }
@@ -21,6 +29,7 @@ module cuttlebone {
   function readUInt8(buffer: Uint8Array, offset: number): number{
     return buffer[offset] << 0;
   }
+
   function bufferToString(buffer: Uint8Array): string{
     var str = '';
     for (var i = 0; i < buffer.length; i++){
@@ -30,6 +39,7 @@ module cuttlebone {
   }
 
   export class PNGReader {
+
     bytes: Uint8Array;
     i: number;
     header: Uint8Array;
@@ -45,6 +55,7 @@ module cuttlebone {
       // Output object
       this.png = new PNG();
     }
+
     readBytes(length: number): Uint8Array{
       var end = this.i + length;
       if (end > this.bytes.length){
@@ -54,6 +65,7 @@ module cuttlebone {
       this.i = end;
       return bytes;
     }
+
     /**
      * http://www.w3.org/TR/2003/REC-PNG-20031110/#5PNG-file-signature
      */
@@ -67,6 +79,7 @@ module cuttlebone {
       }
       this.header = header;
     }
+
     /**
      * http://www.w3.org/TR/2003/REC-PNG-20031110/#5Chunk-layout
      *
@@ -88,9 +101,11 @@ module cuttlebone {
         case 'PLTE': this.decodePLTE(chunk); break;
         case 'IDAT': this.decodeIDAT(chunk); break;
         case 'IEND': this.decodeIEND(chunk); break;
+        default: console.warn("PNGReader: ", type, " is not support chunk type."); break;
       }
       return type;
     }
+
     /**
      * http://www.w3.org/TR/2003/REC-PNG-20031110/#11IHDR
      * http://www.libpng.org/pub/png/spec/1.2/png-1.2-pdg.html#C.IHDR
@@ -113,6 +128,7 @@ module cuttlebone {
       png.setFilterMethod(      readUInt8(chunk, 11));
       png.setInterlaceMethod(   readUInt8(chunk, 12));
     }
+
     /**
      *
      * http://www.w3.org/TR/PNG/#11PLTE
@@ -120,6 +136,7 @@ module cuttlebone {
     decodePLTE(chunk: Uint8Array): void {
       this.png.setPalette(chunk);
     }
+
     /**
      * http://www.w3.org/TR/2003/REC-PNG-20031110/#11IDAT
      */
@@ -127,11 +144,13 @@ module cuttlebone {
       // multiple IDAT chunks will concatenated
       this.dataChunks.push(chunk);
     }
+
     /**
      * http://www.w3.org/TR/2003/REC-PNG-20031110/#11IEND
      */
     decodeIEND(chunk: Uint8Array): void {
     }
+
     /**
      * Uncompress IDAT chunks
      */
@@ -144,15 +163,22 @@ module cuttlebone {
       var l = 0;
       for (l = this.dataChunks.length; l--;) length += this.dataChunks[l].length;
       var data = new Uint8Array(new ArrayBuffer(length));
-      console.log(data, length)
       for (i = 0, k = 0, l = this.dataChunks.length; i < l; i++){
         var chunk = this.dataChunks[i];
         for (j = 0; j < chunk.length; j++) data[k++] = chunk[j];
       }
+      // http://www.fileformat.info/format/png/corion.htm
+      // Deflate-compressed datastreams within PNG are stored in the "zlib"
+      // format, which has the structure:
+      // Compression method/flags code: 1 byte
+      // Additional flags/check bits:   1 byte
+      // Compressed data blocks:        n bytes
+      // Checksum:                      4 bytes
+      var rawdata = data.subarray(2, data.length - 4);
       try{
-        var _data = pako.inflate(data);
+        var _data = JSZip.compressions.DEFLATE.uncompress(rawdata);
       }catch(err){
-        throw new Error(err || "pako: uncompress error");
+        throw new Error(err || "pako: zlib inflate error");
       }
 
       if (png.getInterlaceMethod() === 0){
@@ -161,6 +187,7 @@ module cuttlebone {
         this.interlaceAdam7(_data);
       }
     }
+
     // Different interlace methods
     interlaceNone(data:Uint8Array): void {
       var png = this.png;
@@ -173,21 +200,24 @@ module cuttlebone {
       var offset = 0;
       for (var i = 0; i < data.length; i += cpr + 1){
         scanline = data.subarray(i + 1, i + cpr + 1);
-        switch (readUInt8(data, i)){
+        var filtertype = readUInt8(data, i);
+        switch (filtertype){
           case 0: this.unFilterNone(   scanline, pixels, bpp, offset, cpr); break;
           case 1: this.unFilterSub(    scanline, pixels, bpp, offset, cpr); break;
           case 2: this.unFilterUp(     scanline, pixels, bpp, offset, cpr); break;
           case 3: this.unFilterAverage(scanline, pixels, bpp, offset, cpr); break;
           case 4: this.unFilterPaeth(  scanline, pixels, bpp, offset, cpr); break;
-          default: throw new Error("unkown filtered scanline");
+          default: throw new Error("unkown filtered scanline: " + filtertype); break;
         }
         offset += cpr;
       }
       png.pixels = pixels;
     }
+
     interlaceAdam7(data: Uint8Array): void {
       throw new Error("Adam7 interlacing is not implemented yet");
-    };
+    }
+
     // Unfiltering
     /**
      * No filtering, direct copy
@@ -197,6 +227,7 @@ module cuttlebone {
         pixels[offset + i] = scanline[i];
       }
     }
+
     /**
      * The Sub() filter transmits the difference between each byte and the value
      * of the corresponding byte of the prior pixel.
@@ -210,6 +241,7 @@ module cuttlebone {
         pixels[offset + i] = (scanline[i] + pixels[offset + i - bpp]) & 0xFF;
       }
     }
+
     /**
      * The Up() filter is just like the Sub() filter except that the pixel
      * immediately above the current pixel, rather than just to its left, is used
@@ -231,6 +263,7 @@ module cuttlebone {
         pixels[offset + i] = (byte + prev) & 0xFF;
       }
     }
+
     /**
      * The Average() filter uses the average of the two neighboring pixels (left
      * and above) to predict the value of a pixel.
@@ -264,6 +297,7 @@ module cuttlebone {
         }
       }
     }
+
     /**
      * The Paeth() filter computes a simple linear function of the three
      * neighboring pixels (left, above, upper left), then chooses as predictor
@@ -329,8 +363,9 @@ module cuttlebone {
         }
       }
     }
+
     parse(options?:{data:boolean}): PNG {
-      options = options || {data: false};
+      options = options || {data: true};
       this.decodeHeader();
       while (this.i < this.bytes.length){
         var type = this.decodeChunk();
@@ -342,6 +377,11 @@ module cuttlebone {
       return this.png;
     }
   }
+
+
+////
+
+
   export class PNG {
     width: number;
     height: number;
@@ -355,6 +395,7 @@ module cuttlebone {
     pixelBits: number;
     palette: Uint8Array;
     pixels: Uint8Array;
+
     constructor(){
       this.width = 0;
       this.height = 0;
@@ -369,30 +410,38 @@ module cuttlebone {
       this.palette = null;
       this.pixels = null;
     }
+
     getWidth(): number{
       return this.width;
     }
+
     setWidth(width: number){
       this.width = width;
     }
+
     getHeight(){
       return this.height;
     }
+
     setHeight(height: number){
       this.height = height;
     }
+
     getBitDepth(){
       return this.bitDepth;
     }
+
     setBitDepth(bitDepth: number){
-      if ([2, 4, 8, 16].indexOf(bitDepth) === -1){
+      if ([1, 2, 4, 8, 16].indexOf(bitDepth) === -1){
         throw new Error("invalid bith depth " + bitDepth);
       }
       this.bitDepth = bitDepth;
     }
+
     getColorType(){
       return this.colorType;
     }
+
     setColorType(colorType: number){
       //   Color    Allowed    Interpretation
       //   Type    Bit Depths
@@ -422,38 +471,39 @@ module cuttlebone {
       this.alpha = alpha;
       this.colorType = colorType;
     }
+
     getCompressionMethod(){
       return this.compressionMethod;
-    };
+    }
 
     setCompressionMethod(compressionMethod: number){
       if (compressionMethod !== 0){
         throw new Error("invalid compression method " + compressionMethod);
       }
       this.compressionMethod = compressionMethod;
-    };
+    }
 
     getFilterMethod(){
       return this.filterMethod;
-    };
+    }
 
     setFilterMethod(filterMethod: number){
       if (filterMethod !== 0){
         throw new Error("invalid filter method " + filterMethod);
       }
       this.filterMethod = filterMethod;
-    };
+    }
 
     getInterlaceMethod(){
       return this.interlaceMethod;
-    };
+    }
 
     setInterlaceMethod(interlaceMethod: number){
       if (interlaceMethod !== 0 && interlaceMethod !== 1){
         throw new Error("invalid interlace method " + interlaceMethod);
       }
       this.interlaceMethod = interlaceMethod;
-    };
+    }
 
     setPalette(palette: Uint8Array){
       if (palette.length % 3 !== 0){
@@ -463,11 +513,11 @@ module cuttlebone {
         throw new Error("palette has more colors than 2^bitdepth");
       }
       this.palette = palette;
-    };
+    }
 
     getPalette(){
       return this.palette;
-    };
+    }
 
     /**
      * get the pixel color on a certain location in a normalized way
@@ -478,6 +528,7 @@ module cuttlebone {
       if (x >= this.width || y >= this.height){
         throw new Error("x,y position out of bound");
       }
+      if(this.bitDepth === 1) this.bitDepth = 8;
       var i = this.colors * this.bitDepth / 8 * (y * this.width + x);
       var pixels = this.pixels;
 
@@ -491,7 +542,8 @@ module cuttlebone {
           255];
         case 4: return [pixels[i], pixels[i], pixels[i], pixels[i + 1]];
         case 6: return [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]];
+        default: throw new Error("invalid color type: " + this.colorType); break;
       }
-    };
+    }
   }
 }
