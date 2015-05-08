@@ -6,10 +6,10 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "qunit/qunit.d.ts": {
-      "commit": "f3244190e20af6901e865f4cc58127d19216baa1"
+      "commit": "6c2589a6335713cc5b88701d607a2770f1c53b63"
     },
     "bluebird/bluebird.d.ts": {
-      "commit": "f3244190e20af6901e865f4cc58127d19216baa1"
+      "commit": "6c2589a6335713cc5b88701d607a2770f1c53b63"
     }
   }
 }

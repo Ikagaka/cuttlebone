@@ -9,7 +9,12 @@
   "dependencies": {
     "surfaces_txt2yaml": "*",
     "lodash": "*",
-    "zepto": "*"
+    "zepto": "*",
+    "png.js": "devongovett/png.js",
+    "pngjs": "arian/pngjs#~0.1.1",
+    "zlib.js": "~0.2.0",
+    "pako": "~0.2.6",
+    "PNG.js": "https://github.com/uupaa/PNG.js.git"
   },
   "devDependencies": {
     "ikagaka.sakurascriptplayer.js": "",
