@@ -1,9 +1,9 @@
 <script src="../bower_components/encoding-japanese/encoding.js"></script>
 <script src="../bower_components/jszip/dist/jszip.min.js"></script>
 <script src="../bower_components/narloader/NarLoader.js"></script>
-<script src="../bower_components/png.js/zlib.js"></script>
-<script src="../bower_components/pako/dist/pako.js"></script>
-<script src="../bower_components/pngjs/html/png.js"></script>
+<script src="../webmodules/PNG.js/node_modules/uupaa.hash.js/lib/Hash.js"></script>
+<script src="../webmodules/PNG.js/lib/PNG.js"></script>
+<script src="../webmodules/PNG.js/lib/PNGFrame.js"></script>
 <script>
 var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 
@@ -11,40 +11,9 @@ prmNar.then(function(nanikaDir){
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
   console.log(shellDir["surface0.png"]);
-  var reader = new PNGReader(shellDir["surface0.png"]);
-  reader.parse(function(err, png){
-    if (err) throw err;
-    console.log(png);
-    drawOnCanvas(png);
-  });
-  //console.log("fin");
+  var source = new Uint8Array(shellDir["surface0.png"]);
+  var data = PNG.decode(source, PNG.parse(source));
+  console.log(data);
+
 });
-
-function drawOnCanvas(png){
-  var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d');
-  var canvasWidth = canvas.width = png.width;
-  var canvasHeight = canvas.height = png.height;
-  var canvasData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-  var i = 0;
-
-  var width = Math.min(png.width, canvasWidth);
-  var height = Math.min(png.height, canvasHeight);
-
-  for (var y = 0; y < height; y++){
-    for (var x = 0; x < width; x++){
-      var colors = png.getPixel(x, y);
-      canvasData.data[i++] = colors[0];
-      canvasData.data[i++] = colors[1];
-      canvasData.data[i++] = colors[2];
-      canvasData.data[i++] = colors[3];
-    }
-    // move index to the next line
-    var d = canvasWidth - width;
-    if (d > 0) i += d * 4;
-  }
-
-  ctx.putImageData(canvasData, 0, 0);
-  document.body.appendChild(canvas)
-}
 </script>

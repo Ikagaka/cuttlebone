@@ -1,6 +1,6 @@
 {
   "name": "cuttlebone",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "ukagaka shell renderer for web browser",
   "url": "https://github.com/ikagaka/cuttlebone.js",
   "keywords": [
@@ -10,14 +10,15 @@
     "cuttlebone"
   ],
   "scripts": {
-    "build": "npm run build-src; npm run build-test; cat output/src/*.js > lib/cuttlebone.js",
-    "build-src":  "rm -rf      js/*; node node_modules/typescript/bin/tsc --declaration --noEmitOnError --noImplicitAny --rootDir ./ --outdir output src/*.ts",
-    "build-test": "rm -rf test/js/*; node node_modules/typescript/bin/tsc               --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts",
-    "_espower": "node node_modules/espower-cli/bin/cmd.js test/js/unit.js > test/js/unit.esp.js",
-    "_watch": "npm run build; npm run watch-dialog; grunt",
-    "_watch-dialog": "echo '\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n!!!!!!! http://localhost:8888/test/ !!!!!!!\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n'",
-    "update": "npm update; bower update; tsd update --save --overwrite; ",
-    "init": "npm run update; npm run build; npm run watch"
+    "build": "npm run build-src; npm run build-test; npm run espower",
+    "build-src":  "rm -rf      js/*; node node_modules/typescript/bin/tsc --declaration --noEmitOnError --noImplicitAny --rootDir ./ --outdir output src/*.ts; cat output/src/*.js > lib/cuttlebone.js",
+    "build-test": "rm -rf test/js/*; node node_modules/typescript/bin/tsc               --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts; cat output/test/test*.js > output/test/all.js",
+    "espower": "node node_modules/espower-cli/bin/cmd.js test/all.js > test/all.js",
+    "update": "npm update; bower update; tsd update --save --overwrite",
+    "init": "npm run update; npm run build",
+    "demo": "open http://localhost:8000/demo/",
+    "start": "Python -m SimpleHTTPServer 8000 &",
+    "stop": "killall -- Python -m SimpleHTTPServer 8000; exit 0"
   },
   "repository": {
     "type": "git",
@@ -25,12 +26,8 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "coffee-script": "",
-    "espower-cli": "^0.2.0",
-    "grunt-contrib-connect": "",
-    "grunt-contrib-watch": "",
-    "grunt-shell": "",
-    "typescript": ""
+    "typescript": "",
+    "espower-cli": "^0.2.0"
   },
   "bugs": {
     "url": "https://github.com/Ikagaka/cuttlebone/issues"
