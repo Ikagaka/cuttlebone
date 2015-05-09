@@ -8,14 +8,16 @@ prmNar.then(function (nanikaDir) {
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
     console.log(shellDir);
     var pngs = Object.keys(shellDir).filter(function (filename) { return /\.png$/.test(filename); });
+    pngs = pngs.filter(function (filename) { return /(0500|0501|0702|0730|0731)\.png$/.test(filename); });
     pngs.forEach(function (filename) {
+        console.info(filename);
         try {
             var reader = new cuttlebone.PNGReader(shellDir[filename]);
             var png = reader.parse();
             drawOnCanvas(filename, png, shellDir[filename]);
         }
         catch (err) {
-            console.error(filename, reader);
+            console.error(filename, reader, err.message);
         }
     });
     function drawOnCanvas(filename, png, buf) {

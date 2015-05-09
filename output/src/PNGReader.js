@@ -34,6 +34,16 @@ var cuttlebone;
         }
         return str;
     }
+    function uInt8ToBitArray(uint8) {
+        return (uint8 + 256).toString(2).split("").slice(1).map(Number);
+    }
+    function uInt8BitArrayToUint8Array(arr) {
+        var result = [];
+        for (var i = 0; arr.length > i; i++) {
+            result = result.concat(uInt8ToBitArray(arr[i]));
+        }
+        return new Uint8Array(result);
+    }
     var PNGReader = (function () {
         function PNGReader(data) {
             // bytes buffer
@@ -184,47 +194,60 @@ var cuttlebone;
         // Different interlace methods
         PNGReader.prototype.interlaceNone = function (data) {
             var png = this.png;
-            console.log(png.bitDepth, png.colors);
             if (png.bitDepth < 8) {
-                // bytes per pixel
-                var bpp = Math.max(1, png.colors * png.bitDepth / 8);
-                // color bytes per row
-                var cpr = bpp * png.width;
+                // bits per pixel
+                var bitspp = png.colors * png.bitDepth;
+                var scanlineLength = data.length / png.height;
+                var pixels = new Uint8Array(new ArrayBuffer(png.width * png.height));
+                console.log(png.bitDepth, png.colors, png.colorType, scanlineLength, png.width, png.height, data.length);
+                var offset = 0;
+                for (var i = 0; i < data.length; i += scanlineLength) {
+                    var scanline = data.subarray(i, i + scanlineLength);
+                    var filtertype = readUInt8(scanline, i);
+                    var bits = uInt8BitArrayToUint8Array(scanline.subarray(1, scanline.length));
+                    switch (filtertype) {
+                        case 0:
+                            this.unFilterNone(scanline, pixels, 0, offset, png.width);
+                            break;
+                        default:
+                            throw new Error("unsupport filtered scanline: " + filtertype + ":" + offset + ":" + i);
+                            break;
+                    }
+                    offset += png.width;
+                }
             }
             else {
                 // bytes per pixel
                 var bpp = Math.max(1, png.colors * png.bitDepth / 8);
                 // color bytes per row
                 var cpr = bpp * png.width;
-            }
-            console.info(bpp, cpr);
-            var pixels = new Uint8Array(new ArrayBuffer(bpp * png.width * png.height));
-            var scanline;
-            var offset = 0;
-            for (var i = 0; i < data.length; i += cpr + 1) {
-                scanline = data.subarray(i + 1, i + cpr + 1);
-                var filtertype = readUInt8(data, i);
-                switch (filtertype) {
-                    case 0:
-                        this.unFilterNone(scanline, pixels, bpp, offset, cpr);
-                        break;
-                    case 1:
-                        this.unFilterSub(scanline, pixels, bpp, offset, cpr);
-                        break;
-                    case 2:
-                        this.unFilterUp(scanline, pixels, bpp, offset, cpr);
-                        break;
-                    case 3:
-                        this.unFilterAverage(scanline, pixels, bpp, offset, cpr);
-                        break;
-                    case 4:
-                        this.unFilterPaeth(scanline, pixels, bpp, offset, cpr);
-                        break;
-                    default:
-                        throw new Error("unkown filtered scanline: " + filtertype);
-                        break;
+                var pixels = new Uint8Array(new ArrayBuffer(bpp * png.width * png.height));
+                var offset = 0;
+                for (var i = 0; i < data.length; i += cpr + 1) {
+                    var scanline = data.subarray(i + 1, i + cpr + 1);
+                    var filtertype = readUInt8(data, i);
+                    switch (filtertype) {
+                        case 0:
+                            this.unFilterNone(scanline, pixels, bpp, offset, cpr);
+                            break;
+                        case 1:
+                            this.unFilterSub(scanline, pixels, bpp, offset, cpr);
+                            break;
+                        case 2:
+                            this.unFilterUp(scanline, pixels, bpp, offset, cpr);
+                            break;
+                        case 3:
+                            this.unFilterAverage(scanline, pixels, bpp, offset, cpr);
+                            break;
+                        case 4:
+                            this.unFilterPaeth(scanline, pixels, bpp, offset, cpr);
+                            break;
+                        default:
+                            throw new Error("unkown filtered scanline: " + filtertype + ":" + bpp + ":" + offset + ":" + cpr + ":" + i);
+                            break;
+                    }
+                    offset += cpr;
                 }
-                offset += cpr;
             }
             png.pixels = pixels;
         };
@@ -527,17 +550,20 @@ var cuttlebone;
             if (x >= this.width || y >= this.height) {
                 throw new Error("x,y position out of bound");
             }
-            if (this.bitDepth === 1)
-                this.bitDepth = 8;
-            var i = this.colors * this.bitDepth / 8 * (y * this.width + x);
+            if (this.bitDepth < 8) {
+                var i = this.colors * this.bitDepth * (y * this.width + x);
+            }
+            else {
+                var i = this.colors * this.bitDepth / 8 * (y * this.width + x);
+            }
             var pixels = this.pixels;
             switch (this.colorType) {
                 case 0: return [pixels[i], pixels[i], pixels[i], 255];
                 case 2: return [pixels[i], pixels[i + 1], pixels[i + 2], 255];
                 case 3: return [
-                    this.palette[pixels[i] * 3 + 0],
-                    this.palette[pixels[i] * 3 + 1],
-                    this.palette[pixels[i] * 3 + 2],
+                    this.palette[pixels[i] * this.colors + 0],
+                    this.palette[pixels[i] * this.colors + 1],
+                    this.palette[pixels[i] * this.colors + 2],
                     255];
                 case 4: return [pixels[i], pixels[i], pixels[i], pixels[i + 1]];
                 case 6: return [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]];
