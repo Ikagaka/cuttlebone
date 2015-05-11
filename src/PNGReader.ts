@@ -618,9 +618,9 @@ module cuttlebone {
           case 0: return [pixels[i], pixels[i], pixels[i], 255];
           case 2: return [pixels[i], pixels[i + 1], pixels[i + 2], 255];
           case 3: return [
-            this.palette[pixels[i] * this.colors + 0],
-            this.palette[pixels[i] * this.colors + 1],
-            this.palette[pixels[i] * this.colors + 2],
+            this.palette[pixels[i] * 3 + 0],
+            this.palette[pixels[i] * 3 + 1],
+            this.palette[pixels[i] * 3 + 2],
             255];
           case 4: return [pixels[i], pixels[i], pixels[i], pixels[i + 1]];
           case 6: return [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]];
