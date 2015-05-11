@@ -14,12 +14,29 @@ prmNar.then(function (nanikaDir) {
         try {
             var reader = new cuttlebone.PNGReader(shellDir[filename]);
             var png = reader.parse();
+            var bitspp = png.colors * png.bitDepth;
+            var width = png.width * Math.ceil(bitspp) / 8;
+            console.log(width);
+            console.log(png.pixels.length, width * png.height);
+            //for (var i=0;png.pixels.length>i;i+=width){
+            //var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
+            //}
             drawOnCanvas(filename, png, shellDir[filename]);
         }
         catch (err) {
             console.error(filename, reader, err.message);
         }
     });
+    function uInt8ArrayToBits(arr) {
+        var result = [];
+        for (var i = 0; arr.length > i; i++) {
+            result = result.concat(uInt8ToBitArray(arr[i]));
+        }
+        return result;
+    }
+    function uInt8ToBitArray(uint8) {
+        return (uint8 + 256).toString(2).split("").slice(1).map(Number);
+    }
     function drawOnCanvas(filename, png, buf) {
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');

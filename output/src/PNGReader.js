@@ -37,12 +37,24 @@ var cuttlebone;
     function uInt8ToBitArray(uint8) {
         return (uint8 + 256).toString(2).split("").slice(1).map(Number);
     }
-    function uInt8BitArrayToUint8Array(arr) {
+    function uInt8ArrayToBits(arr) {
         var result = [];
         for (var i = 0; arr.length > i; i++) {
             result = result.concat(uInt8ToBitArray(arr[i]));
         }
-        return new Uint8Array(result);
+        return result;
+    }
+    function bitsToNum(bits) {
+        //return bits.slice().reverse().reduce(function(sum,n,i){return sum+Math.pow(2,i)*n},0);
+        return parseInt(bits.join(""), 2);
+    }
+    function readBits(buffer, bitOffset, bitLength) {
+        var _byteOffset = bitOffset / 8 | 0;
+        var _bitOffset = bitOffset % 8;
+        var _byteLength = bitLength / 8 | 0;
+        var _bitLength = bitLength % 8;
+        var _buf = buffer.subarray(_byteOffset, _byteOffset + _byteLength + 1);
+        return uInt8ArrayToBits(_buf).slice(_bitOffset, _bitOffset + bitLength);
     }
     var PNGReader = (function () {
         function PNGReader(data) {
@@ -198,22 +210,22 @@ var cuttlebone;
                 // bits per pixel
                 var bitspp = png.colors * png.bitDepth;
                 var scanlineLength = data.length / png.height;
-                var pixels = new Uint8Array(new ArrayBuffer(png.width * png.height));
-                console.log(png.bitDepth, png.colors, png.colorType, scanlineLength, png.width, png.height, data.length);
+                var pixels = new Uint8Array(new ArrayBuffer((scanlineLength - 1) * png.width * png.height));
+                console.log(png.bitDepth, png.colors, png.colorType, scanlineLength, bitspp * png.width, png.width, png.height, data.length);
                 var offset = 0;
                 for (var i = 0; i < data.length; i += scanlineLength) {
                     var scanline = data.subarray(i, i + scanlineLength);
                     var filtertype = readUInt8(scanline, i);
-                    var bits = uInt8BitArrayToUint8Array(scanline.subarray(1, scanline.length));
+                    var _scanline = scanline.subarray(1, scanline.length);
                     switch (filtertype) {
                         case 0:
-                            this.unFilterNone(scanline, pixels, 0, offset, png.width);
+                            pixels.set(_scanline, offset);
                             break;
                         default:
                             throw new Error("unsupport filtered scanline: " + filtertype + ":" + offset + ":" + i);
                             break;
                     }
-                    offset += png.width;
+                    offset += scanlineLength;
                 }
             }
             else {
@@ -550,26 +562,61 @@ var cuttlebone;
             if (x >= this.width || y >= this.height) {
                 throw new Error("x,y position out of bound");
             }
+            var pixels = this.pixels;
             if (this.bitDepth < 8) {
-                var i = this.colors * this.bitDepth * (y * this.width + x);
+                var bitspp = this.colors * this.bitDepth;
+                var _scanlineLength = pixels.length / (this.width * this.height);
+                var diff = _scanlineLength * 8 - this.width * bitspp;
+                var idbit = bitspp * (y * (this.width + diff) + x);
+                switch (this.colorType) {
+                    case 0: return [
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        255];
+                    case 2: return [
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit + 1, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit + 2, this.bitDepth)),
+                        255];
+                    case 3: return [
+                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors + 0],
+                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors + 1],
+                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors + 2],
+                        255];
+                    case 4: return [
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit + 1, this.bitDepth))
+                    ];
+                    case 6: return [
+                        bitsToNum(readBits(pixels, idbit, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit + 1, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit + 2, this.bitDepth)),
+                        bitsToNum(readBits(pixels, idbit + 3, this.bitDepth))
+                    ];
+                    default:
+                        throw new Error("invalid color type: " + this.colorType);
+                        break;
+                }
             }
             else {
                 var i = this.colors * this.bitDepth / 8 * (y * this.width + x);
-            }
-            var pixels = this.pixels;
-            switch (this.colorType) {
-                case 0: return [pixels[i], pixels[i], pixels[i], 255];
-                case 2: return [pixels[i], pixels[i + 1], pixels[i + 2], 255];
-                case 3: return [
-                    this.palette[pixels[i] * this.colors + 0],
-                    this.palette[pixels[i] * this.colors + 1],
-                    this.palette[pixels[i] * this.colors + 2],
-                    255];
-                case 4: return [pixels[i], pixels[i], pixels[i], pixels[i + 1]];
-                case 6: return [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]];
-                default:
-                    throw new Error("invalid color type: " + this.colorType);
-                    break;
+                switch (this.colorType) {
+                    case 0: return [pixels[i], pixels[i], pixels[i], 255];
+                    case 2: return [pixels[i], pixels[i + 1], pixels[i + 2], 255];
+                    case 3: return [
+                        this.palette[pixels[i] * this.colors + 0],
+                        this.palette[pixels[i] * this.colors + 1],
+                        this.palette[pixels[i] * this.colors + 2],
+                        255];
+                    case 4: return [pixels[i], pixels[i], pixels[i], pixels[i + 1]];
+                    case 6: return [pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]];
+                    default:
+                        throw new Error("invalid color type: " + this.colorType);
+                        break;
+                }
             }
         };
         return PNG;
