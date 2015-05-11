@@ -10,6 +10,12 @@
     },
     "bluebird/bluebird.d.ts": {
       "commit": "6c2589a6335713cc5b88701d607a2770f1c53b63"
+    },
+    "lodash/lodash.d.ts": {
+      "commit": "096ab8cc9741bcbd3d86b8c0a916d9dd9c1befb2"
+    },
+    "zepto/zepto.d.ts": {
+      "commit": "096ab8cc9741bcbd3d86b8c0a916d9dd9c1befb2"
     }
   }
 }

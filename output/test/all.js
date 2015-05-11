@@ -8,21 +8,60 @@ prmNar.then(function (nanikaDir) {
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
     console.log(shellDir);
     var pngs = Object.keys(shellDir).filter(function (filename) { return /\.png$/.test(filename); });
-    pngs = pngs.filter(function (filename) { return /(0500|0501|0702|0730|0731)\.png$/.test(filename); });
+    //pngs = pngs.filter((filename)=> /(0500|0501|0701|0702|0704|0707|0730|0731)\.png$/.test(filename) ); // trouble makers
     pngs.forEach(function (filename) {
-        console.info(filename);
-        try {
-            var reader = new cuttlebone.PNGReader(shellDir[filename]);
-            var png = reader.parse();
-            for (var i = 0; png.pixels.length < i; i += png.width * Math.ceil(png.colors * png.bitDepth / 8)) {
-                console.log(png.pixels.subarray(i, i + png.width * Math.ceil(png.colors * png.bitDepth / 8)));
-            }
-            drawOnCanvas(filename, png, shellDir[filename]);
-        }
-        catch (err) {
-            console.error(filename, reader, err.message);
-        }
+        QUnit.test(filename, function (assert) {
+            var done = assert.async();
+            cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(shellDir[filename]).then(function (img) {
+                console.info(filename);
+                var cnv = cuttlebone.SurfaceUtil.copy(img);
+                var ctx = cnv.getContext("2d");
+                var original = ctx.getImageData(0, 0, img.width, cnv.height).data;
+                try {
+                    var reader = new cuttlebone.PNGReader(shellDir[filename]);
+                    var png = reader.parse();
+                }
+                catch (err) {
+                    console.error(filename, reader, err.message, err.stack);
+                }
+                /*var bitspp = png.colors * png.bitDepth;
+                var width = png.width*Math.ceil(bitspp)/8
+                //console.log(width);
+                //console.log(png.pixels.length, width*png.height, png);
+                for (var i=0;png.pixels.length>i;i+=width){
+                  var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
+                  console.log(bits);
+                }*/
+                var decoded = png.getUint8ClampedArray();
+                assert.ok(original.length === decoded.length);
+                var isSame = true;
+                for (var j = 0; decoded.length > j; j++) {
+                    if (decoded[j] !== original[j]) {
+                        if (Math.abs(decoded[j] - original[j]) > 1) {
+                            // bit level error
+                            console.error(filename, png);
+                            console.error(j, j % 4, decoded[j], original[j]);
+                            drawOnCanvas(filename, png, shellDir[filename]);
+                            isSame = false;
+                            break;
+                        }
+                    }
+                }
+                assert.ok(isSame);
+                done();
+            });
+        });
     });
+    function uInt8ArrayToBits(arr) {
+        var result = [];
+        for (var i = 0; arr.length > i; i++) {
+            result = result.concat(uInt8ToBitArray(arr[i]));
+        }
+        return result;
+    }
+    function uInt8ToBitArray(uint8) {
+        return (uint8 + 256).toString(2).split("").slice(1).map(Number);
+    }
     function drawOnCanvas(filename, png, buf) {
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
@@ -60,6 +99,120 @@ prmNar.then(function (nanikaDir) {
         fieldset.style.cssFloat = "left";
         document.body.appendChild(fieldset);
     }
+});
+/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
+/// <reference path="../src/Shell.ts" />
+var prmNar = NarLoader.loadFromURL("../nar/juda.zip");
+prmNar.then(function (nanikaDir) {
+    QUnit.module("cuttlebone.Shell");
+    QUnit.test("shell#load", function (assert) {
+        var done = assert.async();
+        var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
+        console.dir(shellDir);
+        var shell = new cuttlebone.Shell(shellDir);
+        shell.load().then(function (shell) {
+            console.log(shell);
+            assert.ok(true);
+            done();
+        });
+    });
+    /*
+    QUnit.test("shell#load", (assert)=> {
+      var done1 = assert.async();
+      var shell1 = new cuttlebone.Shell(shellDir);
+      assert.ok(shell1 instanceof cuttlebone.Shell);
+      done1();
+  
+      shell1.load().then((shell2)=>{
+        console.dir(shell2);
+        assert.ok(shell2 === shell1);
+        QUnit.test("shell.descript", (assert)=> {
+          assert.ok(shell2.descript["kero.bindgroup20.name"] === "装備,飛行装備");
+        });
+        QUnit.test("shell.surfaces", (assert)=> {
+          assert.ok(shell2.surfaces.charset === "Shift_JIS");
+          assert.ok(shell2.surfaces.descript.version === 1);
+        });
+        QUnit.test("shell.surfaces.surface0", (assert)=> {
+          var srf = shell2.surfaces.surfaces["surface0"];
+          assert.ok(srf.is === 0);
+          assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
+          assert.ok(srf.baseSurface.height === 445);
+          assert.ok(srf.baseSurface.width === 182);
+          assert.ok(srf.regions["collision0"].name === "Head");
+          assert.ok(srf.animations["animation0"].interval === "periodic,5");
+        });
+        QUnit.test("shell.surfaces.surface2", (assert)=> {
+          var srf = shell2.surfaces.surfaces["surface2"];
+          assert.ok(srf.is === 2);
+          assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
+          assert.ok(srf.baseSurface.height = 445);
+          assert.ok(srf.baseSurface.width === 182);
+          assert.ok(srf.regions["collision10"].name === "Ponytail");
+          assert.ok(srf.animations["animation30"].interval === "bind");
+        });
+        QUnit.test("shell.surfaces.surface10", (assert)=> {
+          var srf = shell2.surfaces.surfaces["surface10"];
+          assert.ok(srf.is === 10);
+          assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
+          assert.ok(srf.baseSurface.height === 210);
+          assert.ok(srf.baseSurface.width === 230);
+          assert.ok(srf.regions["collision0"].name === "Screen");
+          assert.ok(srf.animations["animation20"].interval === "bind");
+        });
+        //QUnit.test("draw surface0", (assert)=> {
+        //  var cnv = document.createElement("canvas");
+        //  var srf = shell2.attachSurface(cnv, 0, 0);
+        //  srf.isRegionVisible = true;
+        //  console.dir(srf);
+        //  srf.bind(30);
+        //  srf.bind(31);
+        //  srf.bind(32);
+        //  srf.bind(50);
+        //  setPictureFrame(assert.test.testName, cnv);
+        //  assert.ok(true);
+        //});
+        QUnit.test("draw surface2", (assert)=> {
+          var cnv = document.createElement("canvas");
+          var srf = shell2.attachSurface(cnv, 0, 2);
+          srf.isRegionVisible = true;
+          console.dir(srf);
+          srf.render();
+          setPictureFrame(assert["test"]["testName"], cnv);
+  
+          var c = cuttlebone.SurfaceUtil.copy(srf.baseSurface);
+          console.log(c, "c")
+          document.body.appendChild(c)
+          setTimeout(()=>{
+            var d = cuttlebone.SurfaceUtil.copy(srf.baseSurface);
+            console.log(d, "d")
+            document.body.appendChild(d);
+          }, 1000);
+          assert.ok(true);
+        });
+        QUnit.test("draw surface10", (assert)=> {
+          var cnv = document.createElement("canvas");
+          var srf = shell2.attachSurface(cnv, 1, 10);
+          srf.isRegionVisible = true;
+          srf.render(); // renderされないと表示しないため(\s[10]はアニメーションがない)
+          console.dir(srf);
+          setPictureFrame(assert.test.testName, cnv);
+          assert.ok(true);
+        });
+        done1();
+      });
+    });*/
+    /*function setPictureFrame(title: string, cnv: HTMLCanvasElement): void {
+      cnv.addEventListener("IkagakaDOMEvent", (ev)=> console.log(ev.detail) );
+      var fieldset = document.createElement("fieldset");
+      var legend = document.createElement("legend");
+      legend.appendChild(document.createTextNode(title));
+      fieldset.appendChild(cnv);
+      fieldset.appendChild(legend);
+      fieldset.style.display = "inline-block";
+      document.body.appendChild(fieldset);
+    }*/
 });
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />

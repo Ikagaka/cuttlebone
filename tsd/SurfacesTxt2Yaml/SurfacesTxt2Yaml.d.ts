@@ -1,6 +1,4 @@
-declare module SurfacesTxt2Yaml {
-  export function txt_to_data(text: string, option: {}): SurfacesTxt;
-}
+
 
 interface SurfacesTxt {
   charset: string;
@@ -81,4 +79,10 @@ interface SurfaceRegion {
   center_x: number;
   center_y: number;
   coordinates: { x: number; y: number; }[];
+}
+
+
+
+declare module SurfacesTxt2Yaml {
+  export function txt_to_data(text: string, option?: {}): SurfacesTxt;
 }

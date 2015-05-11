@@ -2,17 +2,24 @@
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/Shell.ts" />
 
-var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
+var prmNar = NarLoader.loadFromURL("../nar/juda.zip");
 
 prmNar.then((nanikaDir)=>{
 
   QUnit.module("cuttlebone.Shell");
 
-  QUnit.test("Shell", (assert)=> {
+  QUnit.test("shell#load", (assert)=> {
+    var done = assert.async();
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
     console.dir(shellDir);
-    assert.ok(true);
+    var shell = new cuttlebone.Shell(shellDir);
+    shell.load().then((shell)=>{
+      console.log(shell);
+      assert.ok(true);
+      done();
+    });
   });
+
   /*
   QUnit.test("shell#load", (assert)=> {
     var done1 = assert.async();
@@ -100,7 +107,7 @@ prmNar.then((nanikaDir)=>{
     });
   });*/
 
-  function setPictureFrame(title: string, cnv: HTMLCanvasElement): void {
+  /*function setPictureFrame(title: string, cnv: HTMLCanvasElement): void {
     cnv.addEventListener("IkagakaDOMEvent", (ev)=> console.log(ev.detail) );
     var fieldset = document.createElement("fieldset");
     var legend = document.createElement("legend");
@@ -109,5 +116,5 @@ prmNar.then((nanikaDir)=>{
     fieldset.appendChild(legend);
     fieldset.style.display = "inline-block";
     document.body.appendChild(fieldset);
-  }
+  }*/
 });

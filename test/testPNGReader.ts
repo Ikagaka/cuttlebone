@@ -8,7 +8,7 @@ var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 prmNar.then((nanikaDir)=>{
 
   QUnit.module("cuttlebone.SurfaceCacheManager");
-
+  
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
   var pngs = Object.keys(shellDir).filter((filename)=> /\.png$/.test(filename) );
@@ -42,8 +42,9 @@ prmNar.then((nanikaDir)=>{
         for(var j = 0; decoded.length>j; j++){
           if(decoded[j] !== original[j]){
             if(Math.abs(decoded[j] - original[j]) > 1){
+              // bit level error
               console.error(filename, png);
-              console.error(j, decoded[j], original[j])
+              console.error(j, j%4, decoded[j], original[j]);
               drawOnCanvas(filename, png, shellDir[filename]);
               isSame = false;
               break;

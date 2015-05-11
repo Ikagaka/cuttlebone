@@ -38,8 +38,9 @@ prmNar.then(function (nanikaDir) {
                 for (var j = 0; decoded.length > j; j++) {
                     if (decoded[j] !== original[j]) {
                         if (Math.abs(decoded[j] - original[j]) > 1) {
+                            // bit level error
                             console.error(filename, png);
-                            console.error(j, decoded[j], original[j]);
+                            console.error(j, j % 4, decoded[j], original[j]);
                             drawOnCanvas(filename, png, shellDir[filename]);
                             isSame = false;
                             break;

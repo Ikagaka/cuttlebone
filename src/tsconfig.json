@@ -19,6 +19,7 @@
     ],
     "files": [
         "./PNGReader.ts",
+        "./Shell.ts",
         "./Surface.ts",
         "./SurfaceCacheManager.ts",
         "./SurfaceRender.ts",
