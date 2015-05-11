@@ -1,4 +1,5 @@
 /// <reference path="../tsd/jszip/jszip.d.ts"/>
+/// <reference path="../tsd/Uint8ClampedArray/Uint8ClampedArray.d.ts"/>
 // oriinal: https://github.com/arian/pngjs
 // modified by legokichi.
 // chenge:
@@ -581,29 +582,32 @@ module cuttlebone {
         var diff = _scanlineLength * 8 - this.width * bitspp; // bit
         var idbit = (y * (bitspp * this.width + diff) + bitspp * x); // x, y is zero origin
         switch (this.colorType){
-          case 0: return [
-            bitsToNum(readBits(pixels, idbit, this.bitDepth)),
-            bitsToNum(readBits(pixels, idbit, this.bitDepth)),
-            bitsToNum(readBits(pixels, idbit, this.bitDepth)),
-            255];
+          case 0:
+            var tmp = bitsToNum(readBits(pixels, idbit, this.bitDepth));
+            return [
+              tmp,
+              tmp,
+              tmp,
+              255];
           case 2: return [
             bitsToNum(readBits(pixels, idbit, this.bitDepth)),
             bitsToNum(readBits(pixels, idbit+1, this.bitDepth)),
             bitsToNum(readBits(pixels, idbit+2, this.bitDepth)),
             255];
-          case 3: return [
-            // [0,255,0,255,255,255]
-            // [0,1],
-            this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors*3 + 0],
-            this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors*3 + 1],
-            this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors*3 + 2],
-            255];
-          case 4: return [
-            bitsToNum(readBits(pixels, idbit, this.bitDepth)),
-            bitsToNum(readBits(pixels, idbit, this.bitDepth)),
-            bitsToNum(readBits(pixels, idbit, this.bitDepth)),
-            bitsToNum(readBits(pixels, idbit+1, this.bitDepth))
-          ];
+          case 3:
+            var tmp = bitsToNum(readBits(pixels, idbit, this.bitDepth)) * 3;
+            return [
+              this.palette[tmp + 0],
+              this.palette[tmp + 1],
+              this.palette[tmp + 2],
+              255];
+          case 4:
+            var tmp = bitsToNum(readBits(pixels, idbit, this.bitDepth));
+            return [
+              tmp,
+              tmp,
+              tmp,
+              bitsToNum(readBits(pixels, idbit+1, this.bitDepth))];
           case 6: return [
             bitsToNum(readBits(pixels, idbit, this.bitDepth)),
             bitsToNum(readBits(pixels, idbit+1, this.bitDepth)),
@@ -627,6 +631,22 @@ module cuttlebone {
           default: throw new Error("invalid color type: " + this.colorType); break;
         }
       }
+    }
+    getUint8ClampedArray(): Uint8ClampedArray {
+      var width = this.width;
+      var height = this.height;
+      var arr = new Uint8ClampedArray(width * height * 4);
+      var i = 0;
+      for (var y = 0; y < height; y++){
+        for (var x = 0; x < width; x++){
+          var colors = this.getPixel(x, y);
+          arr[i++] = colors[0];
+          arr[i++] = colors[1];
+          arr[i++] = colors[2];
+          arr[i++] = colors[3];
+        }
+      }
+      return arr;
     }
   }
 }

@@ -12,25 +12,48 @@ prmNar.then((nanikaDir)=>{
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
   var pngs = Object.keys(shellDir).filter((filename)=> /\.png$/.test(filename) );
-  pngs = pngs.filter((filename)=> /(0500|0501|0701|0702|0704|0707|0730|0731)\.png$/.test(filename) ); // trouble makers
+  //pngs = pngs.filter((filename)=> /(0500|0501|0701|0702|0704|0707|0730|0731)\.png$/.test(filename) ); // trouble makers
   pngs.forEach((filename)=>{
-    console.info(filename);
-    try{
-      var reader = new cuttlebone.PNGReader(shellDir[filename]);
-      var png = reader.parse();
-      var bitspp = png.colors * png.bitDepth;
-      var width = png.width*Math.ceil(bitspp)/8
-      //console.log(width);
-      console.log(png.pixels.length, width*png.height, png);
-      /*for (var i=0;png.pixels.length>i;i+=width){
-        var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
-        console.log(bits);
-      }*/
-      drawOnCanvas(filename, png, shellDir[filename]);
-    }catch(err){
-      console.error(filename, reader, err.message, err.stack);
-    }
+    QUnit.test(filename, (assert)=> {
+      var done = assert.async();
+      cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(shellDir[filename]).then((img)=>{
+        console.info(filename);
+        var cnv = cuttlebone.SurfaceUtil.copy(img);
+        var ctx = <CanvasRenderingContext2D>cnv.getContext("2d");
+        var original = ctx.getImageData(0, 0, img.width, cnv.height).data;
+        try{
+          var reader = new cuttlebone.PNGReader(shellDir[filename]);
+          var png = reader.parse();
+        }catch(err){
+          console.error(filename, reader, err.message, err.stack);
+        }
+        /*var bitspp = png.colors * png.bitDepth;
+        var width = png.width*Math.ceil(bitspp)/8
+        //console.log(width);
+        //console.log(png.pixels.length, width*png.height, png);
+        for (var i=0;png.pixels.length>i;i+=width){
+          var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
+          console.log(bits);
+        }*/
+        var decoded = png.getUint8ClampedArray();
 
+        assert.ok(original.length === decoded.length);
+        var isSame = true;
+        for(var j = 0; decoded.length>j; j++){
+          if(decoded[j] !== original[j]){
+            if(Math.abs(decoded[j] - original[j]) > 1){
+              console.error(filename, png);
+              console.error(j, decoded[j], original[j])
+              drawOnCanvas(filename, png, shellDir[filename]);
+              isSame = false;
+              break;
+            }
+          }
+        }
+        assert.ok(isSame);
+        done();
+      });
+    });
   });
 
   function uInt8ArrayToBits(arr: Uint8Array): number[] {// new Uint8Array([170]) -> [1,0,1,0,1,0,1,0]
