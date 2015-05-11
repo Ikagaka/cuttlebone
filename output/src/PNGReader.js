@@ -211,7 +211,7 @@ var cuttlebone;
                 var bitspp = png.colors * png.bitDepth;
                 var scanlineLength = data.length / png.height;
                 var pixels = new Uint8Array(new ArrayBuffer((scanlineLength - 1) * png.height));
-                console.info(png.bitDepth, png.colors, png.colorType, scanlineLength, bitspp * png.width, png.width, png.height, data.length);
+                //console.info(png.bitDepth, png.colors, png.colorType, scanlineLength, bitspp * png.width, png.width, png.height, data.length);
                 var offset = 0;
                 for (var i = 0; i < data.length; i += scanlineLength) {
                     var scanline = data.subarray(i, i + scanlineLength);
@@ -581,9 +581,11 @@ var cuttlebone;
                         bitsToNum(readBits(pixels, idbit + 2, this.bitDepth)),
                         255];
                     case 3: return [
-                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors + 0],
-                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors + 1],
-                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors + 2],
+                        // [0,255,0,255,255,255]
+                        // [0,1],
+                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors * 3 + 0],
+                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors * 3 + 1],
+                        this.palette[bitsToNum(readBits(pixels, idbit, this.bitDepth)) * this.colors * 3 + 2],
                         255];
                     case 4: return [
                         bitsToNum(readBits(pixels, idbit, this.bitDepth)),

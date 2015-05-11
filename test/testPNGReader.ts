@@ -12,7 +12,7 @@ prmNar.then((nanikaDir)=>{
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
   var pngs = Object.keys(shellDir).filter((filename)=> /\.png$/.test(filename) );
-  pngs = pngs.filter((filename)=> /(0500|0501|0702|0730|0731)\.png$/.test(filename) );
+  pngs = pngs.filter((filename)=> /(0500|0501|0701|0702|0704|0707|0730|0731)\.png$/.test(filename) ); // trouble makers
   pngs.forEach((filename)=>{
     console.info(filename);
     try{
@@ -20,8 +20,8 @@ prmNar.then((nanikaDir)=>{
       var png = reader.parse();
       var bitspp = png.colors * png.bitDepth;
       var width = png.width*Math.ceil(bitspp)/8
-      console.log(width);
-      console.log(png.pixels.length, width*png.height);
+      //console.log(width);
+      console.log(png.pixels.length, width*png.height, png);
       /*for (var i=0;png.pixels.length>i;i+=width){
         var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
         console.log(bits);
