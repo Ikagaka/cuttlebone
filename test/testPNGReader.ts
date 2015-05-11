@@ -22,12 +22,13 @@ prmNar.then((nanikaDir)=>{
       var width = png.width*Math.ceil(bitspp)/8
       console.log(width);
       console.log(png.pixels.length, width*png.height);
-      //for (var i=0;png.pixels.length>i;i+=width){
-        //var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
-      //}
+      /*for (var i=0;png.pixels.length>i;i+=width){
+        var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
+        console.log(bits);
+      }*/
       drawOnCanvas(filename, png, shellDir[filename]);
     }catch(err){
-      console.error(filename, reader, err.message);
+      console.error(filename, reader, err.message, err.stack);
     }
 
   });

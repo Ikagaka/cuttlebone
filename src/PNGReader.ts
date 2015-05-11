@@ -222,8 +222,8 @@ module cuttlebone {
         // bits per pixel
         var bitspp = png.colors * png.bitDepth;
         var scanlineLength = data.length / png.height;
-        var pixels = new Uint8Array(new ArrayBuffer((scanlineLength - 1) * png.width * png.height));
-        console.log(png.bitDepth, png.colors, png.colorType, scanlineLength, bitspp * png.width, png.width, png.height, data.length);
+        var pixels = new Uint8Array(new ArrayBuffer((scanlineLength - 1) * png.height));
+        console.info(png.bitDepth, png.colors, png.colorType, scanlineLength, bitspp * png.width, png.width, png.height, data.length);
         var offset = 0;
         for (var i = 0; i < data.length; i += scanlineLength){
           var scanline = data.subarray(i, i + scanlineLength);
@@ -233,7 +233,7 @@ module cuttlebone {
             case 0: pixels.set(_scanline, offset); break;
             default: throw new Error("unsupport filtered scanline: " + filtertype+ ":"+offset+":"+i); break;
           }
-          offset += scanlineLength;
+          offset += scanlineLength - 1;
         }
       } else {
         // bytes per pixel
@@ -575,10 +575,11 @@ module cuttlebone {
       }
       var pixels = this.pixels;
       if(this.bitDepth < 8){
-        var bitspp = this.colors * this.bitDepth;
-        var _scanlineLength = pixels.length / (this.width * this.height);
-        var diff = _scanlineLength * 8 - this.width * bitspp;
-        var idbit = bitspp * (y * (this.width + diff) + x);
+        //console.info(this.colors, this.bitDepth, pixels.length, this.width, this.height)
+        var bitspp = this.colors * this.bitDepth; // bit
+        var _scanlineLength = pixels.length / this.height; // byte
+        var diff = _scanlineLength * 8 - this.width * bitspp; // bit
+        var idbit = (y * (bitspp * this.width + diff) + bitspp * x); // x, y is zero origin
         switch (this.colorType){
           case 0: return [
             bitsToNum(readBits(pixels, idbit, this.bitDepth)),
