@@ -87,16 +87,15 @@ var cuttlebone;
         // TODO: alias.txt
         Shell.prototype.loadSurfacesTxt = function () {
             var _this = this;
-            var surfaces_text_names = Object.keys(this.directory).filter(function (name) { return /surfaces.*\.txt$/.test(name); });
+            var surfaces_text_names = Object.keys(this.directory).filter(function (name) { return /surfaces.*\.txt$/i.test(name); });
             if (surfaces_text_names.length === 0) {
                 console.warn("surfaces.txt is not found");
             }
             else {
-                surfaces_text_names.forEach((function (filename) {
+                surfaces_text_names.forEach(function (filename) {
                     var _srfs = SurfacesTxt2Yaml.txt_to_data(convert(_this.directory[filename]), { compatible: 'ssp-lazy' });
-                    console.log(_srfs);
                     extend(_this.surfaces, _srfs);
-                }), {});
+                });
             }
             return Promise.resolve(this);
         };

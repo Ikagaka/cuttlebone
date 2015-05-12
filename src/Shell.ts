@@ -104,15 +104,14 @@ module cuttlebone {
     // load surfaces.txt
     // TODO: alias.txt
     loadSurfacesTxt(): Promise<Shell> {
-      var surfaces_text_names = Object.keys(this.directory).filter((name)=> /surfaces.*\.txt$/.test(name));
+      var surfaces_text_names = Object.keys(this.directory).filter((name)=> /surfaces.*\.txt$/i.test(name));
       if(surfaces_text_names.length === 0) {
         console.warn("surfaces.txt is not found");
       } else {
-        surfaces_text_names.forEach(((filename)=> {
+        surfaces_text_names.forEach((filename)=> {
           var _srfs = SurfacesTxt2Yaml.txt_to_data(convert(this.directory[filename]), {compatible: 'ssp-lazy'});
-          console.log(_srfs)
           extend(this.surfaces, _srfs);
-        }), {});
+        });
       }
       return Promise.resolve(this);
     }
