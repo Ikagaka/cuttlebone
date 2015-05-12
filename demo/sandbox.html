@@ -1,19 +1,39 @@
-<script src="../bower_components/encoding-japanese/encoding.js"></script>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>sandbox</title>
+<script src="../bower_components/bluebird/js/browser/bluebird.min.js"></script>
+<script src="../bower_components/encoding-japanese/encoding.min.js"></script>
 <script src="../bower_components/jszip/dist/jszip.min.js"></script>
 <script src="../bower_components/narloader/NarLoader.js"></script>
-<script src="../webmodules/PNG.js/node_modules/uupaa.hash.js/lib/Hash.js"></script>
-<script src="../webmodules/PNG.js/lib/PNG.js"></script>
-<script src="../webmodules/PNG.js/lib/PNGFrame.js"></script>
+<script src="../bower_components/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
+<style>
+</style>
+</head>
+<body>
 <script>
-var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
+var prmNar = NarLoader.loadFromURL("../nar/mobilemaster0.nar");
 
 prmNar.then(function(nanikaDir){
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
-  console.log(shellDir["surface0.png"]);
-  var source = new Uint8Array(shellDir["surface0.png"]);
-  var data = PNG.decode(source, PNG.parse(source));
-  console.log(data);
+  var surfaces_text_names = Object.keys(shellDir).filter(function(name){ return /surfaces.*\.txt$/i.test(name)});
+  if(surfaces_text_names.length === 0) {
+    console.warn("surfaces.txt is not found");
+  } else {
+    surfaces_text_names.forEach(function(filename) {
+      var text = convert(shellDir[filename]);
+      var _srfs = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
+      console.log(_srfs);
+    });
+  }
 
 });
+
+function convert(buffer){
+  return Encoding.codeToString(Encoding.convert(new Uint8Array(buffer), 'UNICODE', 'AUTO'));
+}
 </script>
+</body>
+</html>
