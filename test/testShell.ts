@@ -52,9 +52,9 @@ prmNar.then((nanikaDir)=>{
     assert.ok(srf.element instanceof HTMLCanvasElement);
     assert.ok(srf.element.height === 445);
     assert.ok(srf.element.width === 182);
-    console.log(srf.surfaceTreeNode.collisions);
+    console.log(srf.surfaceTreeNode.animations);
     assert.ok(srf.surfaceTreeNode.collisions[0].name === "Head");
-    assert.ok(srf.surfaceTreeNode.animations[0].interval === "periodic,5");
+    assert.ok(srf.surfaceTreeNode.animations[0].interval === "sometimes");
   });
 
   /*

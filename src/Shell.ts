@@ -110,8 +110,23 @@ module cuttlebone {
       } else {
         surfaces_text_names.forEach((filename)=> {
           var text = convert(this.directory[filename]);
-          var _srfs = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
-          extend(this.surfaces, _srfs);
+          var srfs = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
+          /// TODO: dirty
+          Object.keys(srfs.surfaces).forEach((name)=>{
+            if(!!srfs.surfaces[name].is && Array.isArray(srfs.surfaces[name].base)){
+              srfs.surfaces[name].base.forEach((key)=>{
+                extend(srfs.surfaces[name], srfs.surfaces[key]);
+              });
+              delete srfs.surfaces[name].base;
+            }
+          });
+          Object.keys(srfs.surfaces).forEach((name)=>{
+            if(!srfs.surfaces[name].is){
+              delete srfs.surfaces[name]
+            }
+          });
+          ///
+          extend(this.surfaces, srfs);
         });
       }
       return Promise.resolve(this);

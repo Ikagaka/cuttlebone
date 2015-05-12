@@ -41,6 +41,7 @@ interface SurfaceDefinition {
   regions: { [key: string]: SurfaceRegion; };
   animations: { [key: string]: SurfaceAnimation; };
   elements: { [key: string]: ElementPattern; };
+  base: string[];
 }
 
 interface ElementPattern{
