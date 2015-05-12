@@ -109,7 +109,8 @@ module cuttlebone {
         console.warn("surfaces.txt is not found");
       } else {
         surfaces_text_names.forEach((filename)=> {
-          var _srfs = SurfacesTxt2Yaml.txt_to_data(convert(this.directory[filename]), {compatible: 'ssp-lazy'});
+          var text = convert(this.directory[filename]);
+          var _srfs = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
           extend(this.surfaces, _srfs);
         });
       }

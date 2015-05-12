@@ -93,7 +93,8 @@ var cuttlebone;
             }
             else {
                 surfaces_text_names.forEach(function (filename) {
-                    var _srfs = SurfacesTxt2Yaml.txt_to_data(convert(_this.directory[filename]), { compatible: 'ssp-lazy' });
+                    var text = convert(_this.directory[filename]);
+                    var _srfs = SurfacesTxt2Yaml.txt_to_data(text, { compatible: 'ssp-lazy' });
                     extend(_this.surfaces, _srfs);
                 });
             }

@@ -2,7 +2,7 @@
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/Shell.ts" />
 
-var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.zip");
+var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 
 prmNar.then((nanikaDir)=>{
 
