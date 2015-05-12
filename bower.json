@@ -8,7 +8,6 @@
   ],
   "dependencies": {
     "surfaces_txt2yaml": "*",
-    "lodash": "*",
     "zepto": "*"
   },
   "devDependencies": {

@@ -7,8 +7,8 @@ var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 
 prmNar.then((nanikaDir)=>{
 
-  QUnit.module("cuttlebone.SurfaceCacheManager");
-  
+  QUnit.module("cuttlebone.PNGReader");
+
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
   var pngs = Object.keys(shellDir).filter((filename)=> /\.png$/.test(filename) );

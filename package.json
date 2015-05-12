@@ -11,10 +11,10 @@
   ],
   "scripts": {
     "build": "rm -rf output/*; npm run build-src; npm run build-test",
-    "build-src":  "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output  src/*.ts; cat output/src/*.js      > lib/cuttlebone.js",
-    "build-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts; cat output/test/test*.js > output/test/all.js",
+    "build-src":  "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output  src/*.ts; cat output/src/*.js > lib/cuttlebone.js",
+    "build-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts",
     "watch-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output --watch test/*.ts",
-    "espower": "node node_modules/espower-cli/bin/cmd.js test/all.js > test/all.js",
+    "espower": "cat output/test/test*.js > output/test/all.js; node node_modules/espower-cli/bin/cmd.js output/test/all.js > output/test/all.esp.js",
     "update": "npm update; bower update; tsd update --save --overwrite",
     "init": "npm run update; npm run build; npm run start; npm run demo;",
     "demo": "open http://localhost:8000/demo/",

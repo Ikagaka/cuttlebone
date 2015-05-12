@@ -4,7 +4,7 @@
 /// <reference path="../src/SurfaceUtil.ts"/>
 var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 prmNar.then(function (nanikaDir) {
-    QUnit.module("cuttlebone.SurfaceCacheManager");
+    QUnit.module("cuttlebone.PNGReader");
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
     console.log(shellDir);
     var pngs = Object.keys(shellDir).filter(function (filename) { return /\.png$/.test(filename); });
@@ -103,7 +103,7 @@ prmNar.then(function (nanikaDir) {
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/Shell.ts" />
-var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.zip");
+var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 prmNar.then(function (nanikaDir) {
     QUnit.module("cuttlebone.Shell");
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
@@ -144,9 +144,9 @@ prmNar.then(function (nanikaDir) {
         assert.ok(srf.element instanceof HTMLCanvasElement);
         assert.ok(srf.element.height === 445);
         assert.ok(srf.element.width === 182);
-        console.log(srf.surfaceTreeNode.collisions);
+        console.log(srf.surfaceTreeNode.animations);
         assert.ok(srf.surfaceTreeNode.collisions[0].name === "Head");
-        assert.ok(srf.surfaceTreeNode.animations[0].interval === "periodic,5");
+        assert.ok(srf.surfaceTreeNode.animations[0].interval === "sometimes");
     });
     /*
     QUnit.test("shell#load", (assert)=> {
