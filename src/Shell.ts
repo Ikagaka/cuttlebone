@@ -3,9 +3,22 @@
 /// <reference path="SurfaceRender.ts"/>
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 /// <reference path="../tsd/encoding-japanese/encoding.d.ts"/>
-/// <reference path="../typings/zepto/zepto.d.ts"/>
 
 module cuttlebone {
+
+  function extend(target: any, source: any): void {
+    for(var key in source){
+      if (typeof source[key] === "object" && Object.getPrototypeOf(source[key]) === Object.prototype) {
+        target[key] = target[key] || {};
+        extend(target[key], source[key]);
+      } else if (Array.isArray(source[key])) {
+        target[key] = target[key] || [];
+        extend(target[key], source[key]);
+      } else if (source[key] !== undefined) {
+        target[key] = source[key];
+      }
+    }
+  }
 
   function parseDescript(text: string): {[key:string]:string}{
     text = text.replace(/(?:\r\n|\r|\n)/g, "\n"); // CRLF->LF
@@ -97,7 +110,8 @@ module cuttlebone {
       } else {
         surfaces_text_names.forEach(((filename)=> {
           var _srfs = SurfacesTxt2Yaml.txt_to_data(convert(this.directory[filename]), {compatible: 'ssp-lazy'});
-          $.extend(true, this.surfaces, _srfs);
+          console.log(_srfs)
+          extend(this.surfaces, _srfs);
         }), {});
       }
       return Promise.resolve(this);

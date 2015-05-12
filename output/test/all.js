@@ -109,7 +109,18 @@ prmNar.then(function (nanikaDir) {
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
     console.dir(shellDir);
     var shell = new cuttlebone.Shell(shellDir);
-    console.log(shell);
+    QUnit.test("shell#load", function (assert) {
+        var done = assert.async();
+        shell.load().then(function (shell) {
+            assert.ok(true);
+            console.log(shell);
+            done();
+        }).catch(function (err) {
+            console.error(err, err.stack, shell);
+            assert.ok(false);
+            done();
+        });
+    });
     QUnit.test("shell#hasFile", function (assert) {
         assert.ok(shell.hasFile("surface0.png"));
         assert.ok(shell.hasFile("surface0.PNG"));
@@ -118,20 +129,24 @@ prmNar.then(function (nanikaDir) {
         assert.ok(shell.hasFile("./surface0.png"));
         assert.ok(!shell.hasFile("/surface0/png"));
     });
-    QUnit.test("shell#load", function (assert) {
-        var done = assert.async();
-        shell.load().then(function (shell) {
-            assert.ok(true);
-            console.log(1);
-            done();
-        });
+    QUnit.test("shell.descript", function (assert) {
+        assert.ok(shell.descript["kero.bindgroup20.name"] === "装備,飛行装備");
+    });
+    QUnit.test("shell.surfaces", function (assert) {
+        assert.ok(shell.surfaces.charset === "Shift_JIS");
+        assert.ok(shell.surfaces.descript.version === 1);
     });
     QUnit.test("shell#attachSurface", function (assert) {
         var cnv = document.createElement("canvas");
-        shell.attachSurface(cnv, 0, 3);
         document.body.appendChild(cnv);
-        console.log(2);
-        assert.ok(true);
+        var srf = shell.attachSurface(cnv, 0, 3);
+        assert.ok(srf.surfaceId === 3);
+        assert.ok(srf.element instanceof HTMLCanvasElement);
+        assert.ok(srf.element.height === 445);
+        assert.ok(srf.element.width === 182);
+        console.log(srf.surfaceTreeNode.collisions);
+        assert.ok(srf.surfaceTreeNode.collisions[0].name === "Head");
+        assert.ok(srf.surfaceTreeNode.animations[0].interval === "periodic,5");
     });
     /*
     QUnit.test("shell#load", (assert)=> {
@@ -143,24 +158,9 @@ prmNar.then(function (nanikaDir) {
       shell1.load().then((shell2)=>{
         console.dir(shell2);
         assert.ok(shell2 === shell1);
-        QUnit.test("shell.descript", (assert)=> {
-          assert.ok(shell2.descript["kero.bindgroup20.name"] === "装備,飛行装備");
-        });
-        QUnit.test("shell.surfaces", (assert)=> {
-          assert.ok(shell2.surfaces.charset === "Shift_JIS");
-          assert.ok(shell2.surfaces.descript.version === 1);
-        });
-        QUnit.test("shell.surfaces.surface0", (assert)=> {
-          var srf = shell2.surfaces.surfaces["surface0"];
-          assert.ok(srf.is === 0);
-          assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
-          assert.ok(srf.baseSurface.height === 445);
-          assert.ok(srf.baseSurface.width === 182);
-          assert.ok(srf.regions["collision0"].name === "Head");
-          assert.ok(srf.animations["animation0"].interval === "periodic,5");
-        });
+  
         QUnit.test("shell.surfaces.surface2", (assert)=> {
-          var srf = shell2.surfaces.surfaces["surface2"];
+          var srf = shell.surfaces.surfaces["surface2"];
           assert.ok(srf.is === 2);
           assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
           assert.ok(srf.baseSurface.height = 445);
@@ -168,8 +168,9 @@ prmNar.then(function (nanikaDir) {
           assert.ok(srf.regions["collision10"].name === "Ponytail");
           assert.ok(srf.animations["animation30"].interval === "bind");
         });
+  
         QUnit.test("shell.surfaces.surface10", (assert)=> {
-          var srf = shell2.surfaces.surfaces["surface10"];
+          var srf = shell.surfaces.surfaces["surface10"];
           assert.ok(srf.is === 10);
           assert.ok(srf.baseSurface instanceof HTMLCanvasElement);
           assert.ok(srf.baseSurface.height === 210);

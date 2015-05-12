@@ -3,9 +3,23 @@
 /// <reference path="SurfaceRender.ts"/>
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 /// <reference path="../tsd/encoding-japanese/encoding.d.ts"/>
-/// <reference path="../typings/zepto/zepto.d.ts"/>
 var cuttlebone;
 (function (cuttlebone) {
+    function extend(target, source) {
+        for (var key in source) {
+            if (typeof source[key] === "object" && Object.getPrototypeOf(source[key]) === Object.prototype) {
+                target[key] = target[key] || {};
+                extend(target[key], source[key]);
+            }
+            else if (Array.isArray(source[key])) {
+                target[key] = target[key] || [];
+                extend(target[key], source[key]);
+            }
+            else if (source[key] !== undefined) {
+                target[key] = source[key];
+            }
+        }
+    }
     function parseDescript(text) {
         text = text.replace(/(?:\r\n|\r|\n)/g, "\n"); // CRLF->LF
         while (true) {
@@ -80,7 +94,8 @@ var cuttlebone;
             else {
                 surfaces_text_names.forEach((function (filename) {
                     var _srfs = SurfacesTxt2Yaml.txt_to_data(convert(_this.directory[filename]), { compatible: 'ssp-lazy' });
-                    $.extend(true, _this.surfaces, _srfs);
+                    console.log(_srfs);
+                    extend(_this.surfaces, _srfs);
                 }), {});
             }
             return Promise.resolve(this);
