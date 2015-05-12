@@ -20,7 +20,7 @@
     "files": [
         "./testPNGReader.ts",
         "./testShell.ts",
-        "./testSurfaceCacheManager.ts",
+        "./testSurface.ts",
         "./testSurfaceRender.ts",
         "./testSurfaceUtil.ts"
     ]

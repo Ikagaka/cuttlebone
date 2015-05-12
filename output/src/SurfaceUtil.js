@@ -78,6 +78,19 @@ var cuttlebone;
             };
         }
         SurfaceUtil.offset = offset;
+        function createCanvas() {
+            var cnv = document.createElement("canvas");
+            cnv.width = 1;
+            cnv.height = 1;
+            return cnv;
+        }
+        SurfaceUtil.createCanvas = createCanvas;
+        function scope(scopeId) {
+            return scopeId === 0 ? "sakura"
+                : scopeId === 1 ? "kero"
+                    : "char" + scopeId;
+        }
+        SurfaceUtil.scope = scope;
         function elementFromPointWithout(element, pageX, pageY) {
             var tmp = element.style.display;
             element.style.display = "none";

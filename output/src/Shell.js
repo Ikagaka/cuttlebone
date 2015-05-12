@@ -1,4 +1,4 @@
-/// <!--reference path="Surface.ts"/-->
+/// <reference path="Surface.ts"/>
 /// <reference path="SurfaceUtil.ts"/>
 /// <reference path="SurfaceRender.ts"/>
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
@@ -51,11 +51,12 @@ var cuttlebone;
             var prm = Promise.resolve(this)
                 .then(function () { return _this.loadDescript(); })
                 .then(function () { return _this.loadSurfacesTxt(); })
+                .then(function () { return _this.loadSurfaceTable(); })
                 .then(function () { return _this.loadSurfacePNG(); })
+                .then(function () { return _this.loadCollisions(); })
+                .then(function () { return _this.loadAnimations(); })
                 .then(function () { return _this.loadElements(); });
             return prm;
-            // surfacesTxt reading
-            // with using canvasCache
         };
         // load descript
         Shell.prototype.loadDescript = function () {
@@ -69,6 +70,7 @@ var cuttlebone;
             return Promise.resolve(this);
         };
         // load surfaces.txt
+        // TODO: alias.txt
         Shell.prototype.loadSurfacesTxt = function () {
             var _this = this;
             var surfaces_text_names = Object.keys(this.directory).filter(function (name) { return /surfaces.*\.txt$/.test(name); });
@@ -83,6 +85,11 @@ var cuttlebone;
             }
             return Promise.resolve(this);
         };
+        // load surfacetable.txt
+        Shell.prototype.loadSurfaceTable = function () {
+            // TODO
+            return Promise.resolve(this);
+        };
         // load surface*.png surface*.pna
         Shell.prototype.loadSurfacePNG = function () {
             var _this = this;
@@ -91,12 +98,17 @@ var cuttlebone;
                 var n = Number(/^surface(\d+)\.png$/i.exec(filename)[1]);
                 _this.getPNGFromDirectory(filename).then(function (cnv) {
                     _this.canvasCache[filename] = cnv;
-                    _this.surfaceTree[n] = {
-                        base: _this.canvasCache[filename],
-                        elements: [],
-                        collisions: [],
-                        animations: []
-                    };
+                    if (!_this.surfaceTree[n]) {
+                        _this.surfaceTree[n] = {
+                            base: _this.canvasCache[filename],
+                            elements: [],
+                            collisions: [],
+                            animations: []
+                        };
+                    }
+                    else {
+                        _this.surfaceTree[n].base = _this.canvasCache[filename];
+                    }
                 }).catch(function (err) {
                     console.warn("Shell#loadSurfacePNG > " + err);
                     return Promise.resolve();
@@ -115,12 +127,14 @@ var cuttlebone;
                     Object.keys(elms).forEach(function (elmname) {
                         var _a = elms[elmname], is = _a.is, type = _a.type, file = _a.file, x = _a.x, y = _a.y;
                         _this.getPNGFromDirectory(file).then(function (canvas) {
-                            _this.surfaceTree[n] = _this.surfaceTree[n] || {
-                                base: document.createElement("canvas"),
-                                elements: [],
-                                collisions: [],
-                                animations: []
-                            };
+                            if (!_this.surfaceTree[n]) {
+                                _this.surfaceTree[n] = {
+                                    base: cuttlebone.SurfaceUtil.createCanvas(),
+                                    elements: [],
+                                    collisions: [],
+                                    animations: []
+                                };
+                            }
                             _this.surfaceTree[n].elements[is] = { type: type, canvas: canvas, x: x, y: y };
                             resolve(Promise.resolve(_this));
                         }).catch(function (err) {
@@ -130,6 +144,50 @@ var cuttlebone;
                     });
                 });
             });
+        };
+        // load collisions
+        Shell.prototype.loadCollisions = function () {
+            var _this = this;
+            var srfs = this.surfaces.surfaces;
+            Object.keys(srfs).filter(function (name) { return !!srfs[name].regions; }).forEach(function (defname) {
+                var n = srfs[defname].is;
+                var regions = srfs[defname].regions;
+                Object.keys(regions).forEach(function (regname) {
+                    if (!_this.surfaceTree[n]) {
+                        _this.surfaceTree[n] = {
+                            base: cuttlebone.SurfaceUtil.createCanvas(),
+                            elements: [],
+                            collisions: [],
+                            animations: []
+                        };
+                    }
+                    var is = regions[regname].is;
+                    _this.surfaceTree[n].collisions[is] = regions[regname];
+                });
+            });
+            return Promise.resolve(this);
+        };
+        // load animations
+        Shell.prototype.loadAnimations = function () {
+            var _this = this;
+            var srfs = this.surfaces.surfaces;
+            Object.keys(srfs).filter(function (name) { return !!srfs[name].animations; }).forEach(function (defname) {
+                var n = srfs[defname].is;
+                var animations = srfs[defname].animations;
+                Object.keys(animations).forEach(function (animname) {
+                    if (!_this.surfaceTree[n]) {
+                        _this.surfaceTree[n] = {
+                            base: cuttlebone.SurfaceUtil.createCanvas(),
+                            elements: [],
+                            collisions: [],
+                            animations: []
+                        };
+                    }
+                    var is = animations[animname].is;
+                    _this.surfaceTree[n].animations[is] = animations[animname];
+                });
+            });
+            return Promise.resolve(this);
         };
         Shell.prototype.hasFile = function (filename) {
             return find(Object.keys(this.directory), filename).length > 0;
@@ -156,6 +214,23 @@ var cuttlebone;
             }).catch(function (err) {
                 return Promise.reject("getPNGFromDirectory(" + filename + ") > " + err);
             });
+        };
+        Shell.prototype.attachSurface = function (canvas, scopeId, surfaceId) {
+            var type = cuttlebone.SurfaceUtil.scope(scopeId);
+            if (typeof surfaceId === "string") {
+                if (!!this.surfaces.aliases && !!this.surfaces.aliases[type] && !!this.surfaces.aliases[type][surfaceId]) {
+                    var _surfaceId = cuttlebone.SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]);
+                }
+                else {
+                    throw new Error("RuntimeError: surface alias scope:" + type + ", id:" + surfaceId + " is not defined.");
+                }
+            }
+            else if (typeof surfaceId === "number") {
+                var _surfaceId = surfaceId;
+            }
+            else
+                throw new Error("TypeError: surfaceId: number|string is not match " + typeof surfaceId);
+            return new cuttlebone.Surface(canvas, scopeId, _surfaceId, this);
         };
         return Shell;
     })();

@@ -2,8 +2,7 @@
 
 module cuttlebone {
 
-  interface SurfaceLayerObject {
-    is: number;
+  export interface SurfaceLayerObject {
     canvas: HTMLCanvasElement;
     type: string;
     x: number;
@@ -122,12 +121,12 @@ module cuttlebone {
       this.overlayfast(part, x, y);
     }
 
-    init(cnv: HTMLImageElement|HTMLCanvasElement):void {
+    init(cnv: HTMLImageElement|HTMLCanvasElement): void {
       this.cnv.width = cnv.width;
       this.cnv.height = cnv.height;
       this.overlayfast(<HTMLCanvasElement>cnv, 0, 0); // type hack
     }
-    
+
     drawRegion(region: SurfaceRegion): void {
       var {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = region;
       this.ctx.strokeStyle = "#00FF00";

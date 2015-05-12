@@ -80,6 +80,19 @@ module cuttlebone {
       };
     }
 
+    export function createCanvas(): HTMLCanvasElement {
+      var cnv = document.createElement("canvas");
+      cnv.width = 1;
+      cnv.height = 1;
+      return cnv;
+    }
+
+    export function scope(scopeId: number): string {
+      return scopeId === 0 ? "sakura"
+           : scopeId === 1 ? "kero"
+           : "char"+scopeId;
+    }
+
     export function elementFromPointWithout (element: HTMLElement, pageX: number, pageY: number): HTMLElement {
       var tmp = element.style.display;
       element.style.display = "none";

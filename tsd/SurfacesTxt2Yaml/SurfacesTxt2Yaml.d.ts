@@ -9,7 +9,7 @@ interface SurfacesTxt {
     "animation-sort": string;
   };
   surfaces: { [key: string]: SurfaceDefinition; };
-  aliases: { sakura: { [name: string]: number[]; }; };
+  aliases: { [scope: string]: { [aliasname: string]: number[]; }; };
   regions: {
     sakura: {
       bust: {

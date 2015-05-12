@@ -1,20 +1,12 @@
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/Shell.ts" />
-var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
+var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.zip");
 prmNar.then(function (nanikaDir) {
     QUnit.module("cuttlebone.Shell");
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
     console.dir(shellDir);
     var shell = new cuttlebone.Shell(shellDir);
-    console.log(shell);
-    QUnit.test("shell#load", function (assert) {
-        var done = assert.async();
-        shell.load().then(function (shell) {
-            assert.ok(true);
-            done();
-        });
-    });
     QUnit.test("shell#hasFile", function (assert) {
         assert.ok(shell.hasFile("surface0.png"));
         assert.ok(shell.hasFile("surface0.PNG"));
@@ -22,6 +14,24 @@ prmNar.then(function (nanikaDir) {
         assert.ok(!shell.hasFile("surface0+png"));
         assert.ok(shell.hasFile("./surface0.png"));
         assert.ok(!shell.hasFile("/surface0/png"));
+    });
+    QUnit.test("shell#load", function (assert) {
+        var done = assert.async();
+        shell.load().then(function (shell) {
+            assert.ok(true);
+            console.log(shell);
+            done();
+        }).catch(function (err) {
+            console.error(err, err.stack, shell);
+            assert.ok(false);
+            done();
+        });
+    });
+    QUnit.test("shell#attachSurface", function (assert) {
+        var cnv = document.createElement("canvas");
+        document.body.appendChild(cnv);
+        var srf = shell.attachSurface(cnv, 0, 3);
+        assert.ok(true);
     });
     /*
     QUnit.test("shell#load", (assert)=> {
