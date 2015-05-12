@@ -21,6 +21,8 @@ var cuttlebone;
             return fetchImageFromURL(url).then(function (img) {
                 URL.revokeObjectURL(url);
                 return Promise.resolve(img);
+            }).catch(function (err) {
+                return Promise.reject("fetchImageFromArrayBuffer > " + err);
             });
         }
         SurfaceUtil.fetchImageFromArrayBuffer = fetchImageFromArrayBuffer;
@@ -32,7 +34,7 @@ var cuttlebone;
                     resolve(Promise.resolve(img)); // type hack
                 });
                 img.addEventListener("error", function (ev) {
-                    reject(ev.error);
+                    reject("fetchImageFromURL");
                 });
             });
         }

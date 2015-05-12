@@ -40,16 +40,15 @@ interface SurfaceDefinition {
   };
   regions: { [key: string]: SurfaceRegion; };
   animations: { [key: string]: SurfaceAnimation; };
-  baseSurface: HTMLCanvasElement;
-  base: string[];
+  elements: { [key: string]: ElementPattern; };
 }
 
-interface SurfaceLayerObject {
-  is: number;
-  canvas: HTMLCanvasElement;
-  type: string;
-  x: number;
-  y: number;
+interface ElementPattern{
+  is: number,
+  type: string,
+  file: string,
+  x: number,
+  y: number
 }
 
 interface SurfaceAnimation {

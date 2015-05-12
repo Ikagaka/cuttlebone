@@ -2,23 +2,36 @@
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/Shell.ts" />
 
-var prmNar = NarLoader.loadFromURL("../nar/juda.zip");
+var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 
 prmNar.then((nanikaDir)=>{
 
   QUnit.module("cuttlebone.Shell");
 
+  var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
+  console.dir(shellDir);
+
+  var shell = new cuttlebone.Shell(shellDir);
+  console.log(shell);
+
   QUnit.test("shell#load", (assert)=> {
     var done = assert.async();
-    var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
-    console.dir(shellDir);
-    var shell = new cuttlebone.Shell(shellDir);
     shell.load().then((shell)=>{
-      console.log(shell);
       assert.ok(true);
       done();
     });
   });
+
+  QUnit.test("shell#hasFile", (assert)=> {
+    assert.ok(shell.hasFile("surface0.png"));
+    assert.ok(shell.hasFile("surface0.PNG"));
+    assert.ok(shell.hasFile(".\\SURFACE0.PNG"));
+    assert.ok(!shell.hasFile("surface0+png"));
+    assert.ok(shell.hasFile("./surface0.png"));
+    assert.ok(!shell.hasFile("/surface0/png"));
+  });
+
+
 
   /*
   QUnit.test("shell#load", (assert)=> {

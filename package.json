@@ -10,7 +10,7 @@
     "cuttlebone"
   ],
   "scripts": {
-    "build": "rm -rf output/*; npm run build-src; npm run build-test; npm run espower",
+    "build": "rm -rf output/*; npm run build-src; npm run build-test",
     "build-src":  "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output  src/*.ts; cat output/src/*.js      > lib/cuttlebone.js",
     "build-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts; cat output/test/test*.js > output/test/all.js",
     "espower": "node node_modules/espower-cli/bin/cmd.js test/all.js > test/all.js",

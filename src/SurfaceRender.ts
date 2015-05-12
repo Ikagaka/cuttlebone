@@ -1,13 +1,25 @@
 /// <reference path="../typings/tsd.d.ts"/>
 
 module cuttlebone {
+
+  interface SurfaceLayerObject {
+    is: number;
+    canvas: HTMLCanvasElement;
+    type: string;
+    x: number;
+    y: number;
+  }
+
   export class SurfaceRender {
+
     cnv: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
+
     constructor(cnv: HTMLCanvasElement) {
       this.cnv = cnv;
       this.ctx = <CanvasRenderingContext2D>cnv.getContext("2d");
     }
+
     composeElements(elements: SurfaceLayerObject[]): void {
       if (elements.length === 0) { return; }
       var {canvas, type, x, y} = elements[0];
@@ -46,9 +58,11 @@ module cuttlebone {
       }
       this.composeElements(elements.slice(1));
     }
+
     clear(): void {
       this.cnv.width = this.cnv.width;
     }
+
     chromakey(): void {
       var ctx = <CanvasRenderingContext2D>this.cnv.getContext("2d");
       var imgdata = ctx.getImageData(0, 0, this.cnv.width, this.cnv.height);
@@ -65,6 +79,7 @@ module cuttlebone {
       }
       ctx.putImageData(imgdata, 0, 0);
     }
+
     pna(pna: HTMLCanvasElement): void {
       var ctxB = <CanvasRenderingContext2D>pna.getContext("2d");
       var imgdataA = this.ctx.getImageData(0, 0, this.cnv.width, this.cnv.height);
@@ -78,10 +93,12 @@ module cuttlebone {
       }
       this.ctx.putImageData(imgdataA, 0, 0);
     }
+
     base(part: HTMLCanvasElement, x: number, y: number): void {
       this.clear();
       this.init(part);
     }
+
     overlay(part: HTMLCanvasElement, x: number, y: number): void {
       if (this.cnv.width < part.width || this.cnv.height < part.height) {
         this.base(part, x, y); // 下のレイヤ消えてpartから描画されるんじゃね？
@@ -89,23 +106,28 @@ module cuttlebone {
         this.overlayfast(part, x, y);
       }
     }
+
     overlayfast(part: HTMLCanvasElement, x: number, y: number): void {
       this.ctx.globalCompositeOperation = "source-over";
       this.ctx.drawImage(part, x, y);
     }
+
     interpolate(part: HTMLCanvasElement, x: number, y: number): void {
       this.ctx.globalCompositeOperation = "destination-over";
       this.ctx.drawImage(part, x, y);
     }
+
     replace(part: HTMLCanvasElement, x: number, y: number): void {
       this.ctx.clearRect(x, y, part.width, part.height);
       this.overlayfast(part, x, y);
     }
+
     init(cnv: HTMLImageElement|HTMLCanvasElement):void {
       this.cnv.width = cnv.width;
       this.cnv.height = cnv.height;
       this.overlayfast(<HTMLCanvasElement>cnv, 0, 0); // type hack
     }
+    
     drawRegion(region: SurfaceRegion): void {
       var {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = region;
       this.ctx.strokeStyle = "#00FF00";

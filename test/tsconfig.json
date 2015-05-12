@@ -20,7 +20,6 @@
     "files": [
         "./testPNGReader.ts",
         "./testShell.ts",
-        "./testSurface.ts",
         "./testSurfaceCacheManager.ts",
         "./testSurfaceRender.ts",
         "./testSurfaceUtil.ts"

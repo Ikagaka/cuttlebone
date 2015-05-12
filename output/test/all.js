@@ -103,19 +103,27 @@ prmNar.then(function (nanikaDir) {
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/Shell.ts" />
-var prmNar = NarLoader.loadFromURL("../nar/juda.zip");
+var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 prmNar.then(function (nanikaDir) {
     QUnit.module("cuttlebone.Shell");
+    var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
+    console.dir(shellDir);
+    var shell = new cuttlebone.Shell(shellDir);
+    console.log(shell);
     QUnit.test("shell#load", function (assert) {
         var done = assert.async();
-        var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
-        console.dir(shellDir);
-        var shell = new cuttlebone.Shell(shellDir);
         shell.load().then(function (shell) {
-            console.log(shell);
             assert.ok(true);
             done();
         });
+    });
+    QUnit.test("shell#hasFile", function (assert) {
+        assert.ok(shell.hasFile("surface0.png"));
+        assert.ok(shell.hasFile("surface0.PNG"));
+        assert.ok(shell.hasFile(".\\SURFACE0.PNG"));
+        assert.ok(!shell.hasFile("surface0+png"));
+        assert.ok(shell.hasFile("./surface0.png"));
+        assert.ok(!shell.hasFile("/surface0/png"));
     });
     /*
     QUnit.test("shell#load", (assert)=> {
@@ -213,17 +221,6 @@ prmNar.then(function (nanikaDir) {
       fieldset.style.display = "inline-block";
       document.body.appendChild(fieldset);
     }*/
-});
-/// <reference path="../typings/tsd.d.ts" />
-/// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
-/// <reference path="../src/Surface.ts" />
-var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
-prmNar.then(function (nanikaDir) {
-    QUnit.module("cuttlebone.Surface");
-    var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
-    QUnit.test("Surface", function (assert) {
-        assert.ok(true);
-    });
 });
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
