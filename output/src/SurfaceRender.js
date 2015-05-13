@@ -10,6 +10,8 @@ var cuttlebone;
             if (elements.length === 0) {
                 return;
             }
+            if (!Array.isArray(elements))
+                throw new Error("TypeError: elements is not array.");
             var _a = elements[0], canvas = _a.canvas, type = _a.type, x = _a.x, y = _a.y;
             var offsetX = 0;
             var offsetY = 0;

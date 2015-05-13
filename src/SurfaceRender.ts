@@ -21,6 +21,7 @@ module cuttlebone {
 
     composeElements(elements: SurfaceLayerObject[]): void {
       if (elements.length === 0) { return; }
+      if(!Array.isArray(elements)) throw new Error("TypeError: elements is not array.")
       var {canvas, type, x, y} = elements[0];
       var offsetX = 0;
       var offsetY = 0;

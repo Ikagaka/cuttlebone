@@ -66,14 +66,14 @@ module cuttlebone {
     directory: { [path: string]: ArrayBuffer; };
     descript: { [key: string]: string; };
     surfaces: SurfacesTxt;
-    surfaceTree: { [key: string]: SurfaceTreeNode};
+    surfaceTree: SurfaceTreeNode[];
     canvasCache: { [key: string]: HTMLCanvasElement; };
 
     constructor(directory: { [filepath: string]: ArrayBuffer; }) {
       this.directory = directory;
       this.descript = {};
       this.surfaces = <SurfacesTxt>{};
-      this.surfaceTree = {};
+      this.surfaceTree = [];
       this.canvasCache = {};
     }
 
@@ -111,23 +111,23 @@ module cuttlebone {
         surfaces_text_names.forEach((filename)=> {
           var text = convert(this.directory[filename]);
           var srfs = SurfacesTxt2Yaml.txt_to_data(text, {compatible: 'ssp-lazy'});
-          /// TODO: dirty
-          Object.keys(srfs.surfaces).forEach((name)=>{
-            if(!!srfs.surfaces[name].is && Array.isArray(srfs.surfaces[name].base)){
-              srfs.surfaces[name].base.forEach((key)=>{
-                extend(srfs.surfaces[name], srfs.surfaces[key]);
-              });
-              delete srfs.surfaces[name].base;
-            }
-          });
-          Object.keys(srfs.surfaces).forEach((name)=>{
-            if(!srfs.surfaces[name].is){
-              delete srfs.surfaces[name]
-            }
-          });
-          ///
           extend(this.surfaces, srfs);
         });
+        /// TODO: dirty
+        Object.keys(this.surfaces.surfaces).forEach((name)=>{
+          if(typeof this.surfaces.surfaces[name].is === "number" && Array.isArray(this.surfaces.surfaces[name].base)){
+            this.surfaces.surfaces[name].base.forEach((key)=>{
+              extend(this.surfaces.surfaces[name], this.surfaces.surfaces[key]);
+            });
+            delete this.surfaces.surfaces[name].base;
+          }
+        });
+        Object.keys(this.surfaces.surfaces).forEach((name)=>{
+          if(typeof this.surfaces.surfaces[name].is === "undefined"){
+            delete this.surfaces.surfaces[name]
+          }
+        });
+        ///
       }
       return Promise.resolve(this);
     }
@@ -244,6 +244,13 @@ module cuttlebone {
       var hits = find(Object.keys(this.canvasCache), filename);
       if(hits.length > 0){
         return Promise.resolve(this.canvasCache[hits[0]]);
+      }
+      if(!this.hasFile(filename)){
+        filename += ".png";
+        if(!this.hasFile(filename)){
+          throw new Error("no such file in directory: " + filename.replace(/\.png$/i, ""));
+        }
+        console.warn("element file " + filename + " need '.png' extension")
       }
       var render = new SurfaceRender(document.createElement("canvas"));
       return SurfaceUtil.fetchImageFromArrayBuffer(this.directory[find(Object.keys(this.directory), filename)[0]]).then((img)=>{

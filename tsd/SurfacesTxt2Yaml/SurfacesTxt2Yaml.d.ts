@@ -60,6 +60,7 @@ interface SurfaceAnimation {
 }
 
 interface SurfaceAnimationPattern {
+  animation_ids: number[];
   type: string;
   surface: number;
   wait: string;

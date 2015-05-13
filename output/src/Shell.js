@@ -57,7 +57,7 @@ var cuttlebone;
             this.directory = directory;
             this.descript = {};
             this.surfaces = {};
-            this.surfaceTree = {};
+            this.surfaceTree = [];
             this.canvasCache = {};
         }
         Shell.prototype.load = function () {
@@ -95,22 +95,21 @@ var cuttlebone;
                 surfaces_text_names.forEach(function (filename) {
                     var text = convert(_this.directory[filename]);
                     var srfs = SurfacesTxt2Yaml.txt_to_data(text, { compatible: 'ssp-lazy' });
-                    /// TODO: dirty
-                    Object.keys(srfs.surfaces).forEach(function (name) {
-                        if (!!srfs.surfaces[name].is && Array.isArray(srfs.surfaces[name].base)) {
-                            srfs.surfaces[name].base.forEach(function (key) {
-                                extend(srfs.surfaces[name], srfs.surfaces[key]);
-                            });
-                            delete srfs.surfaces[name].base;
-                        }
-                    });
-                    Object.keys(srfs.surfaces).forEach(function (name) {
-                        if (!srfs.surfaces[name].is) {
-                            delete srfs.surfaces[name];
-                        }
-                    });
-                    ///
                     extend(_this.surfaces, srfs);
+                });
+                /// TODO: dirty
+                Object.keys(this.surfaces.surfaces).forEach(function (name) {
+                    if (typeof _this.surfaces.surfaces[name].is === "number" && Array.isArray(_this.surfaces.surfaces[name].base)) {
+                        _this.surfaces.surfaces[name].base.forEach(function (key) {
+                            extend(_this.surfaces.surfaces[name], _this.surfaces.surfaces[key]);
+                        });
+                        delete _this.surfaces.surfaces[name].base;
+                    }
+                });
+                Object.keys(this.surfaces.surfaces).forEach(function (name) {
+                    if (typeof _this.surfaces.surfaces[name].is === "undefined") {
+                        delete _this.surfaces.surfaces[name];
+                    }
                 });
             }
             return Promise.resolve(this);
@@ -227,6 +226,13 @@ var cuttlebone;
             var hits = find(Object.keys(this.canvasCache), filename);
             if (hits.length > 0) {
                 return Promise.resolve(this.canvasCache[hits[0]]);
+            }
+            if (!this.hasFile(filename)) {
+                filename += ".png";
+                if (!this.hasFile(filename)) {
+                    throw new Error("no such file in directory: " + filename.replace(/\.png$/i, ""));
+                }
+                console.warn("element file " + filename + " need '.png' extension");
             }
             var render = new cuttlebone.SurfaceRender(document.createElement("canvas"));
             return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(this.directory[find(Object.keys(this.directory), filename)[0]]).then(function (img) {
