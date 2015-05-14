@@ -1,3 +1,4 @@
+/// <reference path="Descript.ts"/>
 /// <reference path="Surface.ts"/>
 /// <reference path="SurfaceUtil.ts"/>
 /// <reference path="SurfaceRender.ts"/>
@@ -103,6 +104,7 @@ module cuttlebone {
       var descript_name = Object.keys(this.directory).filter((name)=> /^descript\.txt$/i.test(name))[0] || "";
       if (descript_name) {
         this.descript = parseDescript(convert(this.directory[descript_name]));
+        console.log(Descript.parse(convert(this.directory[descript_name])));
       } else {
         console.warn("descript.txt is not found");
       }

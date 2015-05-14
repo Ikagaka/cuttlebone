@@ -18,6 +18,7 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
+        "./Descript.ts",
         "./PNGReader.ts",
         "./Shell.ts",
         "./Surface.ts",
