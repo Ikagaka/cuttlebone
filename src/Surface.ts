@@ -126,10 +126,11 @@ module cuttlebone {
             return;
           }
         }
-        if(/^stop\s*\,\s*\d+/.test(type)){
+        if(/^stop/.test(type)){
           var _animId = SurfaceUtil.choice(animation_ids);
           if(!!this.surfaceTreeNode.animations[_animId]){
-            this.play(_animId, ()=>resolve(Promise.resolve()));
+            this.stop(_animId);
+            setTimeout(()=> resolve(Promise.resolve()));
             return;
           }
         }

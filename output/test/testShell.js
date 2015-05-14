@@ -52,6 +52,7 @@ prmNar.then(function (nanikaDir) {
     QUnit.test("shell#attachSurface (basic element and animation)", function (assert) {
         var cnv = document.createElement("canvas");
         var srf = shell.attachSurface(cnv, 0, 3);
+        console.log(srf);
         srf.isRegionVisible = true;
         assert.ok(srf.surfaceId === 3);
         assert.ok(srf.element instanceof HTMLCanvasElement);

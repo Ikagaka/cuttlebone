@@ -129,10 +129,11 @@ var cuttlebone;
                         return;
                     }
                 }
-                if (/^stop\s*\,\s*\d+/.test(type)) {
+                if (/^stop/.test(type)) {
                     var _animId = cuttlebone.SurfaceUtil.choice(animation_ids);
                     if (!!_this.surfaceTreeNode.animations[_animId]) {
-                        _this.play(_animId, function () { return resolve(Promise.resolve()); });
+                        _this.stop(_animId);
+                        setTimeout(function () { return resolve(Promise.resolve()); });
                         return;
                     }
                 }

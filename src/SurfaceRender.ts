@@ -39,10 +39,10 @@ module cuttlebone {
           this.replace(canvas, offsetX + x, offsetY + y);
           break;
         case "add":
-          this.overlayfast(canvas, offsetX + x, offsetY + y);
+          this.overlay(canvas, offsetX + x, offsetY + y);
           break;
         case "bind":
-          this.overlayfast(canvas, offsetX + x, offsetY + y);
+          this.overlay(canvas, offsetX + x, offsetY + y);
           break;
         case "interpolate":
           this.interpolate(canvas, offsetX + x, offsetY + y);
@@ -53,6 +53,9 @@ module cuttlebone {
           var copyed = SurfaceUtil.copy(this.cnv);
           this.base(copyed, offsetX, offsetY);
           break;
+        case "asis":
+        case "reduce":
+        case "insert,ID":
         default:
           console.error(elements[0]);
       }
@@ -94,21 +97,21 @@ module cuttlebone {
       this.ctx.putImageData(imgdataA, 0, 0);
     }
 
-    base(part: HTMLCanvasElement, x: number, y: number): void {
-      this.clear();
+    base(part: HTMLCanvasElement, x?: number, y?: number): void {
       this.init(part);
     }
 
     overlay(part: HTMLCanvasElement, x: number, y: number): void {
-      if (this.cnv.width < part.width || this.cnv.height < part.height) {
-        this.base(part, x, y); // 下のレイヤ消えてpartから描画されるんじゃね？
-      } else {
-        this.overlayfast(part, x, y);
+      if(this.cnv.width < part.width || this.cnv.height < part.height){
+        this.init(part);
+      }else{
+        this.ctx.globalCompositeOperation = "source-over";
+        this.ctx.drawImage(part, x, y);
       }
     }
 
     overlayfast(part: HTMLCanvasElement, x: number, y: number): void {
-      this.ctx.globalCompositeOperation = "source-over";
+      this.ctx.globalCompositeOperation = "source-atop";
       this.ctx.drawImage(part, x, y);
     }
 
@@ -119,13 +122,13 @@ module cuttlebone {
 
     replace(part: HTMLCanvasElement, x: number, y: number): void {
       this.ctx.clearRect(x, y, part.width, part.height);
-      this.overlayfast(part, x, y);
+      this.overlay(part, x, y);
     }
 
     init(cnv: HTMLImageElement|HTMLCanvasElement): void {
       this.cnv.width = cnv.width;
       this.cnv.height = cnv.height;
-      this.overlayfast(<HTMLCanvasElement>cnv, 0, 0); // type hack
+      this.overlay(<HTMLCanvasElement>cnv, 0, 0); // type hack
     }
 
     drawRegion(region: SurfaceRegion): void {

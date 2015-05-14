@@ -29,10 +29,10 @@ var cuttlebone;
                     this.replace(canvas, offsetX + x, offsetY + y);
                     break;
                 case "add":
-                    this.overlayfast(canvas, offsetX + x, offsetY + y);
+                    this.overlay(canvas, offsetX + x, offsetY + y);
                     break;
                 case "bind":
-                    this.overlayfast(canvas, offsetX + x, offsetY + y);
+                    this.overlay(canvas, offsetX + x, offsetY + y);
                     break;
                 case "interpolate":
                     this.interpolate(canvas, offsetX + x, offsetY + y);
@@ -43,6 +43,9 @@ var cuttlebone;
                     var copyed = cuttlebone.SurfaceUtil.copy(this.cnv);
                     this.base(copyed, offsetX, offsetY);
                     break;
+                case "asis":
+                case "reduce":
+                case "insert,ID":
                 default:
                     console.error(elements[0]);
             }
@@ -81,19 +84,19 @@ var cuttlebone;
             this.ctx.putImageData(imgdataA, 0, 0);
         };
         SurfaceRender.prototype.base = function (part, x, y) {
-            this.clear();
             this.init(part);
         };
         SurfaceRender.prototype.overlay = function (part, x, y) {
             if (this.cnv.width < part.width || this.cnv.height < part.height) {
-                this.base(part, x, y); // 下のレイヤ消えてpartから描画されるんじゃね？
+                this.init(part);
             }
             else {
-                this.overlayfast(part, x, y);
+                this.ctx.globalCompositeOperation = "source-over";
+                this.ctx.drawImage(part, x, y);
             }
         };
         SurfaceRender.prototype.overlayfast = function (part, x, y) {
-            this.ctx.globalCompositeOperation = "source-over";
+            this.ctx.globalCompositeOperation = "source-atop";
             this.ctx.drawImage(part, x, y);
         };
         SurfaceRender.prototype.interpolate = function (part, x, y) {
@@ -102,12 +105,12 @@ var cuttlebone;
         };
         SurfaceRender.prototype.replace = function (part, x, y) {
             this.ctx.clearRect(x, y, part.width, part.height);
-            this.overlayfast(part, x, y);
+            this.overlay(part, x, y);
         };
         SurfaceRender.prototype.init = function (cnv) {
             this.cnv.width = cnv.width;
             this.cnv.height = cnv.height;
-            this.overlayfast(cnv, 0, 0); // type hack
+            this.overlay(cnv, 0, 0); // type hack
         };
         SurfaceRender.prototype.drawRegion = function (region) {
             var type = region.type, name = region.name, left = region.left, top = region.top, right = region.right, bottom = region.bottom, coordinates = region.coordinates, radius = region.radius, center_x = region.center_x, center_y = region.center_y;
