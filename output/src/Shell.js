@@ -59,17 +59,19 @@ var cuttlebone;
             this.surfaces = {};
             this.surfaceTree = [];
             this.canvasCache = {};
+            this.bindgroup = [];
         }
         Shell.prototype.load = function () {
             var _this = this;
             var prm = Promise.resolve(this)
-                .then(function () { return _this.loadDescript(); })
-                .then(function () { return _this.loadSurfacesTxt(); })
-                .then(function () { return _this.loadSurfaceTable(); })
-                .then(function () { return _this.loadSurfacePNG(); })
-                .then(function () { return _this.loadCollisions(); })
-                .then(function () { return _this.loadAnimations(); })
-                .then(function () { return _this.loadElements(); });
+                .then(function () { return _this.loadDescript(); }) // 1st
+                .then(function () { return _this.loadBindGroup(); }) // 2nd
+                .then(function () { return _this.loadSurfacesTxt(); }) // 1st
+                .then(function () { return _this.loadSurfaceTable(); }) // 1st
+                .then(function () { return _this.loadSurfacePNG(); }) // 2nd
+                .then(function () { return _this.loadCollisions(); }) // 3rd
+                .then(function () { return _this.loadAnimations(); }) // 3rd
+                .then(function () { return _this.loadElements(); }); // 3rd
             return prm;
         };
         // load descript
@@ -81,6 +83,36 @@ var cuttlebone;
             else {
                 console.warn("descript.txt is not found");
             }
+            return Promise.resolve(this);
+        };
+        Shell.prototype.loadBindGroup = function () {
+            var _this = this;
+            var converted = Object.keys(this.descript)
+                .forEach(function (key) {
+                var reg = /^(sakura|kero|char\d+)\.bindgroup(\d+)\.(name|default)/;
+                if (!reg.test(key))
+                    return;
+                var _a = reg.exec(key), _ = _a[0], char = _a[1], bindgroupId = _a[2], type = _a[3];
+                var _char = char === "sakura" ? 0
+                    : char === "kero" ? 1
+                        : Number(/^char(\d+)/.exec(char)[1]);
+                if (typeof _this.bindgroup[_char] === "undefined")
+                    _this.bindgroup[_char] = [];
+                if (typeof _this.bindgroup[_char][bindgroupId] === "undefined")
+                    _this.bindgroup[_char][bindgroupId] = {};
+                switch (type) {
+                    case "default":
+                        console.log(_this.descript[key].trim());
+                        _this.bindgroup[_char][bindgroupId].default = _this.descript[key].trim() === "1";
+                        break;
+                    case "name":
+                        var _b = _this.descript[key].split(",").map(function (key) { return key.trim(); }), category = _b[0], part = _b[1], thumbnail = _b[2];
+                        _this.bindgroup[_char][bindgroupId].category = category || "";
+                        _this.bindgroup[_char][bindgroupId].part = part || "";
+                        _this.bindgroup[_char][bindgroupId].thumbnail = thumbnail || "";
+                        break;
+                }
+            });
             return Promise.resolve(this);
         };
         // load surfaces.txt

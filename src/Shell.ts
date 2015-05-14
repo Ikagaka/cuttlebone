@@ -68,6 +68,12 @@ module cuttlebone {
     surfaces: SurfacesTxt;
     surfaceTree: SurfaceTreeNode[];
     canvasCache: { [key: string]: HTMLCanvasElement; };
+    bindgroup: {
+      default: boolean,
+      category: string,
+      part: string,
+      thumbnail: string
+    }[][];
 
     constructor(directory: { [filepath: string]: ArrayBuffer; }) {
       this.directory = directory;
@@ -75,17 +81,19 @@ module cuttlebone {
       this.surfaces = <SurfacesTxt>{};
       this.surfaceTree = [];
       this.canvasCache = {};
+      this.bindgroup = [];
     }
 
     load(): Promise<Shell> {
       var prm = Promise.resolve(this)
-      .then(()=> this.loadDescript())
-      .then(()=> this.loadSurfacesTxt())
-      .then(()=> this.loadSurfaceTable())
-      .then(()=> this.loadSurfacePNG())
-      .then(()=> this.loadCollisions())
-      .then(()=> this.loadAnimations())
-      .then(()=> this.loadElements());
+      .then(()=> this.loadDescript()) // 1st
+      .then(()=> this.loadBindGroup()) // 2nd
+      .then(()=> this.loadSurfacesTxt()) // 1st
+      .then(()=> this.loadSurfaceTable()) // 1st
+      .then(()=> this.loadSurfacePNG())   // 2nd
+      .then(()=> this.loadCollisions()) // 3rd
+      .then(()=> this.loadAnimations()) // 3rd
+      .then(()=> this.loadElements());  // 3rd
 
       return prm;
     }
@@ -98,6 +106,33 @@ module cuttlebone {
       } else {
         console.warn("descript.txt is not found");
       }
+      return Promise.resolve(this);
+    }
+
+    loadBindGroup(): Promise<Shell> {
+      var converted = Object.keys(this.descript)
+      .forEach((key)=> {
+        var reg = /^(sakura|kero|char\d+)\.bindgroup(\d+)\.(name|default)/;
+        if(!reg.test(key)) return;
+        var [_, char, bindgroupId, type] = reg.exec(key);
+        var _char = char === "sakura" ? 0
+                  : char === "kero"   ? 1
+                  : Number(/^char(\d+)/.exec(char)[1]);
+        if(typeof this.bindgroup[_char] === "undefined") this.bindgroup[_char] = [];
+        if(typeof this.bindgroup[_char][bindgroupId] === "undefined") this.bindgroup[_char][bindgroupId] = {};
+        switch(type){
+          case "default":
+            console.log(this.descript[key].trim() )
+            this.bindgroup[_char][bindgroupId].default = this.descript[key].trim() === "1";
+            break;
+          case "name":
+            var [category, part, thumbnail] = this.descript[key].split(",").map((key)=> key.trim())
+            this.bindgroup[_char][bindgroupId].category = category || ""
+            this.bindgroup[_char][bindgroupId].part = part || ""
+            this.bindgroup[_char][bindgroupId].thumbnail = thumbnail || ""
+            break;
+        }
+      });
       return Promise.resolve(this);
     }
 

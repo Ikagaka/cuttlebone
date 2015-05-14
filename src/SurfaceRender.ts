@@ -30,6 +30,8 @@ module cuttlebone {
           this.base(canvas, offsetX, offsetY);
           break;
         case "overlay":
+        case "add":
+        case "bind":
           this.overlay(canvas, offsetX + x, offsetY + y);
           break;
         case "overlayfast":
@@ -38,11 +40,6 @@ module cuttlebone {
         case "replace":
           this.replace(canvas, offsetX + x, offsetY + y);
           break;
-        case "add":
-          this.overlay(canvas, offsetX + x, offsetY + y);
-          break;
-        case "bind":
-          this.overlay(canvas, offsetX + x, offsetY + y);
           break;
         case "interpolate":
           this.interpolate(canvas, offsetX + x, offsetY + y);
