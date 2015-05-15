@@ -48,6 +48,8 @@ var cuttlebone;
             }
             this.composeElements(elements.slice(1));
         };
+        SurfaceRender.prototype.composeBinds = function (binds, bindgroup) {
+        };
         SurfaceRender.prototype.clear = function () {
             this.cnv.width = this.cnv.width;
         };
@@ -108,6 +110,12 @@ var cuttlebone;
             this.cnv.width = cnv.width;
             this.cnv.height = cnv.height;
             this.overlay(cnv, 0, 0); // type hack
+        };
+        SurfaceRender.prototype.drawRegions = function (regions) {
+            var _this = this;
+            regions.forEach(function (col) {
+                _this.drawRegion(col);
+            });
         };
         SurfaceRender.prototype.drawRegion = function (region) {
             var type = region.type, name = region.name, left = region.left, top = region.top, right = region.right, bottom = region.bottom, coordinates = region.coordinates, radius = region.radius, center_x = region.center_x, center_y = region.center_y;

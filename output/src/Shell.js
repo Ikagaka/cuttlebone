@@ -1,4 +1,3 @@
-/// <reference path="Descript.ts"/>
 /// <reference path="Surface.ts"/>
 /// <reference path="SurfaceUtil.ts"/>
 /// <reference path="SurfaceRender.ts"/>
@@ -57,14 +56,16 @@ var cuttlebone;
         function Shell(directory) {
             this.directory = directory;
             this.descript = {};
-            this.surfaces = {};
+            this.surfaces = [];
+            this.surfacesTxt = {};
             this.surfaceTree = [];
             this.canvasCache = {};
             this.bindgroup = [];
+            this.isRegionVisible = false;
         }
         Shell.prototype.load = function () {
             var _this = this;
-            var prm = Promise.resolve(this)
+            return Promise.resolve(this)
                 .then(function () { return _this.loadDescript(); }) // 1st
                 .then(function () { return _this.loadBindGroup(); }) // 2nd
                 .then(function () { return _this.loadSurfacesTxt(); }) // 1st
@@ -72,77 +73,58 @@ var cuttlebone;
                 .then(function () { return _this.loadSurfacePNG(); }) // 2nd
                 .then(function () { return _this.loadCollisions(); }) // 3rd
                 .then(function () { return _this.loadAnimations(); }) // 3rd
-                .then(function () { return _this.loadElements(); }); // 3rd
-            return prm;
+                .then(function () { return _this.loadElements(); }) // 3rd
+                .catch(function (err) {
+                console.error("Shell#load > ", err);
+                return Promise.reject(err);
+            });
         };
         // load descript
         Shell.prototype.loadDescript = function () {
             var descript_name = Object.keys(this.directory).filter(function (name) { return /^descript\.txt$/i.test(name); })[0] || "";
-            if (descript_name) {
-                this.descript = parseDescript(convert(this.directory[descript_name]));
-                console.log(cuttlebone.Descript.parse(convert(this.directory[descript_name])));
+            if (descript_name === "") {
+                console.warn("descript.txt is not found");
             }
             else {
-                console.warn("descript.txt is not found");
+                this.descript = parseDescript(convert(this.directory[descript_name]));
             }
             return Promise.resolve(this);
         };
         Shell.prototype.loadBindGroup = function () {
             var _this = this;
-            var converted = Object.keys(this.descript)
-                .forEach(function (key) {
-                var reg = /^(sakura|kero|char\d+)\.bindgroup(\d+)\.(name|default)/;
-                if (!reg.test(key))
-                    return;
-                var _a = reg.exec(key), _ = _a[0], char = _a[1], bindgroupId = _a[2], type = _a[3];
-                var _char = char === "sakura" ? 0
-                    : char === "kero" ? 1
-                        : Number(/^char(\d+)/.exec(char)[1]);
-                if (typeof _this.bindgroup[_char] === "undefined")
-                    _this.bindgroup[_char] = [];
-                if (typeof _this.bindgroup[_char][bindgroupId] === "undefined")
-                    _this.bindgroup[_char][bindgroupId] = {};
-                switch (type) {
-                    case "default":
-                        console.log(_this.descript[key].trim());
-                        _this.bindgroup[_char][bindgroupId].default = _this.descript[key].trim() === "1";
-                        break;
-                    case "name":
-                        var _b = _this.descript[key].split(",").map(function (key) { return key.trim(); }), category = _b[0], part = _b[1], thumbnail = _b[2];
-                        _this.bindgroup[_char][bindgroupId].category = category || "";
-                        _this.bindgroup[_char][bindgroupId].part = part || "";
-                        _this.bindgroup[_char][bindgroupId].thumbnail = thumbnail || "";
-                        break;
-                }
+            // load bindgroup
+            var reg = /^(sakura|kero|char\d+)\.bindgroup(\d+)\.default/;
+            Object.keys(this.descript).filter(function (key) { return reg.test(key); }).forEach(function (key) {
+                var _a = reg.exec(key), _ = _a[0], charId = _a[1], bindgroupId = _a[2], type = _a[3];
+                _this.bindgroup[Number(bindgroupId)] = _this.descript[key] === "1";
             });
             return Promise.resolve(this);
         };
         // load surfaces.txt
-        // TODO: alias.txt
         Shell.prototype.loadSurfacesTxt = function () {
             var _this = this;
-            var surfaces_text_names = Object.keys(this.directory).filter(function (name) { return /surfaces.*\.txt$/i.test(name); });
+            var surfaces_text_names = Object.keys(this.directory).filter(function (name) { return /^surfaces.*\.txt$|^alias\.txt$/i.test(name); });
             if (surfaces_text_names.length === 0) {
-                console.warn("surfaces.txt is not found");
+                console.info("surfaces.txt is not found");
             }
             else {
                 surfaces_text_names.forEach(function (filename) {
-                    var text = convert(_this.directory[filename]);
-                    var srfs = SurfacesTxt2Yaml.txt_to_data(text, { compatible: 'ssp-lazy' });
-                    extend(_this.surfaces, srfs);
+                    var srfs = SurfacesTxt2Yaml.txt_to_data(convert(_this.directory[filename]), { compatible: 'ssp-lazy' });
+                    extend(_this.surfacesTxt, srfs);
                 });
-                /// TODO: dirty
-                Object.keys(this.surfaces.surfaces).forEach(function (name) {
-                    if (typeof _this.surfaces.surfaces[name].is === "number" && Array.isArray(_this.surfaces.surfaces[name].base)) {
-                        _this.surfaces.surfaces[name].base.forEach(function (key) {
-                            extend(_this.surfaces.surfaces[name], _this.surfaces.surfaces[key]);
+                //{ expand inherit and remove
+                Object.keys(this.surfacesTxt.surfaces).forEach(function (name) {
+                    if (typeof _this.surfacesTxt.surfaces[name].is === "number"
+                        && Array.isArray(_this.surfacesTxt.surfaces[name].base)) {
+                        _this.surfacesTxt.surfaces[name].base.forEach(function (key) {
+                            extend(_this.surfacesTxt.surfaces[name], _this.surfacesTxt.surfaces[key]);
                         });
-                        delete _this.surfaces.surfaces[name].base;
+                        delete _this.surfacesTxt.surfaces[name].base;
                     }
                 });
-                Object.keys(this.surfaces.surfaces).forEach(function (name) {
-                    if (typeof _this.surfaces.surfaces[name].is === "undefined") {
-                        delete _this.surfaces.surfaces[name];
+                Object.keys(this.surfacesTxt.surfaces).forEach(function (name) {
+                    if (typeof _this.surfacesTxt.surfaces[name].is === "undefined") {
+                        delete _this.surfacesTxt.surfaces[name];
                     }
                 });
             }
@@ -150,27 +132,32 @@ var cuttlebone;
         };
         // load surfacetable.txt
         Shell.prototype.loadSurfaceTable = function () {
-            // TODO
+            var surfacetable_name = Object.keys(this.directory).filter(function (name) { return /^surfacetable.*\.txt$/i.test(name); })[0] || "";
+            if (surfacetable_name === "") {
+                console.info("surfacetable.txt is not found.");
+            }
+            else {
+                var txt = convert(this.directory[surfacetable_name]);
+            }
             return Promise.resolve(this);
         };
-        // load surface*.png surface*.pna
+        // load surface*.png and surface*.pna
         Shell.prototype.loadSurfacePNG = function () {
             var _this = this;
             var surface_names = Object.keys(this.directory).filter(function (filename) { return /^surface(\d+)\.png$/i.test(filename); });
             var prms = surface_names.map(function (filename) {
                 var n = Number(/^surface(\d+)\.png$/i.exec(filename)[1]);
                 _this.getPNGFromDirectory(filename).then(function (cnv) {
-                    _this.canvasCache[filename] = cnv;
                     if (!_this.surfaceTree[n]) {
                         _this.surfaceTree[n] = {
-                            base: _this.canvasCache[filename],
+                            base: cnv,
                             elements: [],
                             collisions: [],
                             animations: []
                         };
                     }
                     else {
-                        _this.surfaceTree[n].base = _this.canvasCache[filename];
+                        _this.surfaceTree[n].base = cnv;
                     }
                 }).catch(function (err) {
                     console.warn("Shell#loadSurfacePNG > " + err);
@@ -183,7 +170,7 @@ var cuttlebone;
         Shell.prototype.loadElements = function () {
             var _this = this;
             return new Promise(function (resolve, reject) {
-                var srfs = _this.surfaces.surfaces;
+                var srfs = _this.surfacesTxt.surfaces;
                 Object.keys(srfs).filter(function (name) { return !!srfs[name].elements; }).forEach(function (defname) {
                     var n = srfs[defname].is;
                     var elms = srfs[defname].elements;
@@ -211,7 +198,7 @@ var cuttlebone;
         // load collisions
         Shell.prototype.loadCollisions = function () {
             var _this = this;
-            var srfs = this.surfaces.surfaces;
+            var srfs = this.surfacesTxt.surfaces;
             Object.keys(srfs).filter(function (name) { return !!srfs[name].regions; }).forEach(function (defname) {
                 var n = srfs[defname].is;
                 var regions = srfs[defname].regions;
@@ -233,7 +220,7 @@ var cuttlebone;
         // load animations
         Shell.prototype.loadAnimations = function () {
             var _this = this;
-            var srfs = this.surfaces.surfaces;
+            var srfs = this.surfacesTxt.surfaces;
             Object.keys(srfs).filter(function (name) { return !!srfs[name].animations; }).forEach(function (defname) {
                 var n = srfs[defname].is;
                 var animations = srfs[defname].animations;
@@ -246,7 +233,7 @@ var cuttlebone;
                             animations: []
                         };
                     }
-                    var is = animations[animname].is;
+                    var _a = animations[animname], is = _a.is, interval = _a.interval;
                     _this.surfaceTree[n].animations[is] = animations[animname];
                 });
             });
@@ -257,9 +244,9 @@ var cuttlebone;
         };
         Shell.prototype.getPNGFromDirectory = function (filename) {
             var _this = this;
-            var hits = find(Object.keys(this.canvasCache), filename);
-            if (hits.length > 0) {
-                return Promise.resolve(this.canvasCache[hits[0]]);
+            var cached_filename = find(Object.keys(this.canvasCache), filename)[0] || "";
+            if (cached_filename !== "") {
+                return Promise.resolve(this.canvasCache[cached_filename]);
             }
             if (!this.hasFile(filename)) {
                 filename += ".png";
@@ -269,16 +256,19 @@ var cuttlebone;
                 console.warn("element file " + filename + " need '.png' extension");
             }
             var render = new cuttlebone.SurfaceRender(document.createElement("canvas"));
-            return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(this.directory[find(Object.keys(this.directory), filename)[0]]).then(function (img) {
+            var _filename = find(Object.keys(this.directory), filename)[0];
+            return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(this.directory[_filename]).then(function (img) {
                 render.init(img);
-                var pnafilename = filename.replace(/\.png$/i, ".pna");
-                var hits = find(Object.keys(_this.directory), pnafilename);
-                if (hits.length === 0) {
+                var pnafilename = _filename.replace(/\.png$/i, ".pna");
+                var _pnafilename = find(Object.keys(_this.directory), pnafilename)[0] || "";
+                if (_pnafilename === "") {
                     render.chromakey();
+                    _this.canvasCache[_filename] = render.cnv;
                     return Promise.resolve(render.cnv);
                 }
-                return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(_this.directory[hits[0]]).then(function (pnaimg) {
+                return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(_this.directory[_pnafilename]).then(function (pnaimg) {
                     render.pna(cuttlebone.SurfaceUtil.copy(pnaimg));
+                    _this.canvasCache[_filename] = render.cnv;
                     return Promise.resolve(render.cnv);
                 });
             }).catch(function (err) {
@@ -288,8 +278,8 @@ var cuttlebone;
         Shell.prototype.attachSurface = function (canvas, scopeId, surfaceId) {
             var type = cuttlebone.SurfaceUtil.scope(scopeId);
             if (typeof surfaceId === "string") {
-                if (!!this.surfaces.aliases && !!this.surfaces.aliases[type] && !!this.surfaces.aliases[type][surfaceId]) {
-                    var _surfaceId = cuttlebone.SurfaceUtil.choice(this.surfaces.aliases[type][surfaceId]);
+                if (!!this.surfacesTxt.aliases && !!this.surfacesTxt.aliases[type] && !!this.surfacesTxt.aliases[type][surfaceId]) {
+                    var _surfaceId = cuttlebone.SurfaceUtil.choice(this.surfacesTxt.aliases[type][surfaceId]);
                 }
                 else {
                     throw new Error("RuntimeError: surface alias scope:" + type + ", id:" + surfaceId + " is not defined.");
@@ -300,7 +290,35 @@ var cuttlebone;
             }
             else
                 throw new Error("TypeError: surfaceId: number|string is not match " + typeof surfaceId);
-            return new cuttlebone.Surface(canvas, scopeId, _surfaceId, this);
+            var srf = new cuttlebone.Surface(canvas, scopeId, _surfaceId, this);
+            this.surfaces.push([canvas, srf]);
+            return srf;
+        };
+        Shell.prototype.detachSurface = function (canvas) {
+            var tuple = this.surfaces.filter(function (tuple) { return tuple[0] === canvas; })[0];
+            if (!tuple)
+                return;
+            tuple[1].destructor();
+        };
+        Shell.prototype.bind = function (animationId) {
+            this.bindgroup[animationId] = true;
+            this.surfaces.forEach(function (tuple) {
+                var _ = tuple[0], srf = tuple[1];
+                srf.updateBind();
+            });
+        };
+        Shell.prototype.unbind = function (animationId) {
+            this.bindgroup[animationId] = false;
+            this.surfaces.forEach(function (tuple) {
+                var _ = tuple[0], srf = tuple[1];
+                srf.updateBind();
+            });
+        };
+        Shell.prototype.render = function () {
+            this.surfaces.forEach(function (tuple) {
+                var _ = tuple[0], srf = tuple[1];
+                srf.render();
+            });
         };
         return Shell;
     })();

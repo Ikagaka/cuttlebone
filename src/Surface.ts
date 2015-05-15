@@ -25,9 +25,10 @@ module cuttlebone {
     stopFlags: { [key: string]: boolean; };
     talkCount: number;
     talkCounts: { [key: string]: number };
-    isRegionVisible: boolean;
 
-    constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number, shell: Shell) {
+    constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number, shell: Shell, options?: any) {
+      if(typeof options === "undefined") options = {};
+
       this.element = canvas;
       this.scopeId = scopeId;
       this.surfaceId = surfaceId;
@@ -43,38 +44,70 @@ module cuttlebone {
       this.stopFlags = {};
       this.talkCount = 0;
       this.talkCounts = {};
-      this.isRegionVisible = false;
 
-      this.initAnimation();
+      this.initAnimations();
       this.render();
     }
 
-    initAnimation(): void {
-      this.surfaceTreeNode.animations.forEach((arg)=>{
-        var {is, interval, patterns} = arg;
-        interval = interval || "";
-        var tmp = interval.split(",");
-        interval = tmp[0];
-        var n = Number(tmp.slice(1).join(","));
-        switch (interval) {
-          case "sometimes":SurfaceUtil.random(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), 2); break;
-          case "rarely":   SurfaceUtil.random(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), 4); break;
-          case "random":   SurfaceUtil.random(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), n); break;
-          case "periodic": SurfaceUtil.periodic(((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), n); break;
-          case "always":   SurfaceUtil.always(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } })   ); break;
-          case "runonce": this.play(is); break;
-          case "never": break;
-          case "bind": break;
-          case "yen-e": break;
-          case "talk": this.talkCounts[is] = n; break;
-          default:
-            if (/^bind(?:\+(\d+))/.test(interval)) {
-              // 着せ替えなので何もしない
-            } else {
-              console.warn(this.surfaceTreeNode.animations[is]);
-            }
+    initAnimations(): void {
+      this.surfaceTreeNode.animations.forEach((anim)=>{
+        this.initAnimation(anim);
+      });
+    }
+
+    initAnimation(anim: SurfaceAnimation): void {
+      var {is, interval, patterns} = anim;
+      var tmp = interval.split(",");
+      var _interval = tmp[0];
+      if(tmp.length > 1){
+        var n = Number(tmp[1]);
+        if(!isFinite(n)){
+          console.warn("initAnimation > TypeError: surface", this.surfaceId, "animation", anim.is, "interval", interval, " argument is not finite number");
+          n = 4;
+        }
+      }
+      switch (_interval) {
+        case "sometimes":SurfaceUtil.random(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), 2); break;
+        case "rarely":   SurfaceUtil.random(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), 4); break;
+        case "random":   SurfaceUtil.random(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), n); break;
+        case "periodic": SurfaceUtil.periodic(((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } }), n); break;
+        case "always":   SurfaceUtil.always(  ((callback) => { if (!this.destructed && !this.stopFlags[is]) { this.play(is, callback); } })   ); break;
+        case "runonce": this.play(is); break;
+        case "never": break;
+        case "yen-e": break;
+        case "talk": this.talkCounts[is] = n; break;
+        default:
+          if(/^bind/.test(interval)){
+            this.initBind(anim);
+            break;
+          }
+          console.warn("Surface#initAnimation > unkown SERIKO or MAYURA interval:", interval, anim);
+      }
+    }
+
+    updateBind(): void {
+      this.surfaceTreeNode.animations.forEach((anim)=>{
+        var {is, interval, patterns} = anim;
+        if(/^bind/.test(interval)){
+          this.initBind(anim);
         }
       });
+    }
+
+    initBind(anim: SurfaceAnimation): void {
+      var {is, interval, patterns, option} = anim;
+      if(!this.shell.bindgroup[is]){
+        delete this.layers[is];
+        this.stop(is);
+        return;
+      }
+      var [_bind, ...intervals] = interval.split("+");
+      intervals.forEach((itvl)=>{
+        this.initAnimation({interval: itvl, is, patterns, option});
+      });
+      if(intervals.length > 0) return;
+      this.layers[is] = patterns[patterns.length-1];
+      this.render();
     }
 
     destructor(): void {
@@ -84,88 +117,65 @@ module cuttlebone {
     }
 
     render(): void {
-      var sorted = Object.keys(this.layers).sort((layerNumA, layerNumB)=> Number(layerNumA) > Number(layerNumB) ? 1 : -1 );
-      var mapped = sorted.map((key)=> this.layers[Number(key)]);
-      var patterns = mapped.reduce<SurfaceLayerObject[]>(((arr, pat)=>{
+      var renderLayers = Object.keys(this.layers)
+      .sort((layerNumA, layerNumB)=> Number(layerNumA) > Number(layerNumB) ? 1 : -1 )
+      .map((key)=> this.layers[Number(key)])
+      .reduce<SurfaceLayerObject[]>(((arr, pat)=>{
         var {surface, type, x, y} = pat;
         if(surface === -1) return arr;
         var srf = this.shell.surfaceTree[surface];
         if(!srf) return arr;
-        var rndr = new SurfaceRender(this.shell.surfaceTree[surface].base);
-        rndr.composeElements(this.shell.surfaceTree[surface].elements);
-        // TODO: 呼び出し先の着せ替え有効
+        var rndr = new SurfaceRender(SurfaceUtil.copy(srf.base));
+        rndr.composeElements(srf.elements);
+        //rndr.composeBinds(srf.binds, this.shell);
         return arr.concat({
           type: type,
           x: x,
           y: y,
           canvas: rndr.cnv
         });
-      }), [])
-      this.bufRender.init(this.surfaceTreeNode.base);
-      this.bufRender.composeElements(this.surfaceTreeNode.elements);
-      this.bufRender.composeElements(patterns);
-      this.elmRender.init(this.bufRender.cnv);
-      if (this.isRegionVisible) {
-        this.elmRender.ctx.fillText(""+this.surfaceId, 5, 10);
-        this.surfaceTreeNode.collisions.forEach((col)=>{
-          var {name} = col;
-          this.elmRender.drawRegion(col);
-        });
+      }), []);
+      var srfNode = this.surfaceTreeNode;
+      this.bufRender.init(srfNode.base);
+      this.bufRender.composeElements(srfNode.elements);
+
+      //this.bufRender.composeBinds(srfNode.binds, this.shell.bindgroup);
+      this.bufRender.composeElements(renderLayers);
+      if (this.shell.isRegionVisible) {
+        this.bufRender.ctx.fillText(""+this.surfaceId, 5, 10);
+        this.bufRender.drawRegions(srfNode.collisions);
       }
+      this.elmRender.init(this.bufRender.cnv);
     }
 
     play(animationId: number, callback?: () => void): void {
+      var anims = this.surfaceTreeNode.animations;
       var anim = this.surfaceTreeNode.animations[animationId];
       if(!anim) return void setTimeout(callback);
+      // lazyPromises: [()=> Promise<void>, ()=> Promise<void>, ...]
       var lazyPromises = anim.patterns.map((pattern)=> ()=> new Promise<void>((resolve, reject)=> {
         var {surface, wait, type, x, y, animation_ids} = pattern;
-        if(/^start/.test(type)){
-          var _animId = SurfaceUtil.choice(animation_ids);
-          if(!!this.surfaceTreeNode.animations[_animId]){
-            this.play(_animId, ()=>resolve(Promise.resolve()));
-            return;
-          }
-        }
-        if(/^stop/.test(type)){
-          var _animId = SurfaceUtil.choice(animation_ids);
-          if(!!this.surfaceTreeNode.animations[_animId]){
-            this.stop(_animId);
-            setTimeout(()=> resolve(Promise.resolve()));
-            return;
-          }
-        }
-        if(/^alternativestart/.test(type)){
-          var _animId = SurfaceUtil.choice(animation_ids);
-          if(!!this.surfaceTreeNode.animations[_animId]){
-            this.play(_animId, ()=>resolve(Promise.resolve()));
-            return;
-          }
-        }
-        if(/^alternativestop/.test(type)){
-          var _animId = SurfaceUtil.choice(animation_ids);
-          if(!!this.surfaceTreeNode.animations[_animId]){
-            this.play(_animId, ()=>resolve(Promise.resolve()));
-            return;
-          }
+        switch(type){
+          case "start":            this.play(animation_ids[0],                              ()=> resolve(Promise.resolve())); return;
+          case "stop":             this.stop(animation_ids[0]);                  setTimeout(()=> resolve(Promise.resolve())); return;
+          case "alternativestart": this.play(SurfaceUtil.choice(animation_ids),             ()=> resolve(Promise.resolve())); return;
+          case "alternativestart": this.stop(SurfaceUtil.choice(animation_ids)); setTimeout(()=> resolve(Promise.resolve())); return;
         }
         this.layers[animationId] = pattern;
         this.render();
-        // ex. 100-200 ms wait
         var [__, a, b] = (/(\d+)(?:\-(\d+))?/.exec(wait) || ["", "0"]);
-        if(!!b){
-          var _wait = randomRange(Number(a), Number(b));
-        }else{
-          var _wait = Number(wait);
-        }
+        var _wait = isFinite(Number(b))
+                  ? randomRange(Number(a), Number(b))
+                  : Number(a);
         setTimeout((()=>{
           if(this.destructed){// stop pattern animation.
             reject(null);
           }else{
             resolve(Promise.resolve());
           }
-        }), _wait)
+        }), _wait);
       }));
-      var promise = lazyPromises.reduce(((proA, proB)=> proA.then(proB)), Promise.resolve()) // Promise.resolve().then(prom).then(prom)...
+      var promise = lazyPromises.reduce(((proA, proB)=> proA.then(proB)), Promise.resolve()); // Promise.resolve().then(prom).then(prom)...
       promise
       .then(()=> setTimeout(callback))
       .catch((err)=>{if(!!err) console.error(err.stack); });
@@ -192,25 +202,6 @@ module cuttlebone {
       hits.forEach((anim)=>{
         this.play(anim.is);
       });
-    }
-
-    bind(animationId: number): void {
-      var animations = this.surfaceTreeNode.animations;
-      var anim = animations.filter((_anim)=> _anim.is === animationId)[0];
-      if (!anim) return;
-      if (anim.patterns.length === 0 ) return;
-      var interval = anim.interval;
-      var pattern = anim.patterns[anim.patterns.length-1];
-      this.layers[anim.is] = pattern;
-      this.render();
-      if(/^bind(?:\+(\d+))/.test(interval)){
-        var animIds = interval.split("+").slice(1);
-        animIds.forEach((animId)=> this.play(Number(animId)));
-      }
-    }
-
-    unbind(animationId: number): void {
-      delete this.layers[animationId];
     }
 
     getRegion(offsetX: number, offsetY: number): SurfaceRegion {

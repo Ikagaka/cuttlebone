@@ -91,6 +91,11 @@ var cuttlebone;
                     : "char" + scopeId;
         }
         SurfaceUtil.scope = scope;
+        /*
+        var _charId = charId === "sakura" ? 0
+                    : charId === "kero"   ? 1
+                    : Number(/^char(\d+)/.exec(charId)[1]);
+        */
         function elementFromPointWithout(element, pageX, pageY) {
             var tmp = element.style.display;
             element.style.display = "none";

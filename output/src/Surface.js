@@ -7,7 +7,9 @@ var cuttlebone;
         return min + Math.floor(Math.random() * (max - min + 1));
     }
     var Surface = (function () {
-        function Surface(canvas, scopeId, surfaceId, shell) {
+        function Surface(canvas, scopeId, surfaceId, shell, options) {
+            if (typeof options === "undefined")
+                options = {};
             this.element = canvas;
             this.scopeId = scopeId;
             this.surfaceId = surfaceId;
@@ -21,61 +23,94 @@ var cuttlebone;
             this.stopFlags = {};
             this.talkCount = 0;
             this.talkCounts = {};
-            this.isRegionVisible = false;
-            this.initAnimation();
+            this.initAnimations();
             this.render();
         }
-        Surface.prototype.initAnimation = function () {
+        Surface.prototype.initAnimations = function () {
             var _this = this;
-            this.surfaceTreeNode.animations.forEach(function (arg) {
-                var is = arg.is, interval = arg.interval, patterns = arg.patterns;
-                interval = interval || "";
-                var tmp = interval.split(",");
-                interval = tmp[0];
-                var n = Number(tmp.slice(1).join(","));
-                switch (interval) {
-                    case "sometimes":
-                        cuttlebone.SurfaceUtil.random((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
-                            _this.play(is, callback);
-                        } }), 2);
+            this.surfaceTreeNode.animations.forEach(function (anim) {
+                _this.initAnimation(anim);
+            });
+        };
+        Surface.prototype.initAnimation = function (anim) {
+            var _this = this;
+            var is = anim.is, interval = anim.interval, patterns = anim.patterns;
+            var tmp = interval.split(",");
+            var _interval = tmp[0];
+            if (tmp.length > 1) {
+                var n = Number(tmp[1]);
+                if (!isFinite(n)) {
+                    console.warn("initAnimation > TypeError: surface", this.surfaceId, "animation", anim.is, "interval", interval, " argument is not finite number");
+                    n = 4;
+                }
+            }
+            switch (_interval) {
+                case "sometimes":
+                    cuttlebone.SurfaceUtil.random((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
+                        _this.play(is, callback);
+                    } }), 2);
+                    break;
+                case "rarely":
+                    cuttlebone.SurfaceUtil.random((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
+                        _this.play(is, callback);
+                    } }), 4);
+                    break;
+                case "random":
+                    cuttlebone.SurfaceUtil.random((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
+                        _this.play(is, callback);
+                    } }), n);
+                    break;
+                case "periodic":
+                    cuttlebone.SurfaceUtil.periodic((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
+                        _this.play(is, callback);
+                    } }), n);
+                    break;
+                case "always":
+                    cuttlebone.SurfaceUtil.always((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
+                        _this.play(is, callback);
+                    } }));
+                    break;
+                case "runonce":
+                    this.play(is);
+                    break;
+                case "never": break;
+                case "yen-e": break;
+                case "talk":
+                    this.talkCounts[is] = n;
+                    break;
+                default:
+                    if (/^bind/.test(interval)) {
+                        this.initBind(anim);
                         break;
-                    case "rarely":
-                        cuttlebone.SurfaceUtil.random((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
-                            _this.play(is, callback);
-                        } }), 4);
-                        break;
-                    case "random":
-                        cuttlebone.SurfaceUtil.random((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
-                            _this.play(is, callback);
-                        } }), n);
-                        break;
-                    case "periodic":
-                        cuttlebone.SurfaceUtil.periodic((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
-                            _this.play(is, callback);
-                        } }), n);
-                        break;
-                    case "always":
-                        cuttlebone.SurfaceUtil.always((function (callback) { if (!_this.destructed && !_this.stopFlags[is]) {
-                            _this.play(is, callback);
-                        } }));
-                        break;
-                    case "runonce":
-                        _this.play(is);
-                        break;
-                    case "never": break;
-                    case "bind": break;
-                    case "yen-e": break;
-                    case "talk":
-                        _this.talkCounts[is] = n;
-                        break;
-                    default:
-                        if (/^bind(?:\+(\d+))/.test(interval)) {
-                        }
-                        else {
-                            console.warn(_this.surfaceTreeNode.animations[is]);
-                        }
+                    }
+                    console.warn("Surface#initAnimation > unkown SERIKO or MAYURA interval:", interval, anim);
+            }
+        };
+        Surface.prototype.updateBind = function () {
+            var _this = this;
+            this.surfaceTreeNode.animations.forEach(function (anim) {
+                var is = anim.is, interval = anim.interval, patterns = anim.patterns;
+                if (/^bind/.test(interval)) {
+                    _this.initBind(anim);
                 }
             });
+        };
+        Surface.prototype.initBind = function (anim) {
+            var _this = this;
+            var is = anim.is, interval = anim.interval, patterns = anim.patterns, option = anim.option;
+            if (!this.shell.bindgroup[is]) {
+                delete this.layers[is];
+                this.stop(is);
+                return;
+            }
+            var _a = interval.split("+"), _bind = _a[0], intervals = _a.slice(1);
+            intervals.forEach(function (itvl) {
+                _this.initAnimation({ interval: itvl, is: is, patterns: patterns, option: option });
+            });
+            if (intervals.length > 0)
+                return;
+            this.layers[is] = patterns[patterns.length - 1];
+            this.render();
         };
         Surface.prototype.destructor = function () {
             this.elmRender.clear();
@@ -84,18 +119,19 @@ var cuttlebone;
         };
         Surface.prototype.render = function () {
             var _this = this;
-            var sorted = Object.keys(this.layers).sort(function (layerNumA, layerNumB) { return Number(layerNumA) > Number(layerNumB) ? 1 : -1; });
-            var mapped = sorted.map(function (key) { return _this.layers[Number(key)]; });
-            var patterns = mapped.reduce((function (arr, pat) {
+            var renderLayers = Object.keys(this.layers)
+                .sort(function (layerNumA, layerNumB) { return Number(layerNumA) > Number(layerNumB) ? 1 : -1; })
+                .map(function (key) { return _this.layers[Number(key)]; })
+                .reduce((function (arr, pat) {
                 var surface = pat.surface, type = pat.type, x = pat.x, y = pat.y;
                 if (surface === -1)
                     return arr;
                 var srf = _this.shell.surfaceTree[surface];
                 if (!srf)
                     return arr;
-                var rndr = new cuttlebone.SurfaceRender(_this.shell.surfaceTree[surface].base);
-                rndr.composeElements(_this.shell.surfaceTree[surface].elements);
-                // TODO: 呼び出し先の着せ替え有効
+                var rndr = new cuttlebone.SurfaceRender(cuttlebone.SurfaceUtil.copy(srf.base));
+                rndr.composeElements(srf.elements);
+                //rndr.composeBinds(srf.binds, this.shell);
                 return arr.concat({
                     type: type,
                     x: x,
@@ -103,64 +139,48 @@ var cuttlebone;
                     canvas: rndr.cnv
                 });
             }), []);
-            this.bufRender.init(this.surfaceTreeNode.base);
-            this.bufRender.composeElements(this.surfaceTreeNode.elements);
-            this.bufRender.composeElements(patterns);
-            this.elmRender.init(this.bufRender.cnv);
-            if (this.isRegionVisible) {
-                this.elmRender.ctx.fillText("" + this.surfaceId, 5, 10);
-                this.surfaceTreeNode.collisions.forEach(function (col) {
-                    var name = col.name;
-                    _this.elmRender.drawRegion(col);
-                });
+            var srfNode = this.surfaceTreeNode;
+            this.bufRender.init(srfNode.base);
+            this.bufRender.composeElements(srfNode.elements);
+            //this.bufRender.composeBinds(srfNode.binds, this.shell.bindgroup);
+            this.bufRender.composeElements(renderLayers);
+            if (this.shell.isRegionVisible) {
+                this.bufRender.ctx.fillText("" + this.surfaceId, 5, 10);
+                this.bufRender.drawRegions(srfNode.collisions);
             }
+            this.elmRender.init(this.bufRender.cnv);
         };
         Surface.prototype.play = function (animationId, callback) {
             var _this = this;
+            var anims = this.surfaceTreeNode.animations;
             var anim = this.surfaceTreeNode.animations[animationId];
             if (!anim)
                 return void setTimeout(callback);
+            // lazyPromises: [()=> Promise<void>, ()=> Promise<void>, ...]
             var lazyPromises = anim.patterns.map(function (pattern) { return function () { return new Promise(function (resolve, reject) {
                 var surface = pattern.surface, wait = pattern.wait, type = pattern.type, x = pattern.x, y = pattern.y, animation_ids = pattern.animation_ids;
-                if (/^start/.test(type)) {
-                    var _animId = cuttlebone.SurfaceUtil.choice(animation_ids);
-                    if (!!_this.surfaceTreeNode.animations[_animId]) {
-                        _this.play(_animId, function () { return resolve(Promise.resolve()); });
+                switch (type) {
+                    case "start":
+                        _this.play(animation_ids[0], function () { return resolve(Promise.resolve()); });
                         return;
-                    }
-                }
-                if (/^stop/.test(type)) {
-                    var _animId = cuttlebone.SurfaceUtil.choice(animation_ids);
-                    if (!!_this.surfaceTreeNode.animations[_animId]) {
-                        _this.stop(_animId);
+                    case "stop":
+                        _this.stop(animation_ids[0]);
                         setTimeout(function () { return resolve(Promise.resolve()); });
                         return;
-                    }
-                }
-                if (/^alternativestart/.test(type)) {
-                    var _animId = cuttlebone.SurfaceUtil.choice(animation_ids);
-                    if (!!_this.surfaceTreeNode.animations[_animId]) {
-                        _this.play(_animId, function () { return resolve(Promise.resolve()); });
+                    case "alternativestart":
+                        _this.play(cuttlebone.SurfaceUtil.choice(animation_ids), function () { return resolve(Promise.resolve()); });
                         return;
-                    }
-                }
-                if (/^alternativestop/.test(type)) {
-                    var _animId = cuttlebone.SurfaceUtil.choice(animation_ids);
-                    if (!!_this.surfaceTreeNode.animations[_animId]) {
-                        _this.play(_animId, function () { return resolve(Promise.resolve()); });
+                    case "alternativestart":
+                        _this.stop(cuttlebone.SurfaceUtil.choice(animation_ids));
+                        setTimeout(function () { return resolve(Promise.resolve()); });
                         return;
-                    }
                 }
                 _this.layers[animationId] = pattern;
                 _this.render();
-                // ex. 100-200 ms wait
                 var _a = (/(\d+)(?:\-(\d+))?/.exec(wait) || ["", "0"]), __ = _a[0], a = _a[1], b = _a[2];
-                if (!!b) {
-                    var _wait = randomRange(Number(a), Number(b));
-                }
-                else {
-                    var _wait = Number(wait);
-                }
+                var _wait = isFinite(Number(b))
+                    ? randomRange(Number(a), Number(b))
+                    : Number(a);
                 setTimeout((function () {
                     if (_this.destructed) {
                         reject(null);
@@ -199,26 +219,6 @@ var cuttlebone;
             hits.forEach(function (anim) {
                 _this.play(anim.is);
             });
-        };
-        Surface.prototype.bind = function (animationId) {
-            var _this = this;
-            var animations = this.surfaceTreeNode.animations;
-            var anim = animations.filter(function (_anim) { return _anim.is === animationId; })[0];
-            if (!anim)
-                return;
-            if (anim.patterns.length === 0)
-                return;
-            var interval = anim.interval;
-            var pattern = anim.patterns[anim.patterns.length - 1];
-            this.layers[anim.is] = pattern;
-            this.render();
-            if (/^bind(?:\+(\d+))/.test(interval)) {
-                var animIds = interval.split("+").slice(1);
-                animIds.forEach(function (animId) { return _this.play(Number(animId)); });
-            }
-        };
-        Surface.prototype.unbind = function (animationId) {
-            delete this.layers[animationId];
         };
         Surface.prototype.getRegion = function (offsetX, offsetY) {
             var _this = this;

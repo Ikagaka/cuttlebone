@@ -92,6 +92,12 @@ module cuttlebone {
            : scopeId === 1 ? "kero"
            : "char"+scopeId;
     }
+    
+    /*
+    var _charId = charId === "sakura" ? 0
+                : charId === "kero"   ? 1
+                : Number(/^char(\d+)/.exec(charId)[1]);
+    */
 
     export function elementFromPointWithout (element: HTMLElement, pageX: number, pageY: number): HTMLElement {
       var tmp = element.style.display;

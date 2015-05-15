@@ -59,6 +59,10 @@ module cuttlebone {
       this.composeElements(elements.slice(1));
     }
 
+    composeBinds(binds: SurfaceAnimation[], bindgroup: boolean[][]): void {
+
+    }
+
     clear(): void {
       this.cnv.width = this.cnv.width;
     }
@@ -126,6 +130,11 @@ module cuttlebone {
       this.cnv.width = cnv.width;
       this.cnv.height = cnv.height;
       this.overlay(<HTMLCanvasElement>cnv, 0, 0); // type hack
+    }
+    drawRegions(regions: SurfaceRegion[]): void {
+      regions.forEach((col)=>{
+        this.drawRegion(col);
+      });
     }
 
     drawRegion(region: SurfaceRegion): void {
