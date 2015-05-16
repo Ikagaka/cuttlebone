@@ -1,4 +1,4 @@
-class Shell
+class cuttlebone.Shell
 
   constructor: (directory)->
     @directory = directory
@@ -8,7 +8,7 @@ class Shell
   load: ->
 
     if !!@directory["descript.txt"]
-    then @descript = Util.parseDescript(Util.convert(@directory["descript.txt"]))
+    then @descript = cuttlebone.Util.parseDescript(cuttlebone.Util.convert(@directory["descript.txt"]))
     else @descript = {}; console.warn("descript.txt is not found")
 
     keys = Object.keys(@directory)

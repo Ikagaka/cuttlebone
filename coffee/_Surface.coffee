@@ -1,4 +1,4 @@
-class Surface
+class cuttlebone.Surface
 
   constructor: (@element, @scopeId, @surfaceName, @surfaces)->
     srf = @surfaces.surfaces[@surfaceName]

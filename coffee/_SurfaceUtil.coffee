@@ -1,4 +1,4 @@
-class SurfaceUtil
+class cuttlebone.SurfaceUtil
 
   constructor: (@cnv)->
     @ctx = @cnv.getContext("2d")

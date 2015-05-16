@@ -1,4 +1,4 @@
-class Named
+class cuttlebone.Named
 
   constructor: (@shell, @balloon)->
     @$named = $("<div />").addClass("named")
@@ -134,7 +134,7 @@ class Named
   scope: (scopeId)->
     if !isFinite(scopeId) then return @currentScope
     if !@scopes[scopeId]
-      @scopes[scopeId] = new Scope(scopeId, @shell, @balloon)
+      @scopes[scopeId] = new cuttlebone.Scope(scopeId, @shell, @balloon)
     @currentScope = @scopes[scopeId]
     @$named.append(@scopes[scopeId].element)
     return @currentScope

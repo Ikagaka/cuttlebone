@@ -96,6 +96,20 @@ var cuttlebone;
                     : charId === "kero"   ? 1
                     : Number(/^char(\d+)/.exec(charId)[1]);
         */
+        /*
+        @isHitBubble = (element, pageX, pageY)->
+          $(element).hide()
+          elm = document.elementFromPoint(pageX, pageY)
+          if !elm
+            $(element).show(); return elm
+          unless elm instanceof HTMLCanvasElement
+            $(element).show(); return elm
+          {top, left} = $(elm).offset()
+          if Surface.isHit(elm, pageX-left, pageY-top)
+            $(element).show(); return elm
+          _elm = Surface.isHitBubble(elm, pageX, pageY)
+          $(element).show(); return _elm
+        */
         function elementFromPointWithout(element, pageX, pageY) {
             var tmp = element.style.display;
             element.style.display = "none";
@@ -103,16 +117,22 @@ var cuttlebone;
             var elm = document.elementFromPoint(pageX, pageY);
             // 直下の要素がcanvasなら透明かどうか調べる
             // todo: cuttlebone管理下の要素かどうかの判定必要
-            if (elm instanceof HTMLCanvasElement) {
-                var _a = offset(elm), top = _a.top, left = _a.left;
-                // 不透明ならヒット
-                if (isHit(elm, pageX - left, pageY - top)) {
-                    element.style.display = tmp;
-                    return elm;
-                }
+            if (!elm) {
+                element.style.display = tmp;
+                return elm;
             }
-            // elementの非表示のままさらに下の要素を調べにいく
+            if (!(elm instanceof HTMLCanvasElement)) {
+                element.style.display = tmp;
+                return elm;
+            }
+            var _a = offset(elm), top = _a.top, left = _a.left;
+            // 不透明canvasならヒット
+            if (elm instanceof HTMLCanvasElement && isHit(elm, pageX - left, pageY - top)) {
+                element.style.display = tmp;
+                return elm;
+            }
             if (elm instanceof HTMLElement) {
+                // elementの非表示のままさらに下の要素を調べにいく
                 var _elm = elementFromPointWithout(elm, pageX, pageY);
                 element.style.display = tmp;
                 return _elm;

@@ -161,7 +161,7 @@ prmNar.then((nanikaDir)=>{
       var offsetX = pageX - left;
       var offsetY = pageY - top;
       var hit = srf.getRegion(offsetX, offsetY);
-      if(!!hit){
+      if(hit.isHit){
         $(ev.target).css({"cursor": "pointer"});
       }else{
         $(ev.target).css({"cursor": "default"});

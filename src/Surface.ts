@@ -26,8 +26,7 @@ module cuttlebone {
     talkCount: number;
     talkCounts: { [key: string]: number };
 
-    constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number, shell: Shell, options?: any) {
-      if(typeof options === "undefined") options = {};
+    constructor(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number, shell: Shell) {
 
       this.element = canvas;
       this.scopeId = scopeId;
@@ -105,7 +104,7 @@ module cuttlebone {
       intervals.forEach((itvl)=>{
         this.initAnimation({interval: itvl, is, patterns, option});
       });
-      if(intervals.length > 0) return;
+      if(interval.length > 0) return;
       this.layers[is] = patterns[patterns.length-1];
       this.render();
     }
@@ -120,14 +119,15 @@ module cuttlebone {
       var renderLayers = Object.keys(this.layers)
       .sort((layerNumA, layerNumB)=> Number(layerNumA) > Number(layerNumB) ? 1 : -1 )
       .map((key)=> this.layers[Number(key)])
-      .reduce<SurfaceLayerObject[]>(((arr, pat)=>{
-        var {surface, type, x, y} = pat;
+      .reduce<SurfaceLayerObject[]>(((arr, pattern)=>{
+        var {surface, type, x, y} = pattern;
         if(surface === -1) return arr;
         var srf = this.shell.surfaceTree[surface];
-        if(!srf) return arr;
+        if(srf == null) return arr;
         var rndr = new SurfaceRender(SurfaceUtil.copy(srf.base));
         rndr.composeElements(srf.elements);
-        //rndr.composeBinds(srf.binds, this.shell);
+        //
+        //
         return arr.concat({
           type: type,
           x: x,
@@ -138,8 +138,6 @@ module cuttlebone {
       var srfNode = this.surfaceTreeNode;
       this.bufRender.init(srfNode.base);
       this.bufRender.composeElements(srfNode.elements);
-
-      //this.bufRender.composeBinds(srfNode.binds, this.shell.bindgroup);
       this.bufRender.composeElements(renderLayers);
       if (this.shell.isRegionVisible) {
         this.bufRender.ctx.fillText(""+this.surfaceId, 5, 10);
@@ -204,9 +202,9 @@ module cuttlebone {
       });
     }
 
-    getRegion(offsetX: number, offsetY: number): SurfaceRegion {
+    getRegion(offsetX: number, offsetY: number): {isHit:boolean, name:string} {
       if(SurfaceUtil.isHit(this.element, offsetX, offsetY)){
-        var hitCol = this.surfaceTreeNode.collisions.filter((collision, colId)=>{
+        var hitCols = this.surfaceTreeNode.collisions.filter((collision, colId)=>{
           var {type, name, left, top, right, bottom, coordinates, radius, center_x, center_y} = collision;
           switch(type){
             case "rect":
@@ -240,12 +238,14 @@ module cuttlebone {
               return deg/(2*Math.PI) >= 1;
             default:
               console.warn("unkown collision type:", this.surfaceId, colId, name, collision);
-              return null;
+              return false;
           }
-        })[0];
-        return hitCol;
+        });
+        if(hitCols.length > 0)
+          return {isHit:true, name:hitCols[hitCols.length-1].name};
+        return {isHit:true, name:""};
       }else{
-        return null;
+        return {isHit:false, name:""};
       }
     }
 

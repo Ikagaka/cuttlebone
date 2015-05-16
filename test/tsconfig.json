@@ -18,7 +18,6 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
-        "./testDescript.ts",
         "./testPNGReader.ts",
         "./testShell.ts"
     ]

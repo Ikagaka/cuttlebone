@@ -1,6 +1,6 @@
-/// <reference path="Surface.ts"/>
-/// <reference path="SurfaceUtil.ts"/>
-/// <reference path="SurfaceRender.ts"/>
+/// <reference path="./Surface"/>
+/// <reference path="./SurfaceUtil"/>
+/// <reference path="./SurfaceRender"/>
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 /// <reference path="../tsd/encoding-japanese/encoding.d.ts"/>
 
@@ -315,6 +315,21 @@ module cuttlebone {
       var tuple = this.surfaces.filter((tuple)=> tuple[0] === canvas)[0];
       if(!tuple) return;
       tuple[1].destructor();
+      this.surfaces.splice(this.surfaces.indexOf(tuple), 1);
+    }
+
+    hasSurface(scopeId: number, surfaceId: number|string): boolean {
+      var type = SurfaceUtil.scope(scopeId);
+      if(typeof surfaceId === "string"){
+        if(!!this.surfacesTxt.aliases && !!this.surfacesTxt.aliases[type] && !!this.surfacesTxt.aliases[type][surfaceId]){
+          var _surfaceId = SurfaceUtil.choice<number>(this.surfacesTxt.aliases[type][surfaceId]);
+        }else{
+          throw new Error("RuntimeError: surface alias scope:" + type+ ", id:" + surfaceId + " is not defined.");
+        }
+      }else if(typeof surfaceId === "number"){
+        var _surfaceId = surfaceId;
+      }else throw new Error("TypeError: surfaceId: number|string is not match " + typeof surfaceId);
+      return this.surfaceTree[_surfaceId] != null;
     }
 
     bind(animationId: number): void {

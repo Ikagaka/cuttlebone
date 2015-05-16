@@ -1,4 +1,4 @@
-class Balloon
+class cuttlebone.Balloon
 
   constructor: (directory)->
     @directory = directory
@@ -15,7 +15,7 @@ class Balloon
   load: ->
 
     if !!@directory["descript.txt"]
-    then @descript = Util.parseDescript(Util.convert(@directory["descript.txt"]))
+    then @descript = cuttlebone.Util.parseDescript(cuttlebone.Util.convert(@directory["descript.txt"]))
     else @descript = {}; console.warn("descript.txt is not found")
 
     prm = Promise.resolve(@balloons)
@@ -35,7 +35,7 @@ class Balloon
   attachSurface: (canvas, scopeId, surfaceId)->
     type = if scopeId is 0 then "sakura" else "kero"
     if !@balloons[type][surfaceId]? then return null
-    return new BalloonSurface(canvas, scopeId, @balloons[type][surfaceId], @balloons)
+    return new cuttlebone.BalloonSurface(canvas, scopeId, @balloons[type][surfaceId], @balloons)
 
   @loadBalloonDescripts: (directory, descript)-> (balloons)->
     new Promise (resolve, reject)->
@@ -43,7 +43,7 @@ class Balloon
       hits = keys.filter (filepath)-> /balloon([sk])(\d+)s\.txt$/.test(filepath)
       hits.forEach (filepath)->
         buffer = directory[filepath]
-        _descript = Util.parseDescript(Util.convert(buffer))
+        _descript = cuttlebone.Util.parseDescript(cuttlebone.Util.convert(buffer))
         [__, type, n] = /balloon([sk])(\d+)s\.txt$/.exec(filepath)
         switch type
           when "s" then balloons["sakura"][Number(n)].descript = $.extend(true, _descript, descript)
@@ -57,26 +57,31 @@ class Balloon
       new Promise (resolve, reject)->
         buffer = directory[filepath]
         url = URL.createObjectURL(new Blob([buffer], {type: "image/png"}))
-        SurfaceUtil.loadImage url, (err, img)->
+        cuttlebone.SurfaceUtil.fetchImageFromURL(url)
+        .then((img)->[null, img])
+        .catch((err)-> [err, null])
+        .then ([err, img])->
           if !!err then return reject(err)
           URL.revokeObjectURL(url)
           if !!err then return reject(err)
+          rndr = new cuttlebone.SurfaceRender(cuttlebone.SurfaceUtil.copy(img))
+          rndr.chromakey()
           if /^balloon([ksc])(\d+)\.png$/.test(filepath)
             [__, type, n] = /^balloon([ksc])(\d+)\.png$/.exec(filepath)
             switch type
-              when "s" then balloons["sakura"][Number(n)] = {canvas: SurfaceUtil.transImage(img)}
-              when "k" then balloons["kero"][Number(n)] = {canvas: SurfaceUtil.transImage(img)}
-              when "c" then balloons["communicate"][Number(n)] = {canvas: SurfaceUtil.transImage(img)}
+              when "s" then balloons["sakura"][Number(n)] = {canvas: rndr.cnv}
+              when "k" then balloons["kero"][Number(n)] = {canvas: rndr.cnv}
+              when "c" then balloons["communicate"][Number(n)] = {canvas: rndr.cnv}
           else if /^online(\d+)\.png$/.test(filepath)
             [__, n] = /^online(\d+)\.png$/.exec(filepath)
-            balloons["online"][Number(n)] = {canvas: SurfaceUtil.transImage(img)}
+            balloons["online"][Number(n)] = {canvas: rndr.cnv}
           else if /^arrow(\d+)\.png$/.test(filepath)
             [__, n] = /^arrow(\d+)\.png$/.exec(filepath)
-            balloons["arrow"][Number(n)] = {canvas: SurfaceUtil.transImage(img)}
+            balloons["arrow"][Number(n)] = {canvas: rndr.cnv}
           else if /^sstp\.png$/.test(filepath)
-            balloons["sstp"] = {canvas: SurfaceUtil.transImage(img)}
+            balloons["sstp"] = {canvas: rndr.cnv}
           else if /^thumbnail\.png$/.test(filepath)
-            balloons["thumbnail"] = {canvas: SurfaceUtil.transImage(img)}
+            balloons["thumbnail"] = {canvas: rndr.cnv}
           resolve()
     new Promise (resolve, reject)->
       Promise.all(promises).then -> resolve(balloons)

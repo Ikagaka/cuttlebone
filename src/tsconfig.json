@@ -18,8 +18,10 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
-        "./Descript.ts",
+        "./Balloon.ts",
+        "./Blimp.ts",
         "./PNGReader.ts",
+        "./Scope.ts",
         "./Shell.ts",
         "./Surface.ts",
         "./SurfaceRender.ts",

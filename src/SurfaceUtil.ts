@@ -70,7 +70,7 @@ module cuttlebone {
       return data[data.length - 1] !== 0;
     }
 
-    export function offset(element: HTMLElement): {left: number, top: number, width: number, height: number} {
+    export function offset(element: Element): {left: number, top: number, width: number, height: number} {
       var obj = element.getBoundingClientRect();
       return {
         left: obj.left + window.pageXOffset,
@@ -92,30 +92,50 @@ module cuttlebone {
            : scopeId === 1 ? "kero"
            : "char"+scopeId;
     }
-    
+
     /*
     var _charId = charId === "sakura" ? 0
                 : charId === "kero"   ? 1
                 : Number(/^char(\d+)/.exec(charId)[1]);
     */
 
-    export function elementFromPointWithout (element: HTMLElement, pageX: number, pageY: number): HTMLElement {
+    /*
+    @isHitBubble = (element, pageX, pageY)->
+      $(element).hide()
+      elm = document.elementFromPoint(pageX, pageY)
+      if !elm
+        $(element).show(); return elm
+      unless elm instanceof HTMLCanvasElement
+        $(element).show(); return elm
+      {top, left} = $(elm).offset()
+      if Surface.isHit(elm, pageX-left, pageY-top)
+        $(element).show(); return elm
+      _elm = Surface.isHitBubble(elm, pageX, pageY)
+      $(element).show(); return _elm
+    */
+    export function elementFromPointWithout (element: HTMLElement, pageX: number, pageY: number): Element {
       var tmp = element.style.display;
       element.style.display = "none";
       // elementを非表示にして直下の要素を調べる
       var elm = document.elementFromPoint(pageX, pageY);
       // 直下の要素がcanvasなら透明かどうか調べる
       // todo: cuttlebone管理下の要素かどうかの判定必要
-      if (elm instanceof HTMLCanvasElement) {
-        var {top, left} = offset(elm);
-        // 不透明ならヒット
-        if (isHit(elm, pageX - left, pageY - top)) {
-          element.style.display = tmp;
-          return elm;
-        }
+      if (!elm){
+        element.style.display = tmp;
+        return elm;
       }
-      // elementの非表示のままさらに下の要素を調べにいく
-      if (elm instanceof HTMLElement) {
+      if (!(elm instanceof HTMLCanvasElement)) {
+        element.style.display = tmp;
+        return elm;
+      }
+      var {top, left} = offset(elm);
+      // 不透明canvasならヒット
+      if (elm instanceof HTMLCanvasElement && isHit(elm, pageX - left, pageY - top)) {
+        element.style.display = tmp;
+        return elm;
+      }
+      if(elm instanceof HTMLElement){
+        // elementの非表示のままさらに下の要素を調べにいく
         var _elm = elementFromPointWithout(elm, pageX, pageY)
         element.style.display = tmp;
         return _elm;

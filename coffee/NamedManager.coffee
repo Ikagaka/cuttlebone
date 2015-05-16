@@ -1,4 +1,4 @@
-class NamedManager
+class cuttlebone.NamedManager
   constructor: ->
     @$namedMgr = $("<div />").addClass("namedMgr")
     $style = $("<style scoped />").html(@style)
@@ -26,7 +26,7 @@ class NamedManager
     return
 
   materialize: (shell, balloon)->
-    named = new Named(shell, balloon)
+    named = new cuttlebone.Named(shell, balloon)
     @namedies.push(named)
     @$namedMgr.append(named.element)
     return @namedies.length - 1
