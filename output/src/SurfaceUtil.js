@@ -1,8 +1,10 @@
+/// <reference path="./PNGReader"/>
 /// <reference path="../typings/tsd.d.ts"/>
 var cuttlebone;
 (function (cuttlebone) {
     var SurfaceUtil;
     (function (SurfaceUtil) {
+        SurfaceUtil.enablePNGjs = true;
         function choice(arr) {
             return arr[Math.round(Math.random() * (arr.length - 1))];
         }
@@ -17,6 +19,20 @@ var cuttlebone;
         }
         SurfaceUtil.copy = copy;
         function fetchImageFromArrayBuffer(buffer, mimetype) {
+            if (SurfaceUtil.enablePNGjs) {
+                var reader = new cuttlebone.PNGReader(buffer);
+                var png = reader.parse();
+                var decoded = png.getUint8ClampedArray();
+                var cnv = createCanvas();
+                cnv.width = png.width;
+                cnv.height = png.height;
+                var ctx = cnv.getContext("2d");
+                var imgdata = ctx.getImageData(0, 0, cnv.width, cnv.height);
+                var data = imgdata.data;
+                data.set(decoded);
+                ctx.putImageData(imgdata, 0, 0);
+                return Promise.resolve(cnv);
+            }
             var url = URL.createObjectURL(new Blob([buffer], { type: mimetype || "image/png" }));
             return fetchImageFromURL(url).then(function (img) {
                 URL.revokeObjectURL(url);

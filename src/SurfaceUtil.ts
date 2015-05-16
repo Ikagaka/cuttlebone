@@ -1,9 +1,12 @@
+/// <reference path="./PNGReader"/>
 /// <reference path="../typings/tsd.d.ts"/>
 
 
 module cuttlebone {
 
   export module SurfaceUtil {
+
+    export var enablePNGjs = true;
 
     export function choice<T>(arr: T[]): T {
       return arr[Math.round(Math.random()*(arr.length-1))];
@@ -18,7 +21,21 @@ module cuttlebone {
       return copy;
     }
 
-    export function fetchImageFromArrayBuffer(buffer: ArrayBuffer, mimetype?:string): Promise<HTMLImageElement> {
+    export function fetchImageFromArrayBuffer(buffer: ArrayBuffer, mimetype?:string): Promise<HTMLCanvasElement|HTMLImageElement> {
+      if(enablePNGjs){
+        var reader = new cuttlebone.PNGReader(buffer);
+        var png = reader.parse();
+        var decoded = png.getUint8ClampedArray();
+        var cnv = createCanvas();
+        cnv.width = png.width;
+        cnv.height = png.height;
+        var ctx = <CanvasRenderingContext2D>cnv.getContext("2d");
+        var imgdata = ctx.getImageData(0, 0, cnv.width, cnv.height);
+        var data = <any>imgdata.data;
+        data.set(decoded);
+        ctx.putImageData(imgdata, 0, 0);
+        return Promise.resolve(cnv);
+      }
       var url = URL.createObjectURL(new Blob([buffer], {type: mimetype || "image/png"}));
       return fetchImageFromURL(url).then((img)=>{
         URL.revokeObjectURL(url);

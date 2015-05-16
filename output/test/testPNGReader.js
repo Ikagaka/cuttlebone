@@ -20,6 +20,7 @@ prmNar.then(function (nanikaDir) {
                 try {
                     var reader = new cuttlebone.PNGReader(shellDir[filename]);
                     var png = reader.parse();
+                    var decoded = png.getUint8ClampedArray();
                 }
                 catch (err) {
                     console.error(filename, reader, err.message, err.stack);
@@ -32,7 +33,6 @@ prmNar.then(function (nanikaDir) {
                   var bits = uInt8ArrayToBits(png.pixels.subarray(i, i+width));
                   console.log(bits);
                 }*/
-                var decoded = png.getUint8ClampedArray();
                 assert.ok(original.length === decoded.length);
                 var isSame = true;
                 for (var j = 0; decoded.length > j; j++) {
