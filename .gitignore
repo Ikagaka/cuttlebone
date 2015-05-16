@@ -1,6 +1,8 @@
 node_modules
 bower_components
 typings
+nar
+!nar/mobilemaster.nar
 
 #################
 ## Eclipse

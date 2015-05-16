@@ -272,26 +272,45 @@ module cuttlebone {
         if(!this.hasFile(filename)){
           throw new Error("no such file in directory: " + filename.replace(/\.png$/i, ""));
         }
-        console.warn("element file " + filename + " need '.png' extension")
+        console.warn("element file " + filename + " need '.png' extension");
       }
-      var render = new SurfaceRender(document.createElement("canvas"));
       var _filename = find(Object.keys(this.directory), filename)[0];
-      return SurfaceUtil.fetchImageFromArrayBuffer(this.directory[_filename]).then((img)=>{
-        render.init(img);
-        var pnafilename = _filename.replace(/\.png$/i, ".pna");
-        var _pnafilename = find(Object.keys(this.directory), pnafilename)[0] || "";
-        if(_pnafilename === ""){
-          render.chromakey();
-          this.canvasCache[_filename] = render.cnv;
-          return Promise.resolve(render.cnv);
-        }
-        return SurfaceUtil.fetchImageFromArrayBuffer(this.directory[_pnafilename]).then((pnaimg)=>{
-          render.pna(SurfaceUtil.copy(pnaimg));
-          this.canvasCache[_filename] = render.cnv;
-          return Promise.resolve(render.cnv);
-        });
+      var pnafilename = _filename.replace(/\.png$/i, ".pna");
+      var _pnafilename = find(Object.keys(this.directory), pnafilename)[0] || "";
+      var pngbuf = this.directory[_filename];
+      var pnabuf = this.directory[_pnafilename];
+      var render = new SurfaceRender(SurfaceUtil.createCanvas());
+
+      // pngjs way
+      return SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf).then((arg)=>{
+        var {width, height, data} = arg;
+        render.cnv.width = width;
+        render.cnv.height = height;
+        var imgdata = render.ctx.getImageData(0, 0, width, height);
+        var _data = <any>imgdata.data; // type hack
+        _data.set(data);
+        render.ctx.putImageData(imgdata, 0, 0);
+        return Promise.resolve(render.cnv);
       }).catch((err)=>{
-        return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
+        console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
+        
+        // basic way
+        return SurfaceUtil.fetchImageFromArrayBuffer(pngbuf).then((img)=>{
+          render.init(img);
+          if(_pnafilename === ""){
+            render.chromakey();
+            this.canvasCache[_filename] = render.cnv;
+            return Promise.resolve(render.cnv);
+          }
+          return SurfaceUtil.fetchImageFromArrayBuffer(pnabuf).then((pnaimg)=>{
+            render.pna(SurfaceUtil.copy(pnaimg));
+            this.canvasCache[_filename] = render.cnv;
+            return Promise.resolve(render.cnv);
+          });
+        }).catch((err)=>{
+          return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
+        });
+
       });
     }
 

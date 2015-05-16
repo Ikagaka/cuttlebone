@@ -18,21 +18,38 @@ var cuttlebone;
             return copy;
         }
         SurfaceUtil.copy = copy;
-        function fetchImageFromArrayBuffer(buffer, mimetype) {
-            if (SurfaceUtil.enablePNGjs) {
-                var reader = new cuttlebone.PNGReader(buffer);
-                var png = reader.parse();
-                var decoded = png.getUint8ClampedArray();
-                var cnv = createCanvas();
-                cnv.width = png.width;
-                cnv.height = png.height;
-                var ctx = cnv.getContext("2d");
-                var imgdata = ctx.getImageData(0, 0, cnv.width, cnv.height);
-                var data = imgdata.data;
-                data.set(decoded);
-                ctx.putImageData(imgdata, 0, 0);
-                return Promise.resolve(cnv);
+        function fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf) {
+            var reader = new cuttlebone.PNGReader(pngbuf);
+            var png = reader.parse();
+            var dataA = png.getUint8ClampedArray();
+            if (typeof pnabuf === "undefined") {
+                var r = dataA[0], g = dataA[1], b = dataA[2], a = dataA[3];
+                var i = 0;
+                if (a !== 0) {
+                    while (i < dataA.length) {
+                        if (r === dataA[i] && g === dataA[i + 1] && b === dataA[i + 2]) {
+                            dataA[i + 3] = 0;
+                        }
+                        i += 4;
+                    }
+                }
+                return Promise.resolve({ width: png.width, height: png.height, data: dataA });
             }
+            var pnareader = new cuttlebone.PNGReader(pnabuf);
+            var pna = pnareader.parse();
+            var dataB = pna.getUint8ClampedArray();
+            var i = 0;
+            if (dataA.length !== dataB.length) {
+                return Promise.reject("fetchPNGUint8ClampedArrayFromArrayBuffer TypeError: png" + png.width + "x" + png.height + " and  pna" + pna.width + "x" + pna.height + " do not match both sizes");
+            }
+            while (i < dataA.length) {
+                dataA[i + 3] = dataB[i];
+                i += 4;
+            }
+            return Promise.resolve({ width: png.width, height: png.height, data: dataA });
+        }
+        SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer = fetchPNGUint8ClampedArrayFromArrayBuffer;
+        function fetchImageFromArrayBuffer(buffer, mimetype) {
             var url = URL.createObjectURL(new Blob([buffer], { type: mimetype || "image/png" }));
             return fetchImageFromURL(url).then(function (img) {
                 URL.revokeObjectURL(url);

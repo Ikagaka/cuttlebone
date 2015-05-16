@@ -255,24 +255,40 @@ var cuttlebone;
                 }
                 console.warn("element file " + filename + " need '.png' extension");
             }
-            var render = new cuttlebone.SurfaceRender(document.createElement("canvas"));
             var _filename = find(Object.keys(this.directory), filename)[0];
-            return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(this.directory[_filename]).then(function (img) {
-                render.init(img);
-                var pnafilename = _filename.replace(/\.png$/i, ".pna");
-                var _pnafilename = find(Object.keys(_this.directory), pnafilename)[0] || "";
-                if (_pnafilename === "") {
-                    render.chromakey();
-                    _this.canvasCache[_filename] = render.cnv;
-                    return Promise.resolve(render.cnv);
-                }
-                return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(_this.directory[_pnafilename]).then(function (pnaimg) {
-                    render.pna(cuttlebone.SurfaceUtil.copy(pnaimg));
-                    _this.canvasCache[_filename] = render.cnv;
-                    return Promise.resolve(render.cnv);
-                });
+            var pnafilename = _filename.replace(/\.png$/i, ".pna");
+            var _pnafilename = find(Object.keys(this.directory), pnafilename)[0] || "";
+            var pngbuf = this.directory[_filename];
+            var pnabuf = this.directory[_pnafilename];
+            var render = new cuttlebone.SurfaceRender(cuttlebone.SurfaceUtil.createCanvas());
+            // pngjs way
+            return cuttlebone.SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf).then(function (arg) {
+                var width = arg.width, height = arg.height, data = arg.data;
+                render.cnv.width = width;
+                render.cnv.height = height;
+                var imgdata = render.ctx.getImageData(0, 0, width, height);
+                var _data = imgdata.data; // type hack
+                _data.set(data);
+                render.ctx.putImageData(imgdata, 0, 0);
+                return Promise.resolve(render.cnv);
             }).catch(function (err) {
-                return Promise.reject("getPNGFromDirectory(" + filename + ") > " + err);
+                console.warn("getPNGFromDirectory(" + filename + ", pngjs) > ", err);
+                // basic way
+                return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(pngbuf).then(function (img) {
+                    render.init(img);
+                    if (_pnafilename === "") {
+                        render.chromakey();
+                        _this.canvasCache[_filename] = render.cnv;
+                        return Promise.resolve(render.cnv);
+                    }
+                    return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(pnabuf).then(function (pnaimg) {
+                        render.pna(cuttlebone.SurfaceUtil.copy(pnaimg));
+                        _this.canvasCache[_filename] = render.cnv;
+                        return Promise.resolve(render.cnv);
+                    });
+                }).catch(function (err) {
+                    return Promise.reject("getPNGFromDirectory(" + filename + ") > " + err);
+                });
             });
         };
         Shell.prototype.attachSurface = function (canvas, scopeId, surfaceId) {

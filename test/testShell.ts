@@ -20,6 +20,7 @@ prmNar.then((nanikaDir)=>{
     shell.load().then((shell)=>{
       assert.ok(true);
       console.log(shell);
+
       setInterval(()=>{
         shell.unbind(20);
         shell.unbind(30);
@@ -38,6 +39,7 @@ prmNar.then((nanikaDir)=>{
           shell.render();
         }, 3000);
       }, 6000);
+      
       done();
     }).catch((err)=>{
       console.error(err, err.stack, shell);

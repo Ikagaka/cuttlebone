@@ -4,7 +4,12 @@ declare module cuttlebone {
         var enablePNGjs: boolean;
         function choice<T>(arr: T[]): T;
         function copy(cnv: HTMLCanvasElement | HTMLImageElement): HTMLCanvasElement;
-        function fetchImageFromArrayBuffer(buffer: ArrayBuffer, mimetype?: string): Promise<HTMLCanvasElement | HTMLImageElement>;
+        function fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf: ArrayBuffer, pnabuf?: ArrayBuffer): Promise<{
+            width: number;
+            height: number;
+            data: Uint8ClampedArray;
+        }>;
+        function fetchImageFromArrayBuffer(buffer: ArrayBuffer, mimetype?: string): Promise<HTMLImageElement>;
         function fetchImageFromURL(url: string): Promise<HTMLImageElement>;
         function random(callback: (callback: () => void) => void, probability: number): void;
         function periodic(callback: (callback: () => void) => void, sec: number): void;

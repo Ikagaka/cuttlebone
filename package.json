@@ -1,6 +1,6 @@
 {
   "name": "cuttlebone",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "ukagaka shell renderer for web browser",
   "url": "https://github.com/ikagaka/cuttlebone.js",
   "keywords": [
@@ -10,13 +10,12 @@
     "cuttlebone"
   ],
   "scripts": {
-    "build": "rm -rf output/*; npm run build-coffee; npm run build-src; npm run build-test; npm run build-cat",
+    "build": "rm -rf output/*; npm run build-coffee; npm run build-src; npm run build-test; npm run concat",
     "build-coffee": "node node_modules/coffee-script/bin/coffee --compile --output output/coffee coffee/*.coffee",
     "build-src":  "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --declaration --rootDir ./ --outdir output  src/*.ts;",
     "build-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --declaration --rootDir ./ --outdir output test/*.ts",
-    "build-cat": "cat output/coffee/header.js output/coffee/NamedManager.js output/coffee/Named.js output/coffee/Scope.js output/coffee/Balloon.js output/coffee/BalloonSurface.js output/src/Shell.js output/src/Surface.js output/src/SurfaceUtil.js output/src/SurfaceRender.js output/coffee/footer.js > lib/cuttlebone.js",
-    "build-cat-pngjs": "cat output/coffee/header.js output/coffee/NamedManager.js output/coffee/Named.js output/coffee/Scope.js output/coffee/Balloon.js output/coffee/BalloonSurface.js output/src/PNGReader.js output/src/Shell.js output/src/Surface.js output/src/SurfaceUtil.js output/src/SurfaceRender.js output/coffee/footer.js > lib/cuttlebone.js",
     "watch-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --declaration --rootDir ./ --outdir output --watch test/*.ts",
+    "concat": "cat output/coffee/header.js output/coffee/NamedManager.js output/coffee/Named.js output/coffee/Scope.js output/coffee/Balloon.js output/coffee/BalloonSurface.js output/src/PNGReader.js output/src/PNG.js output/src/Shell.js output/src/Surface.js output/src/SurfaceUtil.js output/src/SurfaceRender.js output/coffee/footer.js > lib/cuttlebone.js",
     "espower": "cat output/test/test*.js > output/test/all.js; node node_modules/espower-cli/bin/cmd.js output/test/all.js > output/test/all.esp.js",
     "update": "npm update; bower update; tsd update --save --overwrite",
     "init": "npm run update; npm run build; npm run start; npm run demo;",

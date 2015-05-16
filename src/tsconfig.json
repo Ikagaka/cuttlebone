@@ -20,6 +20,7 @@
     "files": [
         "./Balloon.ts",
         "./Blimp.ts",
+        "./PNG.ts",
         "./PNGReader.ts",
         "./Scope.ts",
         "./Shell.ts",

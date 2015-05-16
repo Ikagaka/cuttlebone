@@ -104,7 +104,7 @@ module cuttlebone {
       intervals.forEach((itvl)=>{
         this.initAnimation({interval: itvl, is, patterns, option});
       });
-      if(interval.length > 0) return;
+      if(intervals.length > 0) return;
       this.layers[is] = patterns[patterns.length-1];
       this.render();
     }

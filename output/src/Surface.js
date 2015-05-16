@@ -105,7 +105,7 @@ var cuttlebone;
             intervals.forEach(function (itvl) {
                 _this.initAnimation({ interval: itvl, is: is, patterns: patterns, option: option });
             });
-            if (interval.length > 0)
+            if (intervals.length > 0)
                 return;
             this.layers[is] = patterns[patterns.length - 1];
             this.render();

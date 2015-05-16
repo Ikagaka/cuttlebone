@@ -1,13 +1,14 @@
 /// <reference path="../typings/tsd.d.ts" />
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/PNGReader.ts" />
+/// <reference path="../src/PNG.ts"/>
 /// <reference path="../src/SurfaceUtil.ts"/>
 var prmNar = NarLoader.loadFromURL("../nar/mobilemaster.nar");
 prmNar.then(function (nanikaDir) {
     QUnit.module("cuttlebone.PNGReader");
     var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
     console.log(shellDir);
-    var pngs = Object.keys(shellDir).filter(function (filename) { return /\.png$/.test(filename); });
+    var pngs = Object.keys(shellDir).filter(function (filename) { return /\.png$|\.pna$/.test(filename); });
     //pngs = pngs.filter((filename)=> /(0500|0501|0701|0702|0704|0707|0730|0731)\.png$/.test(filename) ); // trouble makers
     pngs.forEach(function (filename) {
         QUnit.test(filename, function (assert) {
@@ -25,7 +26,8 @@ prmNar.then(function (nanikaDir) {
                 catch (err) {
                     console.error(filename, reader, err.message, err.stack);
                 }
-                /*var bitspp = png.colors * png.bitDepth;
+                /* //show bits
+                var bitspp = png.colors * png.bitDepth;
                 var width = png.width*Math.ceil(bitspp)/8
                 //console.log(width);
                 //console.log(png.pixels.length, width*png.height, png);
@@ -37,8 +39,8 @@ prmNar.then(function (nanikaDir) {
                 var isSame = true;
                 for (var j = 0; decoded.length > j; j++) {
                     if (decoded[j] !== original[j]) {
+                        //console.warn("bit level error, decoded", decoded[j], "original", original[j]);
                         if (Math.abs(decoded[j] - original[j]) > 1) {
-                            // bit level error
                             console.error(filename, png);
                             console.error(j, j % 4, decoded[j], original[j]);
                             drawOnCanvas(filename, png, shellDir[filename]);
@@ -47,6 +49,7 @@ prmNar.then(function (nanikaDir) {
                         }
                     }
                 }
+                drawOnCanvas(filename, png, shellDir[filename]);
                 assert.ok(isSame);
                 done();
             });
