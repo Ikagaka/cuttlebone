@@ -17,7 +17,7 @@ prmNar.then((nanikaDir)=>{
   pngs.forEach((filename)=>{
     QUnit.test(filename, (assert)=> {
       var done = assert.async();
-      cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(shellDir[filename]).then((img)=>{
+      return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(shellDir[filename]).then((img)=>{
         console.info(filename);
         var cnv = cuttlebone.SurfaceUtil.copy(img);
         var ctx = <CanvasRenderingContext2D>cnv.getContext("2d");

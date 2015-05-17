@@ -1,7 +1,7 @@
 
 
 module cuttlebone {
-  export class Blimp {
+  export class BalloonSurface {
 
     element: HTMLDivElement;
     scopeId: number;
@@ -35,6 +35,6 @@ module cuttlebone {
     _blimpClickableTextCSS(): void{}
     _initializeCurrentStyle(): void{}
     _getFontColor(): void{}
-    
+
   }
 }

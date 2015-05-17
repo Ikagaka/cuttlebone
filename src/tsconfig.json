@@ -19,7 +19,8 @@
     ],
     "files": [
         "./Balloon.ts",
-        "./Blimp.ts",
+        "./BalloonSurface.ts",
+        "./BlobWorker.ts",
         "./PNG.ts",
         "./PNGReader.ts",
         "./Scope.ts",

@@ -1,5 +1,6 @@
 /// <reference path="./SurfaceUtil"/>
 /// <reference path="./SurfaceRender"/>
+/// <reference path="./BalloonSurface"/>
 var cuttlebone;
 (function (cuttlebone) {
     var Balloon = (function () {
@@ -12,7 +13,7 @@ var cuttlebone;
             return Promise.resolve(this);
         };
         Balloon.prototype.attachBlimp = function (div, scopeId, surfaceId) {
-            var blimp = new cuttlebone.Blimp(div, scopeId, surfaceId, this);
+            var blimp = new cuttlebone.BalloonSurface(div, scopeId, surfaceId, this);
             this.blimps.push([div, blimp]);
             return blimp;
         };

@@ -5,7 +5,7 @@ declare module cuttlebone {
         shell: Shell;
         balloon: Balloon;
         currentSurface: Surface;
-        currentBlimp: Blimp;
+        currentBlimp: BalloonSurface;
         scopeId: number;
         scopeElm: HTMLDivElement;
         surfaceElm: HTMLDivElement;
@@ -13,6 +13,6 @@ declare module cuttlebone {
         blimpElm: HTMLDivElement;
         constructor(scopeId: number, shell: Shell, balloon: Balloon);
         surface(surfaceId: number | string): Surface;
-        blimp(balloonId: number): Blimp;
+        blimp(balloonId: number): BalloonSurface;
     }
 }

@@ -13,7 +13,7 @@ prmNar.then(function (nanikaDir) {
     pngs.forEach(function (filename) {
         QUnit.test(filename, function (assert) {
             var done = assert.async();
-            cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(shellDir[filename]).then(function (img) {
+            return cuttlebone.SurfaceUtil.fetchImageFromArrayBuffer(shellDir[filename]).then(function (img) {
                 console.info(filename);
                 var cnv = cuttlebone.SurfaceUtil.copy(img);
                 var ctx = cnv.getContext("2d");

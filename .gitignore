@@ -3,6 +3,7 @@ bower_components
 typings
 nar
 !nar/mobilemaster.nar
+output
 
 #################
 ## Eclipse

@@ -293,7 +293,7 @@ module cuttlebone {
         return Promise.resolve(render.cnv);
       }).catch((err)=>{
         console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
-        
+
         // basic way
         return SurfaceUtil.fetchImageFromArrayBuffer(pngbuf).then((img)=>{
           render.init(img);
@@ -319,12 +319,12 @@ module cuttlebone {
       if(typeof surfaceId === "string"){
         if(!!this.surfacesTxt.aliases && !!this.surfacesTxt.aliases[type] && !!this.surfacesTxt.aliases[type][surfaceId]){
           var _surfaceId = SurfaceUtil.choice<number>(this.surfacesTxt.aliases[type][surfaceId]);
-        }else{
-          throw new Error("RuntimeError: surface alias scope:" + type+ ", id:" + surfaceId + " is not defined.");
-        }
+        }else throw new Error("ReferenceError: surface alias scope:" + type+ ", id:" + surfaceId + " is not defined.");
       }else if(typeof surfaceId === "number"){
         var _surfaceId = surfaceId;
       }else throw new Error("TypeError: surfaceId: number|string is not match " + typeof surfaceId);
+      var tuple = this.surfaces.filter((tuple)=> tuple[0] === canvas)[0];
+      if(!!tuple) throw new Error("ReferenceError: this HTMLCanvasElement is already attached");
       var srf = new Surface(canvas, scopeId, _surfaceId, this);
       this.surfaces.push([canvas, srf]);
       return srf;

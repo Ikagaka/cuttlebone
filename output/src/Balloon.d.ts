@@ -6,12 +6,12 @@ declare module cuttlebone {
         descript: {
             [key: string]: string;
         };
-        blimps: [HTMLDivElement, Blimp][];
+        blimps: [HTMLDivElement, BalloonSurface][];
         constructor(directory: {
             [filepath: string]: ArrayBuffer;
         });
         load(): Promise<Balloon>;
-        attachBlimp(div: HTMLDivElement, scopeId: number, surfaceId: number): Blimp;
+        attachBlimp(div: HTMLDivElement, scopeId: number, surfaceId: number): BalloonSurface;
         detachBlimp(div: HTMLDivElement): void;
     }
 }

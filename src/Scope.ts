@@ -1,7 +1,7 @@
 /// <reference path="./Shell"/>
 /// <reference path="./Surface"/>
 /// <reference path="./Balloon"/>
-/// <reference path="./Blimp"/>
+/// <reference path="./BalloonSurface"/>
 /// <reference path="./SurfaceUtil"/>
 /// <reference path="../typings/zepto/zepto.d.ts"/>
 
@@ -13,7 +13,7 @@ module cuttlebone {
     shell: Shell;
     balloon: Balloon;
     currentSurface: Surface;
-    currentBlimp: Blimp;
+    currentBlimp: BalloonSurface;
 
     scopeId: number;
 
@@ -79,7 +79,7 @@ module cuttlebone {
       return this.currentSurface;
     }
 
-    blimp(balloonId: number): Blimp{
+    blimp(balloonId: number): BalloonSurface{
       return this.currentBlimp;
     }
   }

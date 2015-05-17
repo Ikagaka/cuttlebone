@@ -11,7 +11,7 @@ prmNar.then(function (nanikaDir) {
     var shell = new cuttlebone.Shell(shellDir);
     QUnit.test("shell#load", function (assert) {
         var done = assert.async();
-        shell.load().then(function (shell) {
+        return shell.load().then(function (shell) {
             assert.ok(true);
             console.log(shell);
             setInterval(function () {

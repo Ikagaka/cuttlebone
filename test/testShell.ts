@@ -17,7 +17,7 @@ prmNar.then((nanikaDir)=>{
 
   QUnit.test("shell#load", (assert)=> {
     var done = assert.async();
-    shell.load().then((shell)=>{
+    return shell.load().then((shell)=>{
       assert.ok(true);
       console.log(shell);
 
@@ -39,7 +39,7 @@ prmNar.then((nanikaDir)=>{
           shell.render();
         }, 3000);
       }, 6000);
-      
+
       done();
     }).catch((err)=>{
       console.error(err, err.stack, shell);

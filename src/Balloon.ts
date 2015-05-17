@@ -1,5 +1,6 @@
 /// <reference path="./SurfaceUtil"/>
 /// <reference path="./SurfaceRender"/>
+/// <reference path="./BalloonSurface"/>
 
 module cuttlebone {
 
@@ -7,7 +8,7 @@ module cuttlebone {
 
     directory: { [path: string]: ArrayBuffer; };
     descript: { [key: string]: string; };
-    blimps: [HTMLDivElement, Blimp][];
+    blimps: [HTMLDivElement, BalloonSurface][];
 
     constructor(directory: { [filepath: string]: ArrayBuffer; }) {
       this.directory = directory;
@@ -19,8 +20,8 @@ module cuttlebone {
       return Promise.resolve(this);
     }
 
-    attachBlimp(div: HTMLDivElement, scopeId: number, surfaceId: number): Blimp{
-      var blimp = new Blimp(div, scopeId, surfaceId, this);
+    attachBlimp(div: HTMLDivElement, scopeId: number, surfaceId: number): BalloonSurface{
+      var blimp = new BalloonSurface(div, scopeId, surfaceId, this);
       this.blimps.push([div, blimp]);
       return blimp;
     }

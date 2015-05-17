@@ -1,7 +1,7 @@
 /// <reference path="./Shell"/>
 /// <reference path="./Surface"/>
 /// <reference path="./Balloon"/>
-/// <reference path="./Blimp"/>
+/// <reference path="./BalloonSurface"/>
 /// <reference path="./SurfaceUtil"/>
 /// <reference path="../typings/zepto/zepto.d.ts"/>
 var cuttlebone;
