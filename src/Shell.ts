@@ -6,6 +6,9 @@
 
 module cuttlebone {
 
+  /**
+   * extend deep like jQuery $.extend(true, target, source)
+   */
   function extend(target: any, source: any): void {
     for(var key in source){
       if (typeof source[key] === "object" && Object.getPrototypeOf(source[key]) === Object.prototype) {
@@ -20,6 +23,9 @@ module cuttlebone {
     }
   }
 
+  /**
+   * "hoge.huga, foo, bar\n" to {"hoge.huga": "foo, bar"}
+   */
   function parseDescript(text: string): {[key:string]:string}{
     text = text.replace(/(?:\r\n|\r|\n)/g, "\n"); // CRLF->LF
     while(true){// remove commentout
@@ -41,10 +47,17 @@ module cuttlebone {
     return dic;
   }
 
+
+  /**
+   * convert some encoding txt file arraybuffer to js string
+   */
   function convert(buffer: ArrayBuffer):string{
     return Encoding.codeToString(Encoding.convert(new Uint8Array(buffer), 'UNICODE', 'AUTO'));
   }
 
+  /**
+   * find filename that matches arg "filename" from arg "paths"
+   */
   function find(paths: string[], filename: string): string[] {
     filename = filename.split("\\").join("/");
     if(filename.slice(0,2) === "./") filename = filename.slice(2);
@@ -68,8 +81,19 @@ module cuttlebone {
     surfacesTxt: SurfacesTxt;
     surfaceTree: SurfaceTreeNode[];
     canvasCache: { [key: string]: HTMLCanvasElement; };
+    /**
+     * 
+     */
     bindgroup: boolean[];
+    /**
+     * draw collision area
+     */
     enableRegionVisible: boolean;
+    /**
+     * use pngjs PNG decoder.
+     * if this false or pngjs decode failed, use BlobURL and Image constrictor
+     * default: true
+     */
     enablePNGdecoder: boolean;
 
     constructor(directory: { [filepath: string]: ArrayBuffer; }) {
