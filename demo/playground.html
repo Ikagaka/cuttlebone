@@ -3,11 +3,19 @@
 <script src="../bower_components/jszip/dist/jszip.min.js"></script>
 <script src="../bower_components/narloader/NarLoader.js"></script>
 <script src="../bower_components/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
+<script src="../bower_components/lodash/lodash.min.js"></script>
 <script src="../bower_components/zepto/zepto.min.js"></script>
-<script src="../lib/cuttlebone.js"></script>
+<script src="../bower_components/cuttlebone/lib/cuttlebone.js"></script>
 <style>
+textarea {
+  width: 100%;
+  height: 500px;
+}
 </style>
-<script>
+<p>nar: <input type="file" id="nar" /></p>
+<fieldset>
+<legend>boot</legend>
+<p><textarea id="code">
 var nmdmgr = null;
 var balloonDir = null;
 
@@ -17,11 +25,11 @@ $(function() {
     NarLoader.loadFromBlob(file).then(onNarLoad);
     $(this).val(null);
   });
-  NarLoader.loadFromURL("../nar/origin.nar").then(function(nanikaDir) {
+  NarLoader.loadFromURL("../bower_components/cuttlebone/nar/origin.nar").then(function(nanikaDir) {
     balloonDir = nanikaDir.asArrayBuffer();
     nmdmgr = new cuttlebone.NamedManager();
     $(nmdmgr.element).appendTo("body");
-    NarLoader.loadFromURL("../nar/mobilemaster.nar").then(onNarLoad);
+    NarLoader.loadFromURL("../bower_components/cuttlebone/nar/mobilemaster.nar").then(onNarLoad);
   });
 });
 
@@ -49,9 +57,11 @@ function onNarLoad(nanikaDir) {
     named.on("choiceselect", onEvent);
 
     named.load().then(function(){
-      nmdmgr.namedies.forEach(function(named){
-        talk(named);
-      });
+      $("#run").click(function(){
+        nmdmgr.namedies.forEach(function(named){
+          eval($("#snipet").val());
+        });
+      }).click();
     });
 
   })["catch"](function(err) { console.error(err, err.stack); });
@@ -72,40 +82,66 @@ function onEvent(ev) {
   console.log(ev);
 }
 
-function talk(named){
-  Promise.resolve(named)
-  .then(wait(0, function(named) { named.scope(0); }))
-  .then(wait(0, function(named) { named.scope().surface(0); }))
-  .then(wait(0, function(named) { named.scope().blimp().clear(); }))
-  .then(wait(0, function(named) { named.scope(1); }))
-  .then(wait(0, function(named) { named.scope().surface(10); }))
-  .then(wait(0, function(named) { named.scope().blimp().clear(); }))
-  .then(wait(0, function(named) { named.scope(0); }))
-  .then(wait(0, function(named) { named.scope().blimp(0); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("H"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("e"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk(","); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("w"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("r"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("d"); }))
-  .then(wait(80, function(named) { named.scope().blimp().talk("!"); }))
-  .then(wait(160, function(named) { named.scope(1); }))
-  .then(wait(0, function(named) { named.scope().blimp().anchorBegin("AnchorID"); }))
-  .then(wait(0, function(named) { named.scope().blimp().talk("anchor"); }))
-  .then(wait(0, function(named) { named.scope().blimp().anchorEnd(); }))
-  .then(wait(0, function(named) { named.scope().blimp().br(); }))
-  .then(wait(0, function(named) { named.scope().blimp().talk("<" + "script>alert(1);<" + "/script>"); }))
-  .then(wait(0, function(named) { named.scope().blimp().br(); }))
-  .then(wait(0, function(named) { named.scope().blimp().choice("choice", "ChoceID"); }))
-  .then(wait(0, function(named) { named.scope().blimp().br(); }))
-  .then(wait(0, function(named) { named.scope().blimp().talk("hi."); }))
-  .then(wait(0, function(named) { named.scope().blimp().showWait(); }))
-  .then(wait(3000, function(named) { named.scope().blimp().talk("stop wait"); }));
-}
+$(function(){
+  $("#born").click(function(){
+    eval($("#code").val());
+  });
+});
 
+$(function(){
+  $("#kill").click(function(){
+    nmdmgr.destructor();
+  })
+});
+</textarea></p>
+<p>
+  <input type="button" id="born" value="born" />
+  <input type="button" id="kill" value="kill" />
+</p>
+</fieldset>
+<fieldset>
+<legend>sakura script</legend>
+<p><textarea id="snipet">
+Promise.resolve(named)
+.then(wait(0, function(named) { named.scope(0); }))
+.then(wait(0, function(named) { named.scope().surface(0); }))
+.then(wait(0, function(named) { named.scope().blimp().clear(); }))
+.then(wait(0, function(named) { named.scope(1); }))
+.then(wait(0, function(named) { named.scope().surface(10); }))
+.then(wait(0, function(named) { named.scope().blimp().clear(); }))
+.then(wait(0, function(named) { named.scope(0); }))
+.then(wait(0, function(named) { named.scope().blimp(0); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("H"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("e"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk(","); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("w"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("r"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("d"); }))
+.then(wait(80, function(named) { named.scope().blimp().talk("!"); }))
+.then(wait(160, function(named) { named.scope(1); }))
+.then(wait(0, function(named) { named.scope().blimp().anchorBegin("AnchorID"); }))
+.then(wait(0, function(named) { named.scope().blimp().talk("anchor"); }))
+.then(wait(0, function(named) { named.scope().blimp().anchorEnd(); }))
+.then(wait(0, function(named) { named.scope().blimp().br(); }))
+.then(wait(0, function(named) { named.scope().blimp().talk("<" + "script>alert(1);<" + "/script>"); }))
+.then(wait(0, function(named) { named.scope().blimp().br(); }))
+.then(wait(0, function(named) { named.scope().blimp().choice("choice", "ChoceID"); }))
+.then(wait(0, function(named) { named.scope().blimp().br(); }))
+.then(wait(0, function(named) { named.scope().blimp().talk("hi."); }))
+.then(wait(0, function(named) { named.scope().blimp().showWait(); }))
+.then(wait(3000, function(named) { named.scope().blimp().talk("stop wait"); }))
+</textarea></p>
+<p>
+  <input type="button" id="run" value="run" />
+</p>
+</fieldset>
+<script>
+$(function(){
+  eval($("#code").val());
+});
 </script>
