@@ -17,7 +17,7 @@
     "espower": "for i in `find output/test -name test*.js`; do node node_modules/espower-cli/bin/cmd.js $i > $i.esp.js; done",
     "concat-src": "cat output/coffee/header.js output/coffee/NamedManager.js output/coffee/Named.js output/coffee/Scope.js output/coffee/Balloon.js output/coffee/BalloonSurface.js output/src/PNGReader.js output/src/PNG.js output/src/Shell.js output/src/Surface.js output/src/SurfaceUtil.js output/src/SurfaceRender.js output/coffee/footer.js > lib/cuttlebone.js",
     "update": "npm update; bower update; tsd update --save --overwrite",
-    "init": "npm run update; npm run build; npm run start; npm run demo; npm run watch-test",
+    "init": "npm run update; npm run build; npm run start; npm run demo",
     "demo": "open http://localhost:8000/demo/",
     "start": "Python -m SimpleHTTPServer 8000 &",
     "stop": "killall -- Python -m SimpleHTTPServer 8000; exit 0"
