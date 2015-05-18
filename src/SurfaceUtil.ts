@@ -22,9 +22,13 @@ module cuttlebone {
     }
 
     export function fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf: ArrayBuffer, pnabuf?: ArrayBuffer): Promise<{width:number, height:number, data:Uint8ClampedArray}> {
-      var reader = new PNGReader(pngbuf);
-      var png = reader.parse();
-      var dataA = png.getUint8ClampedArray();
+      try{
+        var reader = new PNGReader(pngbuf);
+        var png = reader.parse();
+        var dataA = png.getUint8ClampedArray();
+      }catch(err){
+        return Promise.reject("fetchPNGUint8ClampedArrayFromArrayBuffer msg:"+err+", reason: "+err.stack);
+      }
       if(typeof pnabuf === "undefined"){
         var r = dataA[0], g = dataA[1], b = dataA[2], a = dataA[3];
         var i = 0;
@@ -49,8 +53,10 @@ module cuttlebone {
         dataA[i + 3] = dataB[i];
         i += 4;
       }
+
       return Promise.resolve({width: png.width, height: png.height, data: dataA});
     }
+
 
     export function fetchImageFromArrayBuffer(buffer: ArrayBuffer, mimetype?:string): Promise<HTMLImageElement> {
       var url = URL.createObjectURL(new Blob([buffer], {type: mimetype || "image/png"}));

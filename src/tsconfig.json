@@ -21,6 +21,7 @@
         "./Balloon.ts",
         "./BalloonSurface.ts",
         "./BlobWorker.ts",
+        "./Menu.ts",
         "./PNG.ts",
         "./PNGReader.ts",
         "./Scope.ts",

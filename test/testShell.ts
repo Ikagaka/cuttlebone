@@ -27,7 +27,7 @@ prmNar.then((nanikaDir)=>{
         shell.unbind(31);
         shell.unbind(32);
         shell.unbind(50);
-        shell.isRegionVisible = true;
+        shell.enableRegionVisible = true;
         shell.render();
         setTimeout(()=>{
           shell.bind(20);
@@ -35,7 +35,7 @@ prmNar.then((nanikaDir)=>{
           shell.bind(31);
           shell.bind(32);
           shell.bind(50);
-          shell.isRegionVisible = false;
+          shell.enableRegionVisible = false;
           shell.render();
         }, 3000);
       }, 6000);
@@ -50,6 +50,7 @@ prmNar.then((nanikaDir)=>{
 
 
   QUnit.test("shell#hasFile", (assert)=> {
+    console.log(2)
     assert.ok(shell.hasFile("surface0.png"));
     assert.ok(shell.hasFile("surface0.PNG"));
     assert.ok(shell.hasFile(".\\SURFACE0.PNG"));

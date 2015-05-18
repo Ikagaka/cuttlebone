@@ -139,7 +139,7 @@ module cuttlebone {
       this.bufRender.init(srfNode.base);
       this.bufRender.composeElements(srfNode.elements);
       this.bufRender.composeElements(renderLayers);
-      if (this.shell.isRegionVisible) {
+      if (this.shell.enableRegionVisible) {
         this.bufRender.ctx.fillText(""+this.surfaceId, 5, 10);
         this.bufRender.drawRegions(srfNode.collisions);
       }

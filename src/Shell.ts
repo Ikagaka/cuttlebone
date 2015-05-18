@@ -69,7 +69,8 @@ module cuttlebone {
     surfaceTree: SurfaceTreeNode[];
     canvasCache: { [key: string]: HTMLCanvasElement; };
     bindgroup: boolean[];
-    isRegionVisible: boolean;
+    enableRegionVisible: boolean;
+    enablePNGdecoder: boolean;
 
     constructor(directory: { [filepath: string]: ArrayBuffer; }) {
       this.directory = directory;
@@ -79,7 +80,8 @@ module cuttlebone {
       this.surfaceTree = [];
       this.canvasCache = {};
       this.bindgroup = [];
-      this.isRegionVisible = false;
+      this.enableRegionVisible = false;
+      this.enablePNGdecoder = true;
     }
 
     load(): Promise<Shell> {
@@ -187,30 +189,35 @@ module cuttlebone {
 
     // load elements
     loadElements(): Promise<Shell>{
-      return new Promise<Shell>((resolve, reject)=>{
-        var srfs = this.surfacesTxt.surfaces;
-        Object.keys(srfs).filter((name)=> !!srfs[name].elements).forEach((defname)=>{
-          var n = srfs[defname].is;
-          var elms = srfs[defname].elements;
-          Object.keys(elms).forEach((elmname)=>{
-            var {is, type, file, x, y} = elms[elmname];
-            this.getPNGFromDirectory(file).then((canvas)=>{
-              if(!this.surfaceTree[n]){
-                this.surfaceTree[n] = {
-                  base: SurfaceUtil.createCanvas(),
-                  elements: [],
-                  collisions: [],
-                  animations: []
-                };
-              }
-              this.surfaceTree[n].elements[is] = {type, canvas, x, y};
-              resolve(Promise.resolve(this));
-            }).catch((err)=>{
-              console.warn("Shell#loadElements > " + err);
-              resolve(Promise.resolve(this));
-            });
+      var srfs = this.surfacesTxt.surfaces;
+      var hits = Object.keys(srfs).filter((name)=> !!srfs[name].elements);
+      var prms = hits.map((defname)=>{
+        var n = srfs[defname].is;
+        var elms = srfs[defname].elements;
+        var _prms = Object.keys(elms).map((elmname)=>{
+          var {is, type, file, x, y} = elms[elmname];
+          return this.getPNGFromDirectory(file).then((canvas)=>{
+            if(!this.surfaceTree[n]){
+              this.surfaceTree[n] = {
+                base: SurfaceUtil.createCanvas(),
+                elements: [],
+                collisions: [],
+                animations: []
+              };
+            }
+            this.surfaceTree[n].elements[is] = {type, canvas, x, y};
+            return Promise.resolve(this);
+          }).catch((err)=>{
+            console.warn("Shell#loadElements > " + err);
+            return Promise.resolve(this);
           });
         });
+        return Promise.all(_prms).then(()=> {
+          return Promise.resolve(this);
+        });
+      });
+      return Promise.all(prms).then(()=> {
+        return Promise.resolve(this);
       });
     }
 
@@ -281,19 +288,23 @@ module cuttlebone {
       var pnabuf = this.directory[_pnafilename];
       var render = new SurfaceRender(SurfaceUtil.createCanvas());
 
-      // pngjs way
-      return SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf).then((arg)=>{
-        var {width, height, data} = arg;
-        render.cnv.width = width;
-        render.cnv.height = height;
-        var imgdata = render.ctx.getImageData(0, 0, width, height);
-        var _data = <any>imgdata.data; // type hack
-        _data.set(data);
-        render.ctx.putImageData(imgdata, 0, 0);
-        return Promise.resolve(render.cnv);
-      }).catch((err)=>{
-        console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
 
+
+      var planA = ()=>{
+        // pngjs way
+        return SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf).then((arg)=>{
+          var {width, height, data} = arg;
+          render.cnv.width = width;
+          render.cnv.height = height;
+          var imgdata = render.ctx.getImageData(0, 0, width, height);
+          var _data = <any>imgdata.data; // type hack
+          _data.set(data);
+          render.ctx.putImageData(imgdata, 0, 0);
+          return Promise.resolve(render.cnv);
+        });
+      }
+
+      var planB = ()=>{
         // basic way
         return SurfaceUtil.fetchImageFromArrayBuffer(pngbuf).then((img)=>{
           render.init(img);
@@ -307,11 +318,21 @@ module cuttlebone {
             this.canvasCache[_filename] = render.cnv;
             return Promise.resolve(render.cnv);
           });
+        });
+      }
+
+      if(this.enablePNGdecoder){
+        return planA().catch((err)=>{
+          console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
+          return planB();
         }).catch((err)=>{
           return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
         });
-
-      });
+      }else{
+        return planB().catch((err)=>{
+          return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
+        });
+      }
     }
 
     attachSurface(canvas: HTMLCanvasElement, scopeId: number, surfaceId: number|string): Surface {
