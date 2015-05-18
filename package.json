@@ -1,6 +1,6 @@
 {
   "name": "cuttlebone",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "ukagaka shell renderer for web browser",
   "url": "https://github.com/ikagaka/cuttlebone.js",
   "keywords": [
