@@ -4,6 +4,7 @@ typings
 nar
 !nar/mobilemaster.nar
 output
+npm-debug.log
 
 #################
 ## Eclipse
