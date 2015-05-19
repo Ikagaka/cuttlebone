@@ -6,19 +6,19 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "qunit/qunit.d.ts": {
-      "commit": "e42bef3a8f9024a50468b12202df69519315b023"
+      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     },
     "bluebird/bluebird.d.ts": {
-      "commit": "e42bef3a8f9024a50468b12202df69519315b023"
+      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     },
     "zepto/zepto.d.ts": {
-      "commit": "e42bef3a8f9024a50468b12202df69519315b023"
+      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     },
     "jszip/jszip.d.ts": {
-      "commit": "e42bef3a8f9024a50468b12202df69519315b023"
+      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     },
     "phantomjs/phantomjs.d.ts": {
-      "commit": "e42bef3a8f9024a50468b12202df69519315b023"
+      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     }
   }
 }

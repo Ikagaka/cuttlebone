@@ -19,7 +19,6 @@
     ],
     "files": [
         "./testPNGReader.ts",
-        "./testPhantomjs.ts",
         "./testShell.ts"
     ]
 }

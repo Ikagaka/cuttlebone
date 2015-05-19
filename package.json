@@ -10,7 +10,7 @@
     "cuttlebone"
   ],
   "scripts": {
-    "build": "rm -rf output/*; rm -rf lib/*; npm run build-coffee; npm run build-src; npm run concat-src; npm run build-test; npm run espower; npm run plato; npm run test;",
+    "build": "rm -rf output/*; rm -rf lib/*; npm run build-coffee; npm run build-src; npm run build-test; npm run concat-src; npm run espower; npm run plato; npm run test",
     "build-coffee": "node node_modules/coffee-script/bin/coffee --compile --output output/coffee coffee/*.coffee",
     "build-src":  "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output --declaration src/*.ts;",
     "build-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts",
