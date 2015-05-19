@@ -27,7 +27,7 @@ module cuttlebone {
       var offsetY = 0;
       switch (type) {
         case "base":
-          this.base(canvas, offsetX, offsetY);
+          this.base(canvas);
           break;
         case "overlay":
         case "add":
@@ -40,7 +40,6 @@ module cuttlebone {
         case "replace":
           this.replace(canvas, offsetX + x, offsetY + y);
           break;
-          break;
         case "interpolate":
           this.interpolate(canvas, offsetX + x, offsetY + y);
           break;
@@ -48,19 +47,15 @@ module cuttlebone {
           offsetX = x;
           offsetY = y;
           var copyed = SurfaceUtil.copy(this.cnv);
-          this.base(copyed, offsetX, offsetY);
+          this.base(copyed);
           break;
         case "asis":
         case "reduce":
-        case "insert,ID":
+        case "insert,ID": break;
         default:
           console.error(elements[0]);
       }
       this.composeElements(elements.slice(1));
-    }
-
-    composeBinds(binds: SurfaceAnimation[], bindgroup: boolean[][]): void {
-
     }
 
     clear(): void {
@@ -98,7 +93,7 @@ module cuttlebone {
       this.ctx.putImageData(imgdataA, 0, 0);
     }
 
-    base(part: HTMLCanvasElement, x?: number, y?: number): void {
+    base(part: HTMLCanvasElement): void {
       this.init(part);
     }
 

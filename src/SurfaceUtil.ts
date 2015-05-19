@@ -13,48 +13,50 @@ module cuttlebone {
     }
 
     export function copy(cnv: HTMLCanvasElement|HTMLImageElement): HTMLCanvasElement {
-      var copy = document.createElement("canvas");
-      var ctx = <CanvasRenderingContext2D>copy.getContext("2d");
-      copy.width = cnv.width;
-      copy.height = cnv.height;
+      var _copy = document.createElement("canvas");
+      var ctx = <CanvasRenderingContext2D>_copy.getContext("2d");
+      _copy.width = cnv.width;
+      _copy.height = cnv.height;
       ctx.drawImage(<HTMLCanvasElement>cnv, 0, 0); // type hack
-      return copy;
+      return _copy;
     }
 
     export function fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf: ArrayBuffer, pnabuf?: ArrayBuffer): Promise<{width:number, height:number, data:Uint8ClampedArray}> {
-      try{
+      return new Promise((resolve,reject)=>{
         var reader = new PNGReader(pngbuf);
         var png = reader.parse();
         var dataA = png.getUint8ClampedArray();
-      }catch(err){
-        return Promise.reject("fetchPNGUint8ClampedArrayFromArrayBuffer msg:"+err+", reason: "+err.stack);
-      }
-      if(typeof pnabuf === "undefined"){
-        var r = dataA[0], g = dataA[1], b = dataA[2], a = dataA[3];
-        var i = 0;
-        if (a !== 0) {
-          while (i < dataA.length) {
-            if (r === dataA[i] && g === dataA[i + 1] && b === dataA[i + 2]) {
-              dataA[i + 3] = 0;
+        if(typeof pnabuf === "undefined"){
+          var r = dataA[0], g = dataA[1], b = dataA[2], a = dataA[3];
+          var i = 0;
+          if (a !== 0) {
+            while (i < dataA.length) {
+              if (r === dataA[i] && g === dataA[i + 1] && b === dataA[i + 2]) {
+                dataA[i + 3] = 0;
+              }
+              i += 4;
             }
-            i += 4;
           }
+          return resolve(Promise.resolve({width: png.width, height: png.height, data: dataA}));
         }
-        return Promise.resolve({width: png.width, height: png.height, data: dataA});
-      }
-      var pnareader = new PNGReader(pnabuf);
-      var pna = pnareader.parse();
-      var dataB = pna.getUint8ClampedArray();
-      var i = 0;
-      if(dataA.length !== dataB.length){
-        return Promise.reject("fetchPNGUint8ClampedArrayFromArrayBuffer TypeError: png"+png.width+"x"+png.height+" and  pna"+pna.width+"x"+pna.height+" do not match both sizes");
-      }
-      while (i < dataA.length) {
-        dataA[i + 3] = dataB[i];
-        i += 4;
-      }
-
-      return Promise.resolve({width: png.width, height: png.height, data: dataA});
+        var pnareader = new PNGReader(pnabuf);
+        var pna = pnareader.parse();
+        var dataB = pna.getUint8ClampedArray();
+        if(dataA.length !== dataB.length){
+          return reject("fetchPNGUint8ClampedArrayFromArrayBuffer TypeError: png" +
+          png.width+"x"+png.height+" and  pna"+pna.width+"x"+pna.height +
+          " do not match both sizes");
+        }
+        var j = 0;
+        while (j < dataA.length) {
+          dataA[j + 3] = dataB[j];
+          j += 4;
+        }
+        return resolve(Promise.resolve({width: png.width, height: png.height, data: dataA}));
+      }).catch((err)=>{
+        console.warn("aeagag@apwekopk")
+        return Promise.reject("fetchPNGUint8ClampedArrayFromArrayBuffer msg:"+err+", reason: "+err.stack);
+      });
     }
 
 
@@ -69,14 +71,15 @@ module cuttlebone {
     }
 
     export function fetchImageFromURL(url: string): Promise<HTMLImageElement> {
-      var img = new Image;
+      var img = new Image();
       img.src = url;
       return new Promise<HTMLImageElement>((resolve, reject)=>{
         img.addEventListener("load", function() {
           resolve(Promise.resolve(img)); // type hack
         });
         img.addEventListener("error", function(ev) {
-          reject("fetchImageFromURL");
+          console.error("fetchImageFromURL", ev);
+          reject("fetchImageFromURL ");
         });
       });
     }

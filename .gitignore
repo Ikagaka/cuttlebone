@@ -4,6 +4,7 @@ typings
 nar
 !nar/mobilemaster.nar
 output
+report
 npm-debug.log
 
 #################

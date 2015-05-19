@@ -21,8 +21,7 @@
   "main": "lib/cuttlebone.js",
   "ignore": [
     "**/.*",
-    "bower_components",
-    "node_modules"
+    "bower_components"
   ],
   "exportsOverride": {}
 }

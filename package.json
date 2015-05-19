@@ -10,14 +10,17 @@
     "cuttlebone"
   ],
   "scripts": {
-    "build": "rm -rf output/*; rm -rf lib/*; npm run build-coffee; npm run build-src; npm run build-test; npm run espower; npm run concat-src;",
+    "build": "rm -rf output/*; rm -rf lib/*; npm run build-coffee; npm run build-src; npm run build-test; npm run espower; npm run concat-src; npm run plato;",
     "build-coffee": "node node_modules/coffee-script/bin/coffee --compile --output output/coffee coffee/*.coffee",
     "build-src":  "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output --declaration src/*.ts;",
     "build-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts",
     "espower": "for i in `find output/test -name test*.js`; do node node_modules/espower-cli/bin/cmd.js $i > $i.esp.js; done",
+    "jshint": "node node_modules/jshint/bin/jshint output/src/*.js",
+    "plato": "node node_modules/plato/bin/plato --title cuttlebone --jshint .jshintrc --recurse --dir report --exclude output/test/ output",
     "concat-src": "cat output/coffee/header.js output/coffee/NamedManager.js output/coffee/Named.js output/coffee/Scope.js output/coffee/Balloon.js output/coffee/BalloonSurface.js output/src/PNGReader.js output/src/PNG.js output/src/Shell.js output/src/Surface.js output/src/SurfaceUtil.js output/src/SurfaceRender.js output/coffee/footer.js > lib/cuttlebone.js",
     "update": "npm update; bower update; tsd update --save --overwrite",
     "init": "npm run update; npm run build; npm run start; npm run demo",
+    "report": "open http://localhost:8000/report/",
     "demo": "open http://localhost:8000/demo/",
     "start": "Python -m SimpleHTTPServer 8000 &",
     "stop": "killall -- Python -m SimpleHTTPServer 8000; exit 0"
@@ -30,7 +33,9 @@
   "devDependencies": {
     "typescript": "",
     "coffee-script": "",
-    "espower-cli": "^0.2.0"
+    "espower-cli": "",
+    "jshint": "",
+    "plato": ""
   },
   "bugs": {
     "url": "https://github.com/Ikagaka/cuttlebone/issues"
