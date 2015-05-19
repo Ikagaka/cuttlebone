@@ -1,4 +1,5 @@
-/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="../typings/bluebird/bluebird.d.ts"/>
+/// <reference path="../typings/qunit/qunit.d.ts"/>
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts" />
 /// <reference path="../src/PNGReader.ts" />
 /// <reference path="../src/PNG.ts"/>

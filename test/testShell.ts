@@ -1,3 +1,4 @@
+/// <reference path="../typings/bluebird/bluebird.d.ts"/>
 /// <reference path="../typings/qunit/qunit.d.ts"/>
 /// <reference path="../typings/zepto/zepto.d.ts"/>
 /// <reference path="../tsd/NarLoader/NarLoader.d.ts"/>

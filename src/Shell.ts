@@ -3,6 +3,8 @@
 /// <reference path="./SurfaceRender"/>
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 /// <reference path="../tsd/encoding-japanese/encoding.d.ts"/>
+/// <reference path="../typings/bluebird/bluebird.d.ts"/>
+
 
 module cuttlebone {
 
@@ -82,7 +84,7 @@ module cuttlebone {
     surfaceTree: SurfaceTreeNode[];
     canvasCache: { [key: string]: HTMLCanvasElement; };
     /**
-     * 
+     *
      */
     bindgroup: boolean[];
     /**

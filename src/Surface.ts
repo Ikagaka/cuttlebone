@@ -1,6 +1,7 @@
 /// <reference path="SurfaceRender.ts"/>
 /// <reference path="SurfaceUtil.ts"/>
 /// <reference path="Shell.ts"/>
+/// <reference path="../typings/bluebird/bluebird.d.ts"/>
 
 module cuttlebone {
 

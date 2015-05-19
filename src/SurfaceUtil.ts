@@ -1,5 +1,5 @@
 /// <reference path="./PNGReader"/>
-/// <reference path="../typings/tsd.d.ts"/>
+/// <reference path="../typings/bluebird/bluebird.d.ts"/>
 
 
 module cuttlebone {

@@ -13,6 +13,12 @@
     },
     "zepto/zepto.d.ts": {
       "commit": "e42bef3a8f9024a50468b12202df69519315b023"
+    },
+    "jszip/jszip.d.ts": {
+      "commit": "e42bef3a8f9024a50468b12202df69519315b023"
+    },
+    "phantomjs/phantomjs.d.ts": {
+      "commit": "e42bef3a8f9024a50468b12202df69519315b023"
     }
   }
 }

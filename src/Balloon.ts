@@ -1,6 +1,8 @@
 /// <reference path="./SurfaceUtil"/>
 /// <reference path="./SurfaceRender"/>
 /// <reference path="./BalloonSurface"/>
+/// <reference path="../typings/bluebird/bluebird.d.ts"/>
+
 
 module cuttlebone {
 
