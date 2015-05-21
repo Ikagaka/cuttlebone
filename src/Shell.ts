@@ -1,6 +1,7 @@
 /// <reference path="./Surface"/>
 /// <reference path="./SurfaceUtil"/>
 /// <reference path="./SurfaceRender"/>
+/// <reference path="./BlobWorker"/>
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 /// <reference path="../tsd/encoding-japanese/encoding.d.ts"/>
 /// <reference path="../typings/bluebird/bluebird.d.ts"/>
@@ -316,46 +317,41 @@ module cuttlebone {
 
 
 
-      var planA = ()=>{
+      var planB = ()=>{
         // pngjs way
-        return SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf).then((arg)=>{
-          var {width, height, data} = arg;
-          render.cnv.width = width;
-          render.cnv.height = height;
-          var imgdata = render.ctx.getImageData(0, 0, width, height);
-          var _data = <any>imgdata.data; // type hack
-          _data.set(data);
-          render.ctx.putImageData(imgdata, 0, 0);
-          return Promise.resolve(render.cnv);
+        return SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf).then((pngdata)=>{
+          render.initImageData(pngdata.width, pngdata.height, pngdata.data);
+          this.canvasCache[_filename] = render.cnv;
+          return render.cnv;
         });
       }
 
-      var planB = ()=>{
+      var planC = ()=>{
         // basic way
         return SurfaceUtil.fetchImageFromArrayBuffer(pngbuf).then((img)=>{
           render.init(img);
           if(_pnafilename === ""){
             render.chromakey();
             this.canvasCache[_filename] = render.cnv;
-            return Promise.resolve(render.cnv);
+            return render.cnv;
           }
           return SurfaceUtil.fetchImageFromArrayBuffer(pnabuf).then((pnaimg)=>{
             render.pna(SurfaceUtil.copy(pnaimg));
             this.canvasCache[_filename] = render.cnv;
-            return Promise.resolve(render.cnv);
+            return render.cnv;
           });
         });
       }
 
       if(this.enablePNGdecoder){
-        return planA().catch((err)=>{
+        return planB().catch((err)=>{
           console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
-          return planB();
+          return planC();
         }).catch((err)=>{
           return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
         });
       }else{
-        return planB().catch((err)=>{
+        return planC().catch((err)=>{
           return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
         });
       }

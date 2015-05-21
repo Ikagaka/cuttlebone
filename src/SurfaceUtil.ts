@@ -54,7 +54,6 @@ module cuttlebone {
         }
         return resolve(Promise.resolve({width: png.width, height: png.height, data: dataA}));
       }).catch((err)=>{
-        console.warn("aeagag@apwekopk")
         return Promise.reject("fetchPNGUint8ClampedArrayFromArrayBuffer msg:"+err+", reason: "+err.stack);
       });
     }

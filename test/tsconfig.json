@@ -18,6 +18,7 @@
         "!./node_modules/**/*.ts"
     ],
     "files": [
+        "./testBlobWorker.ts",
         "./testPNGReader.ts",
         "./testShell.ts"
     ]

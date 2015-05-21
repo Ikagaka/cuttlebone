@@ -13,6 +13,7 @@ prmNar.then((nanikaDir)=>{
 
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
   console.log(shellDir);
+  
   var pngs = Object.keys(shellDir).filter((filename)=> /\.png$|\.pna$/.test(filename) );
   //pngs = pngs.filter((filename)=> /(0500|0501|0701|0702|0704|0707|0730|0731)\.png$/.test(filename) ); // trouble makers
   pngs.forEach((filename)=>{

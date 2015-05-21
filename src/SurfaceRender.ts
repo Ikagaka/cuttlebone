@@ -126,6 +126,16 @@ module cuttlebone {
       this.cnv.height = cnv.height;
       this.overlay(<HTMLCanvasElement>cnv, 0, 0); // type hack
     }
+
+    initImageData(width: number, height: number, data: Uint8ClampedArray): void {
+      this.cnv.width = width;
+      this.cnv.height = height;
+      var imgdata = this.ctx.getImageData(0, 0, width, height);
+      var _data = <any>imgdata.data; // type hack
+      _data.set(data);
+      this.ctx.putImageData(imgdata, 0, 0);
+    }
+
     drawRegions(regions: SurfaceRegion[]): void {
       regions.forEach((col)=>{
         this.drawRegion(col);
