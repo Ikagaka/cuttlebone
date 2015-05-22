@@ -1,3 +1,7 @@
+## v0.1.6
+
+- Shell#getPNGFromDirectoryのバグを修正
+
 ## v0.1.5
 
 - Scope#surfaceのバグを修正
