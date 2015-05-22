@@ -22,7 +22,8 @@ module cuttlebone {
     composeElements(elements: SurfaceLayerObject[]): void {
       if (elements.length === 0) { return; }
       if(!Array.isArray(elements)) throw new Error("TypeError: elements is not array.")
-      var {canvas, type, x, y} = elements[0];
+      // elements is a array but it is like `a=[];a[2]="hoge";a[0] === undefined. so use filter.`
+      var {canvas, type, x, y} = elements.filter(function(elm){return !!elm;})[0];
       var offsetX = 0;
       var offsetY = 0;
       switch (type) {

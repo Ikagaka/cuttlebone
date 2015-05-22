@@ -97,7 +97,7 @@ module cuttlebone {
      * if this false or pngjs decode failed, use BlobURL and Image constrictor
      * default: true
      */
-    enablePNGdecoder: boolean;
+    enablePNGDecoder: boolean;
 
     constructor(directory: { [filepath: string]: ArrayBuffer; }) {
       this.directory = directory;
@@ -108,7 +108,7 @@ module cuttlebone {
       this.canvasCache = {};
       this.bindgroup = [];
       this.enableRegionVisible = false;
-      this.enablePNGdecoder = true;
+      this.enablePNGDecoder = false;
     }
 
     load(): Promise<Shell> {
@@ -343,7 +343,7 @@ module cuttlebone {
         });
       }
 
-      if(this.enablePNGdecoder){
+      if(this.enablePNGDecoder){
         return planB().catch((err)=>{
           console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
           return planC();
