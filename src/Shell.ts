@@ -343,7 +343,7 @@ module cuttlebone {
         });
       }
 
-      if(this.enablePNGDecoder){
+      if(false && this.enablePNGDecoder){
         return planB().catch((err)=>{
           console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
           return planC();
