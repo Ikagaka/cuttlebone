@@ -84,6 +84,9 @@ class cuttlebone.Scope
     @blimp(-1)
 
   surface: `function(surfaceId){
+    if(typeof surfaceId === "undefined"){
+      return this.currentSurface;
+    }
     if(Number(surfaceId) < 0){
       this.$surface.hide();
       return this.currentSurface;
