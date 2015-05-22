@@ -18,6 +18,7 @@ prmNar.then((nanikaDir)=>{
 
   QUnit.test("shell#load", (assert)=> {
     var done = assert.async();
+    //shell.enablePNGdecoder = false;
     return shell.load().then((shell)=>{
       assert.ok(true);
       console.log(shell);
