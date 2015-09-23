@@ -1,7 +1,7 @@
 /// <reference path="SurfaceRender.ts"/>
 /// <reference path="SurfaceUtil.ts"/>
 /// <reference path="Shell.ts"/>
-/// <reference path="../typings/bluebird/bluebird.d.ts"/>
+
 
 module cuttlebone {
 
@@ -177,7 +177,10 @@ module cuttlebone {
       var promise = lazyPromises.reduce(((proA, proB)=> proA.then(proB)), Promise.resolve()); // Promise.resolve().then(prom).then(prom)...
       promise
       .then(()=> setTimeout(callback))
-      .catch((err)=>{if(!!err) console.error(err.stack); });
+      .catch((err)=>{
+        if(!!err) console.error(err.stack);
+        return Promise.reject<number>(err);
+      });
     }
 
     stop(animationId: number): void {

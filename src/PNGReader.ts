@@ -1,6 +1,6 @@
 /// <reference path="./PNG"/>
-/// <reference path="../typings/jszip/jszip.d.ts"/>
-/// <reference path="../tsd/Uint8ClampedArray/Uint8ClampedArray.d.ts"/>
+/// <reference path="../tsd/jszip/jszip.d.ts"/>
+
 
 // oriinal: https://github.com/arian/pngjs
 // modified by legokichi.

@@ -1,5 +1,5 @@
 /// <reference path="./PNGReader"/>
-/// <reference path="../typings/bluebird/bluebird.d.ts"/>
+
 
 
 module cuttlebone {
@@ -65,7 +65,7 @@ module cuttlebone {
         URL.revokeObjectURL(url);
         return Promise.resolve(img);
       }).catch((err)=>{
-        return Promise.reject("fetchImageFromArrayBuffer > "+err);
+        return Promise.reject<HTMLImageElement>("fetchImageFromArrayBuffer > "+err);
       });
     }
 

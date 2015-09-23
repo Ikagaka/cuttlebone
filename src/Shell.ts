@@ -4,7 +4,6 @@
 /// <reference path="./BlobWorker"/>
 /// <reference path="../tsd/SurfacesTxt2Yaml/SurfacesTxt2Yaml.d.ts"/>
 /// <reference path="../tsd/encoding-japanese/encoding.d.ts"/>
-/// <reference path="../typings/bluebird/bluebird.d.ts"/>
 
 
 module cuttlebone {
@@ -123,7 +122,7 @@ module cuttlebone {
       .then(()=> this.loadElements()) // 3rd
       .catch((err)=>{
         console.error("Shell#load > ", err);
-        return Promise.reject(err);
+        return Promise.reject<Shell>(err);
       });
     }
 
@@ -304,7 +303,7 @@ module cuttlebone {
       if(!this.hasFile(filename)){
         filename += ".png";
         if(!this.hasFile(filename)){
-          return Promise.reject(new Error("no such file in directory: " + filename.replace(/\.png$/i, "")));
+          return Promise.reject<HTMLCanvasElement>(new Error("no such file in directory: " + filename.replace(/\.png$/i, "")));
         }
         console.warn("element file " + filename + " need '.png' extension");
       }
@@ -348,11 +347,11 @@ module cuttlebone {
           console.warn("getPNGFromDirectory("+filename+", pngjs) > ", err);
           return planC();
         }).catch((err)=>{
-          return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
+          return Promise.reject<HTMLCanvasElement>("getPNGFromDirectory("+filename+") > "+err);
         });
       }else{
         return planC().catch((err)=>{
-          return Promise.reject("getPNGFromDirectory("+filename+") > "+err);
+          return Promise.reject<HTMLCanvasElement>("getPNGFromDirectory("+filename+") > "+err);
         });
       }
     }

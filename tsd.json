@@ -6,13 +6,10 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "qunit/qunit.d.ts": {
-      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
+      "commit": "32029fcb4e1a3ef8968711b545d77b584435729d"
     },
     "zepto/zepto.d.ts": {
-      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
-    },
-    "jszip/jszip.d.ts": {
-      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
+      "commit": "32029fcb4e1a3ef8968711b545d77b584435729d"
     }
   }
 }
