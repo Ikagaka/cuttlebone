@@ -1,3 +1,8 @@
+# Change Log
+
+## v0.2.0
+git submodule を使用
+
 ## v0.1.6
 
 - Shell#getPNGFromDirectoryのバグを修正

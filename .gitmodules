@@ -1,0 +1,9 @@
+[submodule "Shell.js"]
+	path = submodule/Shell.js
+	url = https://github.com/Ikagaka/Shell.js.git
+[submodule "Balloon.js"]
+	path = submodule/Balloon.js
+	url = https://github.com/Ikagaka/Balloon.js.git
+[submodule "Named.js"]
+	path = submodule/Named.js
+	url = https://github.com/Ikagaka/Named.js.git

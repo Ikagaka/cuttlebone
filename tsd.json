@@ -8,16 +8,10 @@
     "qunit/qunit.d.ts": {
       "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     },
-    "bluebird/bluebird.d.ts": {
-      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
-    },
     "zepto/zepto.d.ts": {
       "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     },
     "jszip/jszip.d.ts": {
-      "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
-    },
-    "phantomjs/phantomjs.d.ts": {
       "commit": "3d80989bbba37cbe6ef0682c94fa7d8cb95f196d"
     }
   }
