@@ -10,6 +10,7 @@
     "cuttlebone"
   ],
   "scripts": {
+    "__": "env NODE_PATH=./lib node app.js",
     "build": "rm -rf output/*; rm -rf release/*; npm run build-coffee; npm run build-ts; npm run build-babel; npm run plato;",
     "build-ts": "tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output --declaration --target ES6 src/*.ts",
     "build-babel": "babel output/src/*.js output/coffee/*.js > release/cuttlebone.js",
