@@ -1,47 +1,37 @@
 {
   "name": "cuttlebone",
-  "version": "0.1.6",
-  "description": "ukagaka shell renderer for web browser",
+  "version": "0.3.0",
+  "description": "ukagaka shell renderer package for web browser",
   "url": "https://github.com/ikagaka/cuttlebone.js",
   "keywords": [
-    "unstable",
     "ikagaka",
     "ukagaka",
     "cuttlebone"
   ],
   "scripts": {
-    "build": "rm -rf output/*; rm -rf lib/*; npm run build-coffee; npm run build-src; npm run build-test; npm run concat-src; npm run espower; npm run plato;",
-    "build-coffee": "node node_modules/coffee-script/bin/coffee --compile --output output/coffee coffee/*.coffee",
-    "build-src":  "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output --declaration src/*.ts;",
-    "build-test": "node node_modules/typescript/bin/tsc --noEmitOnError --noImplicitAny --rootDir ./ --outdir output test/*.ts",
-    "espower": "for i in `find output/test -name test*.js`; do node node_modules/espower-cli/bin/cmd.js $i > $i.esp.js; done",
-    "concat-src": "cat output/coffee/header.js output/coffee/NamedManager.js output/coffee/Named.js output/coffee/Scope.js output/coffee/Balloon.js output/coffee/BalloonSurface.js output/src/Shell.js output/src/Surface.js output/src/SurfaceUtil.js output/src/SurfaceRender.js output/coffee/footer.js > lib/cuttlebone.js",
-    "jshint": "node node_modules/jshint/bin/jshint output/src/*.js",
-    "plato": "node node_modules/plato/bin/plato --title cuttlebone --jshint .jshintrc --recurse --dir report --exclude output/test/ output",
-    "test": "phantomjs demo/run-qunit.js demo/testShell.html",
-    "update": "npm update; bower update; tsd update --save --overwrite",
     "init": "npm run update; npm run build",
-    "report": "open http://localhost:8000/report/",
-    "demo": "open http://localhost:8000/demo/",
-    "start": "Python -m SimpleHTTPServer 8000 &",
-    "stop": "killall -- Python -m SimpleHTTPServer 8000; exit 0"
+    "update": "npm update; bower update",
+    "clean": "rm lib/*.js dist/*.js demo/*.js",
+    "start": "http-server -o --silent -p 8000 & coffee -w --compile --output lib src/*.coffee & watchify lib/index.js --outfile dist/cuttlebone.js  --standalone cuttlebone -v",
+    "stop": "killall -- node */http-server -p 8000",
+    "build": "coffee -c -o lib src/*.coffee; browserify lib/index.js --standalone cuttlebone -o dist/cuttlebone.js",
+    "patch": "mversion patch -m; git push origin --tag"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/ikagaka/cuttlebone"
   },
-  "dependencies": {},
+  "dependencies": {
+    "ikagaka.shell.js": "ikagaka/Shell.js",
+    "ikagaka.balloon.js": "ikagaka/Balloon.js",
+    "ikagaka.namedmanager.js": "ikagaka/namedmanager.js"
+  },
   "devDependencies": {
-    "typescript": "",
-    "coffee-script": "",
-    "espower-cli": "",
-    "jshint": "",
-    "plato": ""
   },
   "bugs": {
     "url": "https://github.com/Ikagaka/cuttlebone/issues"
   },
-  "main": "lib/cuttlebone.js",
+  "main": "lib/index.js",
   "author": "Ikagaka",
   "license": "MIT",
   "contributors": [
