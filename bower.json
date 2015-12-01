@@ -1,21 +1,14 @@
 {
   "name": "cuttlebone",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "ukagaka shell renderer package for web browser",
   "license": "MIT",
   "authors": [
     "legokichi"
   ],
   "dependencies": {
-    "surfaces_txt2yaml": "Narazaka/surfaces_txt2yaml",
-    "encoding-japanese": "~1.0.23",
-    "text-encoding": "~0.5.3",
-    "jszip": "*",
-    "eventemitter2": "~0.4.14",
-    "jquery": "*"
   },
   "devDependencies": {
-    "ikagaka.sakurascriptplayer.js": "*",
     "narloader": "*",
     "qunit": "*",
     "qunit-tap": "*",
