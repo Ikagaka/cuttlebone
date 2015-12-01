@@ -3,13 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <title>playground</title>
-<script src="../bower_components/bluebird/js/browser/bluebird.min.js"></script>
 <script src="../bower_components/encoding-japanese/encoding.js"></script>
 <script src="../bower_components/jszip/dist/jszip.min.js"></script>
 <script src="../bower_components/narloader/NarLoader.js"></script>
-<script src="../bower_components/surfaces_txt2yaml/lib/surfaces_txt2yaml.js"></script>
-<script src="../bower_components/zepto/zepto.min.js"></script>
-<script src="../lib/cuttlebone.js"></script>
+<script src="../dist/cuttlebone.js"></script>
 <style>
 textarea {
   width: 100%;
@@ -19,6 +16,7 @@ textarea {
 </head>
 <body>
 <p>nar: <input type="file" id="nar" /></p>
+<p><button id="setDefaultPos">もとの座標に帰って来い</button></p>
 <fieldset>
 <legend>boot</legend>
 <p><textarea id="code">
@@ -31,13 +29,15 @@ $(function() {
     NarLoader.loadFromBlob(file).then(onNarLoad);
     $(this).val(null);
   });
-  NarLoader.loadFromURL("../bower_components/cuttlebone/nar/origin.nar").then(function(nanikaDir) {
+  NarLoader.loadFromURL("../nar/origin.nar").then(function(nanikaDir) {
     balloonDir = nanikaDir.asArrayBuffer();
     nmdmgr = new cuttlebone.NamedManager();
     $(nmdmgr.element).appendTo("body");
-    NarLoader.loadFromURL("../bower_components/cuttlebone/nar/mobilemaster.nar").then(onNarLoad);
+    //NarLoader.loadFromURL("../nar/333-4.05.zip").then(onNarLoad);
+    NarLoader.loadFromURL("../nar/mobilemaster.nar").then(onNarLoad);
   });
 });
+
 
 function onNarLoad(nanikaDir) {
   var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
@@ -61,6 +61,12 @@ function onNarLoad(nanikaDir) {
     named.on("raise", onEvent);
     named.on("choiceselectex", onEvent);
     named.on("choiceselect", onEvent);
+    $("#setDefaultPos").on("click", function(){
+      named.scopes.forEach(function(scope, i){
+        console.log(i, scope.position());
+        console.log(i, scope.position({right: 0, bottom:0}));
+      })
+    })
 
     named.load().then(function(){
       $("#run").click(function(){

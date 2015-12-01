@@ -1,24 +1,21 @@
 {
   "name": "cuttlebone",
-  "version": "0.1.6",
-  "description": "ukagaka shell renderer for web browser",
+  "version": "0.2.0",
+  "description": "ukagaka shell renderer package for web browser",
   "license": "MIT",
   "authors": [
     "legokichi"
   ],
   "dependencies": {
-    "surfaces_txt2yaml": "*",
-    "zepto": "*"
   },
   "devDependencies": {
-    "ikagaka.sakurascriptplayer.js": "*",
     "narloader": "*",
     "qunit": "*",
     "qunit-tap": "*",
     "empower": "*",
     "power-assert-formatter": "*"
   },
-  "main": "lib/cuttlebone.js",
+  "main": "lib/index.js",
   "ignore": [
     "**/.*",
     "bower_components"
