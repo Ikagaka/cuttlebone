@@ -1,161 +1,147 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>playground</title>
-<script src="../bower_components/encoding-japanese/encoding.js"></script>
-<script src="../bower_components/jszip/dist/jszip.min.js"></script>
-<script src="../bower_components/narloader/NarLoader.js"></script>
-<script src="../dist/cuttlebone.js"></script>
-<style>
-textarea {
-  width: 100%;
-  height: 500px;
-}
-</style>
+  <meta charset="utf-8" />
+  <title>playground</title>
+  <script src="../bower_components/bluebird/js/browser/bluebird.min.js"></script>
+  <script src="../bower_components/encoding-japanese/encoding.js"></script>
+  <script src="../bower_components/jszip/dist/jszip.min.js"></script>
+  <script src="../bower_components/narloader/NarLoader.js"></script>
+  <script src="../bower_components/ikagaka.sakurascriptplayer.js/dist/SakuraScriptPlayer.js"></script>
+  <script src="../dist/cuttlebone.js"></script>
+  <style>
+  textarea {
+    width: 300px;
+    height: 300px;
+  }
+  fieldset {
+    display: inline-block;
+  }
+  </style>
 </head>
 <body>
-<p>nar: <input type="file" id="nar" /></p>
-<p><button id="setDefaultPos">もとの座標に帰って来い</button></p>
-<fieldset>
-<legend>boot</legend>
-<p><textarea id="code">
-var nmdmgr = null;
-var balloonDir = null;
-
-$(function() {
-  $("#nar").change(function(ev) {
-    var file = ev.target.files[0];
-    NarLoader.loadFromBlob(file).then(onNarLoad);
-    $(this).val(null);
-  });
-  NarLoader.loadFromURL("../nar/origin.nar").then(function(nanikaDir) {
-    balloonDir = nanikaDir.asArrayBuffer();
-    nmdmgr = new cuttlebone.NamedManager();
-    $(nmdmgr.element).appendTo("body");
-    //NarLoader.loadFromURL("../nar/333-4.05.zip").then(onNarLoad);
-    NarLoader.loadFromURL("../nar/mobilemaster.nar").then(onNarLoad);
-  });
-});
-
-
-function onNarLoad(nanikaDir) {
-  var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
-  var shell = new cuttlebone.Shell(shellDir);
-  var balloon = new cuttlebone.Balloon(balloonDir);
-  Promise.all([shell.load(), balloon.load()]).then(function(arg) {
-    var shell = arg[0];
-    var balloon = arg[1];
-    var hwnd = nmdmgr.materialize(shell, balloon);
-    var named = nmdmgr.named(hwnd);
-
-    named.on("mousedown", onEvent);
-    named.on("mousemove", onEvent);
-    named.on("mouseup", onEvent);
-    named.on("mouseclick", onEvent);
-    named.on("mousedblclick", onEvent);
-    named.on("balloonclick", onEvent);
-    named.on("balloondblclick", onEvent);
-    named.on("anchorselect", onEvent);
-    named.on("anchorselectex", onEvent);
-    named.on("raise", onEvent);
-    named.on("choiceselectex", onEvent);
-    named.on("choiceselect", onEvent);
-    $("#setDefaultPos").on("click", function(){
-      named.scopes.forEach(function(scope, i){
-        console.log(i, scope.position());
-        console.log(i, scope.position({right: 0, bottom:0}));
-      })
-    })
-
-    named.load().then(function(){
-      $("#run").click(function(){
-        nmdmgr.namedies.forEach(function(named){
-          eval($("#snipet").val());
-        });
-      }).click();
-    });
-
-  })["catch"](function(err) { console.error(err, err.stack); });
-}
-
-function wait(ms, callback) {
-  return function(ctx) {
-    return new Promise(function(resolve) {
-      setTimeout((function() {
-        callback(ctx);
-        return resolve(ctx);
-      }), ms);
-    });
-  };
-}
-
-function onEvent(ev) {
-  console.log(ev);
-}
-
-$(function(){
-  $("#born").click(function(){
-    eval($("#code").val());
-  });
-});
-
-$(function(){
-  $("#kill").click(function(){
-    nmdmgr.destructor();
-  })
-});
-</textarea></p>
-<p>
-  <input type="button" id="born" value="born" />
-  <input type="button" id="kill" value="kill" />
-</p>
-</fieldset>
-<fieldset>
-<legend>sakura script</legend>
-<p><textarea id="snipet">
-Promise.resolve(named)
-.then(wait(0, function(named) { named.scope(0); }))
-.then(wait(0, function(named) { named.scope().surface(0); }))
-.then(wait(0, function(named) { named.scope().blimp().clear(); }))
-.then(wait(0, function(named) { named.scope(1); }))
-.then(wait(0, function(named) { named.scope().surface(10); }))
-.then(wait(0, function(named) { named.scope().blimp().clear(); }))
-.then(wait(0, function(named) { named.scope(0); }))
-.then(wait(0, function(named) { named.scope().blimp(0); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("H"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("e"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk(","); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("w"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("o"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("r"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("l"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("d"); }))
-.then(wait(80, function(named) { named.scope().blimp().talk("!"); }))
-.then(wait(160, function(named) { named.scope(1); }))
-.then(wait(0, function(named) { named.scope().blimp().anchorBegin("AnchorID"); }))
-.then(wait(0, function(named) { named.scope().blimp().talk("anchor"); }))
-.then(wait(0, function(named) { named.scope().blimp().anchorEnd(); }))
-.then(wait(0, function(named) { named.scope().blimp().br(); }))
-.then(wait(0, function(named) { named.scope().blimp().talk("<" + "script>alert(1);<" + "/script>"); }))
-.then(wait(0, function(named) { named.scope().blimp().br(); }))
-.then(wait(0, function(named) { named.scope().blimp().choice("choice", "ChoceID"); }))
-.then(wait(0, function(named) { named.scope().blimp().br(); }))
-.then(wait(0, function(named) { named.scope().blimp().talk("hi."); }))
-.then(wait(0, function(named) { named.scope().blimp().showWait(); }))
-.then(wait(3000, function(named) { named.scope().blimp().talk("stop wait"); }))
-</textarea></p>
-<p>
-  <input type="button" id="run" value="run" />
-</p>
-</fieldset>
+  <fieldset>
+    <legend>surface test</legend>
+    <p><label>nar: <input type="file" id="nar" /></label></p>
+    <p><label>shell: <select name="shellId" id="shellId"></select></label></p>
+    <p>bindgroup: <ol id="bindgroupId" start="0"/></ol></p>
+    <p>collision: <input type="checkbox" id="collisionDraw" /></p>
+    <p><button id="setDefaultPos">もとの座標に帰って来い</button></p>
+    <p><input type="button" id="kill" value="kill" /></p>
+  </fieldset>
+  <fieldset id="wrapper">
+  <legend>SakuraScript</legend>
+    <input type="button" value="play" id="play" />
+    <p>
+    <textarea id="code" placeholder="\h\s[0]こんにちは！\w4世界！\w8">
+\u\s[10]
+\h\s[0]ドーモ、\w4CRTゅう＝サン。\w8マリです。\w8
+\u\s[10]ドーモ、\w4マリ＝サン。\w8CRTゅうです。\w8
+\h\s[7]CRTモニタ死すべし。\w8慈悲はない。\w8
+\u\s[11]ニンジャ！\w8ニンジャナンデ！！？？\w8
+\h\s[2]イヤーッ！\w8
+\u\s[12]グワーッ！\w8
+サヨナラ！\s[5000]\i[100]\w8
+    </textarea>
+    </p>
+  </fieldset>
 <script>
-$(function(){
-  eval($("#code").val());
+var shell = null;
+var balloon = null;
+var nmdmgr = new cuttlebone.NamedManager();
+var hwnd = null;
+$(function(){document.body.appendChild(nmdmgr.element);});
+Promise.all([
+  NarLoader.loadFromURL("../nar/mobilemaster.nar"),
+  NarLoader.loadFromURL("../nar/origin.nar")
+]).then(function(args){
+  var balloonDir = args[1].asArrayBuffer();
+  balloon = new cuttlebone.Balloon(balloonDir);
+  return balloon.load().then(function(){
+    return args[0];
+  })
+}).then(changeNar)
+$("#nar").change(function(ev){
+  nmdmgr.vanish(hwnd);
+  NarLoader.loadFromBlob($(this).prop("files")[0]).then(changeNar);
 });
+function changeNar(nanikaDir){
+  console.log(nanikaDir.files);
+  var shelllist = nanikaDir.getDirectory("shell").listChildren();
+  console.log(shelllist)
+  var $frag = $(document.createDocumentFragment());
+  shelllist.forEach(function(shellId){
+    $("<option />").val(shellId).text(shellId).appendTo($frag);
+  });
+  $("#shellId").children().remove().end().append($frag).change(function(){ changeShell(nanikaDir); });
+  if(shelllist.length === 0) return console.warn("this nar does not have any shell");
+  if(shelllist.indexOf("master") !== -1) {
+    $("#shellId").val("master").change();
+  }else{
+    $("#shellId").val(shelllist[0]).change();
+  }
+}
+function changeShell(nanikaDir){
+  var shellDir = nanikaDir.getDirectory("shell/"+$("#shellId").val()).asArrayBuffer();
+  !!shell && shell.unload();
+  shell = new cuttlebone.Shell(shellDir);
+  shell.load().then(function(shell){
+    console.log(shell);
+    shell.on("mouse", function(ev){
+      if(ev.type === "mousemove") return; // mousemoveは鬱陶しいので表示しない
+      console.log(ev);
+    });
+    hwnd = nmdmgr.materialize(shell, balloon);
+    var named = nmdmgr.named(hwnd);
+    var ssp = new SakuraScriptPlayer(named);
+
+    $("#play").off().on("click", function(){
+      ssp.play($("#code").val().replace(/\n|\r/, ""));
+    });
+
+    $("#setDefaultPos").off().on("click", function(){
+      named.scopes.forEach(function(scope, i){
+        scope.position({right: 0, bottom:0});
+      })
+    });
+
+    $("#kill").off().click(function(){
+      nmdmgr.vanish(hwnd);
+    });
+
+    $("#bindgroupId").children().remove();
+    var $frag = $(document.createDocumentFragment());
+    Object.keys(shell.bindgroup).forEach(function(scopeId){
+      $li = $("<li />").appendTo($frag)
+      Object.keys(shell.bindgroup[scopeId]).forEach(function(bindgroupId){
+        $checkbox = $("<input type='checkbox' name='bindgroupId'/>")
+        .attr("data-scopeId", scopeId).val(bindgroupId)
+        .prop("checked", shell.bindgroup[scopeId][bindgroupId]);
+        $label = $("<label />").text(bindgroupId+":").append($checkbox).appendTo($li);
+      });
+    });
+    $("#bindgroupId").append($frag);
+    $("#bindgroupId input[name='bindgroupId']").unbind().change(function(){
+      var bindgroupIds = {};
+      var scopeId = $(this).attr("data-scopeId");
+      $(this).each(function(){
+        var bindgroupId = $(this).val();
+        if($(this).prop("checked")) shell.bind(scopeId, bindgroupId);
+        else                        shell.unbind(scopeId, bindgroupId);
+      });
+      shell.render();
+    });
+    $("#collisionDraw").unbind().change(function(){
+      if($(this).prop("checked")){
+        shell.showRegion();
+      }else{
+        shell.hideRegion();
+      }
+    });
+  }).catch(function(err){
+    console.error(err.stack);
+  });
+}
 </script>
 </body>
 </html>

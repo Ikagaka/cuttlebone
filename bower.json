@@ -13,7 +13,8 @@
     "qunit": "*",
     "qunit-tap": "*",
     "empower": "*",
-    "power-assert-formatter": "*"
+    "power-assert-formatter": "*",
+    "ikagaka.sakurascriptplayer.js": "ikagaka/SakuraScriptPlayer.js"
   },
   "main": "lib/index.js",
   "ignore": [
