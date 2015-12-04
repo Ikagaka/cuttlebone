@@ -13391,11 +13391,11 @@ if ('undefined' !== typeof module) {
       if (!(document.createTouchList instanceof Function)) {
         return console.warn(ua, "does not support document.createTouchList");
       }
+      tev = document.createEvent("TouchEvent");
       if (!(tev["initTouchEvent"] instanceof Function)) {
         return console.warn(ua, "does not support TouchEvent#initTouchEvent");
       }
       ref = SurfaceUtil.getEventPosition(ev), pageX = ref.pageX, pageY = ref.pageY, clientX = ref.clientX, clientY = ref.clientY, screenX = ref.screenX, screenY = ref.screenY;
-      tev = document.createEvent("TouchEvent");
       touch = document.createTouch(document.defaultView, ev.target, 0, pageX, pageY, screenX, screenY);
       touches = document.createTouchList(touch);
       if (ua.indexOf('chrome') !== -1 || ua.indexOf('opera') !== -1) {
