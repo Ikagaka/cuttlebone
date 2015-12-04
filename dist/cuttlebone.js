@@ -13522,7 +13522,6 @@ if ('undefined' !== typeof module) {
           });
           return _this.shell.on("mouse", function(ev) {
             var $scope, clientX, clientY, left, pageX, pageY, ref, ref1, top;
-            console.log(ev);
             if (ev.transparency === true && ev.type !== "mousemove") {
               recursiveElementFromPoint(ev.event, _this.nmdmgr.element, ev.event.target);
               return;
@@ -13931,10 +13930,6 @@ var _Surface = require('./Surface');
 
 var _Surface2 = _interopRequireDefault(_Surface);
 
-var _SurfaceRender = require("./SurfaceRender");
-
-var _SurfaceRender2 = _interopRequireDefault(_SurfaceRender);
-
 var _SurfaceUtil = require("./SurfaceUtil");
 
 var SurfaceUtil = _interopRequireWildcard(_SurfaceUtil);
@@ -14176,7 +14171,7 @@ var Shell = (function (_EventEmitter) {
                     return _this5.getPNGFromDirectory(file).then(function (canvas) {
                         if (!_this5.surfaceTree[n]) {
                             _this5.surfaceTree[n] = {
-                                base: SurfaceUtil.createSurfaceCanvasDummy(),
+                                base: { cnv: null, png: null, pna: null },
                                 elements: [],
                                 collisions: [],
                                 animations: []
@@ -14213,7 +14208,7 @@ var Shell = (function (_EventEmitter) {
                 Object.keys(regions).forEach(function (regname) {
                     if (!_this6.surfaceTree[n]) {
                         _this6.surfaceTree[n] = {
-                            base: SurfaceUtil.createSurfaceCanvasDummy(),
+                            base: { cnv: null, png: null, pna: null },
                             elements: [],
                             collisions: [],
                             animations: []
@@ -14242,7 +14237,7 @@ var Shell = (function (_EventEmitter) {
                 Object.keys(animations).forEach(function (animname) {
                     if (!_this7.surfaceTree[n]) {
                         _this7.surfaceTree[n] = {
-                            base: SurfaceUtil.createSurfaceCanvasDummy(),
+                            base: { cnv: null, png: null, pna: null },
                             elements: [],
                             collisions: [],
                             animations: []
@@ -14263,8 +14258,9 @@ var Shell = (function (_EventEmitter) {
             return SurfaceUtil.find(Object.keys(this.directory), filename).length > 0;
         }
 
-        // this.directoryからfilenameなサーフェスを探す。
-        // あったらついでにpnaも探して合成する
+        // this.cacheCanvas から filename な SurfaceCanvas を探す。
+        // なければ this.directory から探し this.cacheCanvas にキャッシュする
+        // 非同期の理由：img.onload = blob url
     }, {
         key: "getPNGFromDirectory",
         value: function getPNGFromDirectory(filename) {
@@ -14275,6 +14271,7 @@ var Shell = (function (_EventEmitter) {
                 return Promise.resolve(this.cacheCanvas[cached_filename]);
             }
             if (!this.hasFile(filename)) {
+                // 我々は心優しいので寛大にも拡張子つけ忘れに対応してあげる
                 filename += ".png";
                 if (!this.hasFile(filename)) {
                     return Promise.reject(new Error("no such file in directory: " + filename.replace(/\.png$/i, "")));
@@ -14285,16 +14282,15 @@ var Shell = (function (_EventEmitter) {
             var pnafilename = _filename.replace(/\.png$/i, ".pna");
             var _pnafilename = SurfaceUtil.find(Object.keys(this.directory), pnafilename)[0] || "";
             var pngbuf = this.directory[_filename];
-            return SurfaceUtil.createSurfaceCanvasFromArrayBuffer(pngbuf).then(function (pngsrfcnv) {
+            return SurfaceUtil.fetchImageFromArrayBuffer(pngbuf).then(function (png) {
+                // 起動時にすべての画像を色抜きするのはgetimagedataが重いのでcnvはnullのままで
                 if (_pnafilename === "") {
-                    _this8.cacheCanvas[_filename] = pngsrfcnv;
+                    _this8.cacheCanvas[_filename] = { cnv: null, png: png, pna: null };
                     return _this8.cacheCanvas[_filename];
                 }
                 var pnabuf = _this8.directory[_pnafilename];
-                return SurfaceUtil.createSurfaceCanvasFromArrayBuffer(pnabuf).then(function (pnasrfcnv) {
-                    var render = new _SurfaceRender2["default"]();
-                    render.pna(pngsrfcnv, pnasrfcnv);
-                    _this8.cacheCanvas[_filename] = render.getSurfaceCanvas();
+                return SurfaceUtil.fetchImageFromArrayBuffer(pnabuf).then(function (pna) {
+                    _this8.cacheCanvas[_filename] = { cnv: null, png: png, pna: pna };
                     return _this8.cacheCanvas[_filename];
                 });
             });
@@ -14324,9 +14320,8 @@ var Shell = (function (_EventEmitter) {
                 console.warn("surfaceId:", surfaceId, "is not defined");
                 return null;
             }
-            var srf = new _Surface2["default"](div, scopeId, _surfaceId, this.surfaceTree);
+            var srf = new _Surface2["default"](div, scopeId, _surfaceId, this.surfaceTree, this.bindgroup);
             srf.enableRegionDraw = this.enableRegion; // 当たり判定表示設定の反映
-            srf.updateBind(this.bindgroup); // 現在の着せ替え設定の反映
             srf.on("mouse", function (ev) {
                 _this9.emit("mouse", ev); // detachSurfaceで消える
             });
@@ -14378,8 +14373,6 @@ var Shell = (function (_EventEmitter) {
     }, {
         key: "bind",
         value: function bind(scopeId, bindgroupId) {
-            var _this10 = this;
-
             if (this.bindgroup[scopeId] == null) {
                 console.warn("Shell#bind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
                 return;
@@ -14389,7 +14382,7 @@ var Shell = (function (_EventEmitter) {
                 var srf = _ref4.surface;
                 var div = _ref4.div;
 
-                srf.updateBind(_this10.bindgroup);
+                srf.updateBind();
             });
         }
 
@@ -14397,8 +14390,6 @@ var Shell = (function (_EventEmitter) {
     }, {
         key: "unbind",
         value: function unbind(scopeId, bindgroupId) {
-            var _this11 = this;
-
             if (this.bindgroup[scopeId] == null) {
                 console.warn("Shell#unbind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
                 return;
@@ -14408,7 +14399,7 @@ var Shell = (function (_EventEmitter) {
                 var srf = _ref5.surface;
                 var div = _ref5.div;
 
-                srf.updateBind(_this11.bindgroup);
+                srf.updateBind();
             });
         }
 
@@ -14458,8 +14449,8 @@ var Shell = (function (_EventEmitter) {
 
 exports["default"] = Shell;
 module.exports = exports["default"];
-},{"./Surface":18,"./SurfaceRender":19,"./SurfaceUtil":20,"eventemitter3":5,"jquery":34,"surfaces_txt2yaml":65}],18:[function(require,module,exports){
-/// <reference path="../typings/tsd.d.ts"/>
+},{"./Surface":18,"./SurfaceUtil":20,"eventemitter3":5,"jquery":34,"surfaces_txt2yaml":65}],18:[function(require,module,exports){
+// todo: anim collision
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14501,7 +14492,7 @@ var _jquery2 = _interopRequireDefault(_jquery);
 var Surface = (function (_EventEmitter) {
     _inherits(Surface, _EventEmitter);
 
-    function Surface(div, scopeId, surfaceId, surfaceTree) {
+    function Surface(div, scopeId, surfaceId, surfaceTree, bindgroup) {
         var _this = this;
 
         _classCallCheck(this, Surface);
@@ -14514,7 +14505,9 @@ var Surface = (function (_EventEmitter) {
         this.ctx = this.cnv.getContext("2d");
         this.element.appendChild(this.cnv);
         (0, _jquery2["default"])(this.element).css("position", "relative");
+        (0, _jquery2["default"])(this.element).css("display", "inline-block");
         (0, _jquery2["default"])(this.cnv).css("position", "absolute");
+        this.bindgroup = bindgroup;
         this.position = "fixed";
         this.surfaceTree = surfaceTree;
         this.surfaceNode = this.surfaceTree[surfaceId];
@@ -14543,6 +14536,8 @@ var Surface = (function (_EventEmitter) {
             });
             this.element = null;
             this.surfaceNode = null;
+            this.surfaceTree = null;
+            this.bindgroup = null;
             this.element = null;
             this.layers = [];
             this.animationsQueue = {};
@@ -14680,7 +14675,16 @@ var Surface = (function (_EventEmitter) {
             var animId = anim.is;
             var interval = anim.interval;
             var patterns = anim.patterns;
+            var option = anim.option;
             //isってなんだよって話は @narazaka さんに聞いて。SurfacesTxt2Yamlのせい。
+            var __intervals = interval.split("+"); // sometimes+talk
+            if (__intervals.length > 1) {
+                // 分解して再実行
+                __intervals.forEach(function (interval) {
+                    _this3.initAnimation({ interval: interval, is: animId, patterns: patterns, option: option });
+                });
+                return;
+            }
 
             var _interval$split = interval.split(",");
 
@@ -14699,109 +14703,82 @@ var Surface = (function (_EventEmitter) {
             } // rarelyにfaileback
             // アニメーション描画タイミングの登録
             var fn = function fn(nextTick) {
-                if (!_this3.destructed && !_this3.stopFlags[animId]) {
-                    _this3.play(animId, nextTick);
-                }
+                if (_this3.destructed) return;
+                if (_this3.stopFlags[animId]) return;
+                _this3.play(animId, nextTick);
             };
+            // アニメーションを止めるための準備
+            this.stopFlags[animId] = false;
             switch (_interval) {
                 // nextTickを呼ぶともう一回random
                 case "sometimes":
-                    SurfaceUtil.random(fn, 2);
-                    break;
+                    return SurfaceUtil.random(fn, 2);
                 case "rarely":
-                    SurfaceUtil.random(fn, 4);
-                    break;
+                    return SurfaceUtil.random(fn, 4);
                 case "random":
-                    SurfaceUtil.random(fn, n);
-                    break;
+                    return SurfaceUtil.random(fn, n);
                 case "periodic":
-                    SurfaceUtil.periodic(fn, n);
-                    break;
+                    return SurfaceUtil.periodic(fn, n);
                 case "always":
-                    SurfaceUtil.always(fn);
-                    break;
+                    return SurfaceUtil.always(fn);
                 case "runonce":
-                    this.play(animId);
-                    break;
+                    return this.play(animId);
                 case "never":
-                    break;
+                    return;
                 case "yen-e":
-                    break;
+                    return;
                 case "talk":
                     this.talkCounts[animId] = n;
-                    break;
+                    return;
                 default:
-                    if (/^bind/.test(interval)) {
-                        this.initBind(anim); // bindのことはinitBindにまるなげ
-                        break;
+                    if (/^bind$/.test(interval)) {
+                        this.initBind(anim);
+                        return;
                     }
-                    console.warn("Surface#initAnimation > unkown SERIKO or MAYURA interval:", interval, anim);
             }
+            console.warn("Surface#initAnimation > unkown interval:", interval, anim);
         }
     }, {
         key: "initBind",
         value: function initBind(anim) {
-            var _this4 = this;
-
-            // bind+somtimesみたいなやつを分解
-            var is = anim.is;
+            var animId = anim.is;
             var interval = anim.interval;
             var patterns = anim.patterns;
             var option = anim.option;
 
-            var _interval$split3 = interval.split("+");
-
-            var _interval$split32 = _toArray(_interval$split3);
-
-            var _bind = _interval$split32[0];
-
-            var intervals = _interval$split32.slice(1);
-
-            if (intervals.length > 0) return;
-            intervals.forEach(function (interval) {
-                //sometimesみたいのはinitAnimationに丸投げ
-                _this4.initAnimation({ interval: interval, is: is, patterns: patterns, option: option });
-            });
-            var option = anim.option;
-
+            if (this.bindgroup[this.scopeId] == null) return;
+            if (this.bindgroup[this.scopeId][animId] == null) return;
+            if (this.bindgroup[this.scopeId][animId] === true) {
+                // 現在有効な bind
+                if (option === "background") {
+                    this.backgrounds[animId] = patterns[patterns.length - 1];
+                } else {
+                    this.layers[animId] = patterns[patterns.length - 1];
+                }
+                // bind+sometimsなどを殺す
+                this.end(animId);
+                // bindは即座に反映
+                this.render();
+                return;
+            }
+            //現在の合成レイヤから着せ替えレイヤを削除
             if (option === "background") {
-                this.backgrounds[is] = patterns[patterns.length - 1];
+                delete this.backgrounds[animId];
             } else {
-                this.layers[is] = patterns[patterns.length - 1];
+                delete this.layers[animId];
             }
             this.render();
+            return;
         }
     }, {
         key: "updateBind",
-        value: function updateBind(bindgroup) {
-            var _this5 = this;
+        value: function updateBind() {
+            var _this4 = this;
 
             // Shell.tsから呼ばれるためpublic
             // Shell#bind,Shell#unbindで発動
-            // shell.bindgroup[scopeId][bindgroupId] が変更された時に呼ばれる
             this.surfaceNode.animations.forEach(function (anim) {
-                //このサーフェスに定義されたアニメーションの中でintervalがbindなものｗ探す
-                var is = anim.is;
-                var interval = anim.interval;
-                var patterns = anim.patterns;
-                var option = anim.option;
-
-                if (bindgroup[_this5.scopeId] == null) return;
-                if (bindgroup[_this5.scopeId][is] == null) return;
-                if (!/^bind/.test(interval)) return;
-                if (bindgroup[_this5.scopeId][is] === true) {
-                    //現在の設定が着せ替え有効ならばinitBindにまるなげ
-                    _this5.initBind(anim);
-                } else {
-                    //現在の合成レイヤから着せ替えレイヤを削除
-                    delete _this5.layers[is];
-                    if (option === "background") {
-                        delete _this5.backgrounds[is];
-                    } else {
-                        delete _this5.layers[is];
-                    }
-                    _this5.render();
-                }
+                _this4.initBind(anim);
             });
         }
 
@@ -14823,10 +14800,10 @@ var Surface = (function (_EventEmitter) {
     }, {
         key: "endAll",
         value: function endAll() {
-            var _this6 = this;
+            var _this5 = this;
 
-            Object.keys(this.stopFlags).forEach(function (key) {
-                _this6.stopFlags[key] = false;
+            Object.keys(this.stopFlags).forEach(function (animationId) {
+                _this5.end(animationId);
             });
         }
 
@@ -14834,7 +14811,7 @@ var Surface = (function (_EventEmitter) {
     }, {
         key: "play",
         value: function play(animationId, callback) {
-            var _this7 = this;
+            var _this6 = this;
 
             if (this.destructed) return;
             var anims = this.surfaceNode.animations;
@@ -14851,17 +14828,17 @@ var Surface = (function (_EventEmitter) {
 
                     switch (type) {
                         case "start":
-                            _this7.play(animation_ids[0], nextTick);
+                            _this6.play(animation_ids[0], nextTick);
                             return;
                         case "stop":
-                            _this7.stop(animation_ids[0]);
+                            _this6.stop(animation_ids[0]);
                             setTimeout(nextTick);
                             return;
                         case "alternativestart":
-                            _this7.play(SurfaceUtil.choice(animation_ids), nextTick);
+                            _this6.play(SurfaceUtil.choice(animation_ids), nextTick);
                             return;
                         case "alternativestop":
-                            _this7.stop(SurfaceUtil.choice(animation_ids));
+                            _this6.stop(SurfaceUtil.choice(animation_ids));
                             setTimeout(nextTick);
                             return;
                     }
@@ -14877,21 +14854,21 @@ var Surface = (function (_EventEmitter) {
                     var _wait = isFinite(Number(b)) ? SurfaceUtil.randomRange(Number(a), Number(b)) : Number(a);
                     setTimeout(function () {
                         if (anim.option === "background") {
-                            _this7.backgrounds[animationId] = pattern;
+                            _this6.backgrounds[animationId] = pattern;
                         } else {
-                            _this7.layers[animationId] = pattern;
+                            _this6.layers[animationId] = pattern;
                         }
-                        _this7.render();
+                        _this6.render();
                         nextTick();
                     }, _wait);
                 };
             });
             var nextTick = function nextTick() {
-                if (_this7.destructed) return;
-                var next = _this7.animationsQueue[animationId].shift();
+                if (_this6.destructed) return;
+                var next = _this6.animationsQueue[animationId].shift();
                 if (!(next instanceof Function)) {
                     // stop pattern animation.
-                    _this7.animationsQueue[animationId] = [];
+                    _this6.animationsQueue[animationId] = [];
                     setTimeout(callback);
                 } else {
                     next();
@@ -14909,35 +14886,34 @@ var Surface = (function (_EventEmitter) {
     }, {
         key: "talk",
         value: function talk() {
-            var _this8 = this;
+            var _this7 = this;
 
             var animations = this.surfaceNode.animations;
             this.talkCount++;
             var hits = animations.filter(function (anim) {
-                return (/^talk/.test(anim.interval) && _this8.talkCount % _this8.talkCounts[anim.is] === 0
+                return (/talk/.test(anim.interval) && _this7.talkCount % _this7.talkCounts[anim.is] === 0
                 );
             });
             hits.forEach(function (anim) {
-                _this8.play(anim.is);
+                _this7.play(anim.is);
             });
         }
     }, {
         key: "yenE",
         value: function yenE() {
-            var _this9 = this;
+            var _this8 = this;
 
             var anims = this.surfaceNode.animations;
             anims.forEach(function (anim) {
-                // この条件式よくわからない
-                if (anim.interval === "yen-e" && _this9.talkCount % _this9.talkCounts[anim.is] === 0) {
-                    _this9.play(anim.is);
+                if (anim.interval === "yen-e") {
+                    _this8.play(anim.is);
                 }
             });
         }
     }, {
         key: "composeAnimationPatterns",
         value: function composeAnimationPatterns(layers) {
-            var _this10 = this;
+            var _this9 = this;
 
             var renderLayers = [];
             layers.forEach(function (pattern, i) {
@@ -14947,10 +14923,10 @@ var Surface = (function (_EventEmitter) {
                 var y = pattern.y;
 
                 if (surface < 0) return; // idが-1つまり非表示指定
-                var srf = _this10.surfaceTree[surface]; // 該当のサーフェス
+                var srf = _this9.surfaceTree[surface]; // 該当のサーフェス
                 if (srf == null) {
-                    console.warn("Surface#render: surface id " + surface + " is not defined.", pattern);
-                    console.warn(surface, Object.keys(_this10.surfaceTree));
+                    console.warn("Surface#composeAnimationPatterns: surface id " + surface + " is not defined.", pattern);
+                    console.warn(surface, Object.keys(_this9.surfaceTree));
                     return; // 対象サーフェスがないのでスキップ
                 }
                 // 対象サーフェスを構築描画する
@@ -14960,8 +14936,7 @@ var Surface = (function (_EventEmitter) {
                 var animations = srf.animations;
 
                 var rndr = new _SurfaceRender2["default"](); // 対象サーフェスのbaseサーフェス(surface*.png)の上に
-                rndr.base(base);
-                rndr.composeElements(elements); // elementを合成する
+                rndr.composeElements([{ type: "overlay", canvas: base, x: 0, y: 0 }].concat(elements)); // elementを合成する
                 renderLayers.push({ type: type, x: x, y: y, canvas: rndr.getSurfaceCanvas() });
             });
             return renderLayers;
@@ -14974,16 +14949,34 @@ var Surface = (function (_EventEmitter) {
             var base = this.surfaceNode.base;
             var elements = this.surfaceNode.elements;
             var fronts = this.composeAnimationPatterns(this.layers);
-            var renderLayers = [].concat(backgrounds, [{ type: "overlay", canvas: base, x: 0, y: 0 }], elements, fronts);
+            var renderLayers = [].concat(
+            // よめきつね対策
+            // ukadoc上ではbackgroundの上にbaseがくるとのことだｋが
+            // SSPの挙動を見る限りbackgroundがあるときはbaseが無視されているので
+            backgrounds.length > 0 ? backgrounds : [{ type: "overlay", canvas: base, x: 0, y: 0 }], elements);
             var bufRender = new _SurfaceRender2["default"](); // ベースサーフェスをバッファに描画。surface*.pngとかsurface *{base,*}とか
             bufRender.composeElements(renderLayers); // 現在有効なアニメーションのレイヤを合成
+            // elementまでがベースサーフェス扱い
+            var baseWidth = bufRender.cnv.width;
+            var baseHeight = bufRender.cnv.height;
+            // アニメーションレイヤーは別腹
+            bufRender.composeElements(fronts);
             if (this.enableRegionDraw) {
-                bufRender.ctx.fillText("" + this.surfaceId, 5, 10); // surfaceIdを描画
-                bufRender.drawRegions(this.surfaceNode.collisions);
+                bufRender.drawRegions(this.surfaceNode.collisions, "" + this.surfaceId);
             }
+            /*
+            console.log(bufRender.log);
+            SurfaceUtil.log(bufRender.cnv);
+            document.body.scrollTop = 9999;
+            this.endAll();
+            debugger;
+            */
             SurfaceUtil.init(this.cnv, this.ctx, bufRender.cnv); // バッファから実DOMTree上のcanvasへ描画
-            (0, _jquery2["default"])(this.element).width(bufRender.baseWidth); //this.cnv.width - bufRender.basePosX);
-            (0, _jquery2["default"])(this.element).height(bufRender.baseHeight); //this.cnv.height - bufRender.basePosY);
+            // SSPでのjuda.narを見る限り合成後のサーフェスはベースサーフェスの大きさではなく合成されたサーフェスの大きさになるようだ
+            // juda-systemの\s[1050]のアニメーションはrunonceを同時実行しており、この場合の座標の原点の計算方法が不明。
+            // これは未定義動作の可能性が高い。
+            (0, _jquery2["default"])(this.element).width(baseWidth); //this.cnv.width - bufRender.basePosX);
+            (0, _jquery2["default"])(this.element).height(baseHeight); //this.cnv.height - bufRender.basePosY);
             (0, _jquery2["default"])(this.cnv).css("top", -bufRender.basePosY); // overlayでキャンバスサイズ拡大したときのためのネガティブマージン
             (0, _jquery2["default"])(this.cnv).css("left", -bufRender.basePosX);
         }
@@ -15017,23 +15010,23 @@ var SurfaceRender = (function () {
     // nullならば1x1のCanvasをベースサーフェスとする。
     // 渡されたSurfaceCanvasは変更しない。
 
-    function SurfaceRender() {
+    function SurfaceRender(opt) {
         _classCallCheck(this, SurfaceRender);
 
+        this.use_self_alpha = false;
         this.cnv = SurfaceUtil.createCanvas();
-        this.img = this.cnv; // HTMLElementでwidthとHeightがあってdrawImageできるから！
         this.ctx = this.cnv.getContext("2d");
         this.basePosX = 0;
         this.basePosY = 0;
         this.baseWidth = 0;
         this.baseHeight = 0;
-        this.elements = [];
+        this.log = [];
     }
 
     _createClass(SurfaceRender, [{
         key: "getSurfaceCanvas",
         value: function getSurfaceCanvas() {
-            return { cnv: SurfaceUtil.copy(this.cnv), img: this.img };
+            return { cnv: SurfaceUtil.copy(this.cnv), png: null, pna: null };
         }
 
         // [
@@ -15057,6 +15050,10 @@ var SurfaceRender = (function () {
     }, {
         key: "composeElement",
         value: function composeElement(canvas, type, x, y) {
+            if (canvas.cnv == null && canvas.png == null) {
+                // element 合成のみで作られるサーフェスの base は dummy SurfaceCanvas
+                return;
+            }
             switch (type) {
                 case "base":
                     this.base(canvas);
@@ -15100,31 +15097,8 @@ var SurfaceRender = (function () {
     }, {
         key: "clear",
         value: function clear() {
-            this.elements.push({ method: "clear", args: [] });
+            if (this.debug) this.log.push({ method: "clear", args: [] });
             this.cnv.width = this.cnv.width;
-        }
-    }, {
-        key: "pna",
-        value: function pna(png, _pna) {
-            this.elements.push({ method: "pna", args: [png, _pna] });
-            var cnvA = SurfaceUtil.copy(png.img || png.cnv);
-            var ctxA = cnvA.getContext("2d");
-            var imgdataA = ctxA.getImageData(0, 0, cnvA.width, cnvA.height);
-            var dataA = imgdataA.data;
-            var cnvB = SurfaceUtil.copy(_pna.img || _pna.cnv);
-            var ctxB = cnvB.getContext("2d");
-            var imgdataB = ctxB.getImageData(0, 0, cnvB.width, cnvB.height);
-            var dataB = imgdataB.data;
-            for (var y = 0; y < cnvB.height; y++) {
-                for (var x = 0; x < cnvB.width; x++) {
-                    var iA = x * 4 + y * cnvA.width * 4; // baseのxy座標とインデックス
-                    var iB = x * 4 + y * cnvB.width * 4; // pnaのxy座標とインデックス
-                    dataA[iA + 3] = dataB[iB]; // pnaのRの値をpngのalphaチャネルへ代入
-                }
-            }
-            this.cnv.width = cnvA.width;
-            this.cnv.height = cnvA.height;
-            this.ctx.putImageData(imgdataA, 0, 0);
         }
 
         //下位レイヤをコマで完全に置き換える。collisionもコマのサーフェスに定義されたものに更新される。
@@ -15134,11 +15108,78 @@ var SurfaceRender = (function () {
     }, {
         key: "base",
         value: function base(part) {
-            if ($(part.cnv).attr("data-shell-dummy") != null) return;
-            this.elements.push({ method: "base", args: [part] });
+            if (this.debug) this.log.push({ method: "base", args: [part] });
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (!(part.cnv instanceof HTMLCanvasElement)) {
+                console.error("SurfaceRender", "base surface is not defined", part);
+                return;
+            }
             this.baseWidth = part.cnv.width;
             this.baseHeight = part.cnv.height;
             SurfaceUtil.init(this.cnv, this.ctx, part.cnv);
+        }
+    }, {
+        key: "prepareOverlay",
+        value: function prepareOverlay(part, x, y) {
+            // baseのcanvasを拡大するためのキャッシュ
+            var tmp = SurfaceUtil.copy(this.cnv);
+            var offsetX = 0;
+            var offsetY = 0;
+            // もしパーツが右下へはみだす
+            if (x >= 0) {
+                // 右
+                if (x + this.basePosX + part.cnv.width > this.cnv.width) {
+                    this.cnv.width = this.basePosX + x + part.cnv.width;
+                } else {
+                    this.cnv.width = this.cnv.width;
+                }
+            }
+            if (y >= 0) {
+                // 下
+                if (y + this.basePosY + part.cnv.height > this.cnv.height) {
+                    this.cnv.height = y + this.basePosY + part.cnv.height;
+                } else {
+                    this.cnv.height = this.cnv.height;
+                }
+            }
+            // もしパーツが左上へはみだす（ネガティブマージン
+            if (x + this.basePosX < 0) {
+                // もし左へははみ出す
+                if (part.cnv.width + x > this.cnv.width) {
+                    // partの横幅がx考慮してもcnvよりでかい
+                    this.cnv.width = part.cnv.width;
+                    this.basePosX = -x;
+                    offsetX = this.basePosX;
+                } else {
+                    this.cnv.width = this.cnv.width - x;
+                    this.basePosX = -x;
+                    offsetX = this.cnv.width - tmp.width;
+                }
+            }
+            if (y + this.basePosY < 0) {
+                // 上
+                if (part.cnv.height + y > this.cnv.height) {
+                    // partの縦幅がy考慮してもcnvよりでかい
+                    this.cnv.height = part.cnv.height;
+                    this.basePosY = -y;
+                    offsetY = this.basePosY;
+                } else {
+                    this.cnv.height = this.cnv.height - y;
+                    this.basePosY = -y;
+                    offsetY = this.cnv.height - tmp.height;
+                }
+            }
+            if (this.debug) {
+                this.ctx.fillStyle = "lime";
+                this.ctx.fillRect(this.basePosX, this.basePosY, 5, 5);
+            }
+            //console.log("x", "y","|", "offsetX", "offsetY", "|","basePosX", "basePosY")
+            //console.log(x, y,"|", offsetX, offsetY, "|",this.basePosX, this.basePosY)
+            //SurfaceUtil.log(SurfaceUtil.copy(part.cnv), "part");
+            //SurfaceUtil.log(SurfaceUtil.copy(tmp), "tmp");
+            //SurfaceUtil.log(SurfaceUtil.copy(this.cnv), "cnv");
+            this.ctx.drawImage(tmp, offsetX, offsetY); //下位レイヤ再描画
+            //SurfaceUtil.log(SurfaceUtil.copy(this.cnv), "cnv2");
         }
 
         //下位レイヤにコマを重ねる。
@@ -15146,31 +15187,13 @@ var SurfaceRender = (function () {
     }, {
         key: "overlay",
         value: function overlay(part, x, y) {
-            if ($(part.cnv).attr("data-shell-dummy") != null) return;
-            if (this.elements.length === 0) {
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (this.baseWidth === 0 || this.baseHeight === 0) {
+                // このサーフェスはまだ base を持たない
                 return this.base(part);
             }
-            this.elements.push({ method: "overlay", args: [part, x, y] });
-            // baseのcanvasを拡大するためのキャッシュ
-            var tmp = SurfaceUtil.copy(this.cnv);
-            // もしパーツが右下へはみだす
-            if (x >= 0) {
-                this.cnv.width = x + part.cnv.width > this.cnv.width ? x + part.cnv.width : this.cnv.width;
-            }
-            if (y >= 0) {
-                this.cnv.height = y + part.cnv.height > this.cnv.height ? y + part.cnv.height : this.cnv.height;
-            }
-            // もしパーツが右上へはみだす（ネガティブマージン
-            if (x < 0) {
-                // もし右へははみ出す
-                this.cnv.width = part.cnv.width + x > this.cnv.width ? part.cnv.width : this.cnv.width - x;
-                this.basePosX = -x;
-            }
-            if (y < 0) {
-                this.cnv.height = part.cnv.height + y > this.cnv.height ? part.cnv.height : this.cnv.height - y;
-                this.basePosY = -y;
-            }
-            this.ctx.drawImage(tmp, this.basePosX, this.basePosY); //下位レイヤ再描画
+            if (this.debug) this.log.push({ method: "overlay", args: [part, x, y] });
+            this.prepareOverlay(part, x, y);
             this.ctx.globalCompositeOperation = "source-over";
             this.ctx.drawImage(part.cnv, this.basePosX + x, this.basePosY + y); //コマ追加
         }
@@ -15180,7 +15203,9 @@ var SurfaceRender = (function () {
     }, {
         key: "overlayfast",
         value: function overlayfast(part, x, y) {
-            this.elements.push({ method: "overlayfast", args: [part, x, y] });
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (this.debug) this.log.push({ method: "overlayfast", args: [part, x, y] });
+            this.prepareOverlay(part, x, y);
             this.ctx.globalCompositeOperation = "source-atop";
             this.ctx.drawImage(part.cnv, this.basePosX + x, this.basePosY + y);
         }
@@ -15193,7 +15218,9 @@ var SurfaceRender = (function () {
     }, {
         key: "interpolate",
         value: function interpolate(part, x, y) {
-            this.elements.push({ method: "interpolate", args: [part, x, y] });
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (this.debug) this.log.push({ method: "interpolate", args: [part, x, y] });
+            this.prepareOverlay(part, x, y);
             this.ctx.globalCompositeOperation = "destination-over";
             this.ctx.drawImage(part.cnv, this.basePosX + x, this.basePosY + y);
         }
@@ -15203,7 +15230,9 @@ var SurfaceRender = (function () {
     }, {
         key: "replace",
         value: function replace(part, x, y) {
-            this.elements.push({ method: "replace", args: [part, x, y] });
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (this.debug) this.log.push({ method: "replace", args: [part, x, y] });
+            this.prepareOverlay(part, x, y);
             this.ctx.clearRect(this.basePosX + x, this.basePosY + y, part.cnv.width, part.cnv.height);
             this.overlay(part, x, y);
         }
@@ -15215,9 +15244,11 @@ var SurfaceRender = (function () {
     }, {
         key: "asis",
         value: function asis(part, x, y) {
-            this.elements.push({ method: "asis", args: [part, x, y] });
+            // SurfaceUtil.pna はしない
+            if (this.debug) this.log.push({ method: "asis", args: [part, x, y] });
+            this.prepareOverlay(part, x, y);
             this.ctx.globalCompositeOperation = "source-over";
-            this.ctx.drawImage(part.img || part.cnv, this.basePosX + x, this.basePosY + y);
+            this.ctx.drawImage(part.png, this.basePosX + x, this.basePosY + y);
         }
 
         //下位レイヤをXY座標指定分ずらす。
@@ -15226,9 +15257,9 @@ var SurfaceRender = (function () {
     }, {
         key: "move",
         value: function move(x, y) {
-            this.elements.push({ method: "move", args: [x, y] });
-            // overlayするためだけのものなのでnullでもまあ問題ない
-            var srfCnv = { cnv: SurfaceUtil.copy(this.cnv), img: null };
+            if (this.debug) this.log.push({ method: "move", args: [x, y] });
+            // overlayするためだけのものなのでpngやpnaがnullでもまあ問題ない
+            var srfCnv = { cnv: SurfaceUtil.copy(this.cnv), png: null, pna: null };
             this.clear(); // 大きさだけ残して一旦消す
             this.overlay(srfCnv, x, y); //ずらした位置に再描画
         }
@@ -15239,7 +15270,8 @@ var SurfaceRender = (function () {
     }, {
         key: "bind",
         value: function bind(part, x, y) {
-            this.elements.push({ method: "bind", args: [part, x, y] });
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (this.debug) this.log.push({ method: "bind", args: [part, x, y] });
             this.add(part, x, y);
         }
 
@@ -15248,7 +15280,8 @@ var SurfaceRender = (function () {
     }, {
         key: "add",
         value: function add(part, x, y) {
-            this.elements.push({ method: "add", args: [part, x, y] });
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (this.debug) this.log.push({ method: "add", args: [part, x, y] });
             this.overlay(part, x, y);
         }
 
@@ -15258,8 +15291,10 @@ var SurfaceRender = (function () {
     }, {
         key: "reduce",
         value: function reduce(part, x, y) {
-            this.elements.push({ method: "reduce", args: [part, x, y] });
+            if (!this.use_self_alpha) part = SurfaceUtil.pna(part);
+            if (this.debug) this.log.push({ method: "reduce", args: [part, x, y] });
             // はみ出しちぇっく
+            // prepareOverlay はしない
             var width = x + part.cnv.width < this.cnv.width ? part.cnv.width : this.cnv.width - x;
             var height = y + part.cnv.height < this.cnv.height ? part.cnv.height : this.cnv.height - y;
             var imgdataA = this.ctx.getImageData(0, 0, this.cnv.width, this.cnv.height);
@@ -15280,8 +15315,9 @@ var SurfaceRender = (function () {
     }, {
         key: "init",
         value: function init(srfCnv) {
+            srfCnv = SurfaceUtil.pna(srfCnv);
             console.warn("SurfaceRender#init is deprecated");
-            this.elements.push({ method: "init", args: [srfCnv] });
+            if (this.debug) this.log.push({ method: "init", args: [srfCnv] });
             this.baseWidth = srfCnv.cnv.width;
             this.baseHeight = srfCnv.cnv.height;
             SurfaceUtil.init(this.cnv, this.ctx, srfCnv.cnv);
@@ -15290,7 +15326,7 @@ var SurfaceRender = (function () {
         key: "initImageData",
         value: function initImageData(width, height, data) {
             console.warn("SurfaceRender#initImageData is deprecated");
-            this.elements.push({ method: "initImageData", args: [width, height, data] });
+            if (this.debug) this.log.push({ method: "initImageData", args: [width, height, data] });
             this.baseWidth = this.cnv.width = width;
             this.baseHeight = this.cnv.height = height;
             var imgdata = this.ctx.getImageData(0, 0, width, height);
@@ -15299,9 +15335,15 @@ var SurfaceRender = (function () {
         }
     }, {
         key: "drawRegions",
-        value: function drawRegions(regions) {
+        value: function drawRegions(regions, description) {
             var _this2 = this;
 
+            this.ctx.font = "35px";
+            this.ctx.lineWidth = 4;
+            this.ctx.strokeStyle = "white";
+            this.ctx.strokeText(description, 5, 10);
+            this.ctx.fillStyle = "black";
+            this.ctx.fillText(description, 5, 10); // surfaceIdを描画
             regions.forEach(function (col) {
                 _this2.drawRegion(col);
             });
@@ -15309,7 +15351,7 @@ var SurfaceRender = (function () {
     }, {
         key: "drawRegion",
         value: function drawRegion(region) {
-            this.elements.push({ method: "drawRegion", args: [region] });
+            if (this.debug) this.log.push({ method: "drawRegion", args: [region] });
             var _region$type = region.type;
             var type = _region$type === undefined ? "" : _region$type;
             var _region$name = region.name;
@@ -15337,6 +15379,7 @@ var SurfaceRender = (function () {
             bottom += this.basePosY;
             center_x += this.basePosX;
             center_y += this.basePosY;
+            this.ctx.lineWidth = 1;
             this.ctx.strokeStyle = "#00FF00";
             switch (type) {
                 case "rect":
@@ -15348,6 +15391,7 @@ var SurfaceRender = (function () {
             }
             this.ctx.stroke();
             this.ctx.font = "35px";
+            this.ctx.lineWidth = 4;
             this.ctx.strokeStyle = "white";
             this.ctx.strokeText(type + ":" + name, left + 5, top + 10);
             this.ctx.fillStyle = "black";
@@ -15359,6 +15403,8 @@ var SurfaceRender = (function () {
 })();
 
 exports["default"] = SurfaceRender;
+
+SurfaceRender.prototype.debug = false;
 module.exports = exports["default"];
 },{"./SurfaceUtil":20}],20:[function(require,module,exports){
 /// <reference path="../typings/tsd.d.ts"/>
@@ -15370,6 +15416,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
 
+exports.pna = pna;
 exports.createSurfaceCanvasDummy = createSurfaceCanvasDummy;
 exports.createSurfaceCanvasFromURL = createSurfaceCanvasFromURL;
 exports.createSurfaceCanvasFromArrayBuffer = createSurfaceCanvasFromArrayBuffer;
@@ -15404,17 +15451,63 @@ var _encodingJapanese = require("encoding-japanese");
 
 var _encodingJapanese2 = _interopRequireDefault(_encodingJapanese);
 
+function pna(srfCnv) {
+    var cnv = srfCnv.cnv;
+    var png = srfCnv.png;
+    var pna = srfCnv.pna;
+
+    if (cnv != null) {
+        // 色抜き済みだった
+        return srfCnv;
+    }
+    if (cnv == null && png != null && pna == null) {
+        // 背景色抜き
+        cnv = copy(png);
+        var ctx = cnv.getContext("2d");
+        var imgdata = ctx.getImageData(0, 0, cnv.width, cnv.height);
+        chromakey_snipet(imgdata.data);
+        ctx.putImageData(imgdata, 0, 0);
+        srfCnv.cnv = cnv; // キャッシュに反映
+        return srfCnv;
+    }
+    if (cnv == null && png != null && pna != null) {
+        // pna
+        var cnvA = copy(png);
+        var ctxA = cnvA.getContext("2d");
+        var imgdataA = ctxA.getImageData(0, 0, cnvA.width, cnvA.height);
+        var dataA = imgdataA.data;
+        var cnvB = copy(pna);
+        var ctxB = cnvB.getContext("2d");
+        var imgdataB = ctxB.getImageData(0, 0, cnvB.width, cnvB.height);
+        var dataB = imgdataB.data;
+        for (var y = 0; y < cnvB.height; y++) {
+            for (var x = 0; x < cnvB.width; x++) {
+                var iA = x * 4 + y * cnvA.width * 4; // baseのxy座標とインデックス
+                var iB = x * 4 + y * cnvB.width * 4; // pnaのxy座標とインデックス
+                dataA[iA + 3] = dataB[iB]; // pnaのRの値をpngのalphaチャネルへ代入
+            }
+        }
+        ctxA.putImageData(imgdataA, 0, 0);
+        cnv = cnvA;
+        srfCnv.cnv = cnv; // キャッシュに反映
+        return srfCnv;
+    }
+    // png, cnv が null なのは element だけで構成されたサーフェスの dummy base
+    return srfCnv;
+}
+
 function createSurfaceCanvasDummy() {
-    var cnv = createCanvas();
-    $(cnv).attr("data-shell-dummy", "1");
-    return { cnv: cnv, img: null };
+    console.warn("SurfaceUtil.createSurfaceCanvasDummy is deprecated");
+    return { cnv: null, png: null, pna: null };
 }
 
 function createSurfaceCanvasFromURL(url) {
+    console.warn("SurfaceUtil.createSurfaceCanvasFromURL is deprecated");
     return fetchArrayBuffer(url).then(createSurfaceCanvasFromArrayBuffer);
 }
 
 function createSurfaceCanvasFromArrayBuffer(buffer) {
+    console.warn("SurfaceUtil.createSurfaceCanvasFromArrayBuffer is deprecated");
     return fetchImageFromArrayBuffer(buffer).then(function (img) {
         var cnv = copy(img);
         var ctx = cnv.getContext("2d");
@@ -15451,6 +15544,9 @@ function chromakey_snipet(data) {
 function log(element) {
     var description = arguments.length <= 1 || arguments[1] === undefined ? "" : arguments[1];
 
+    if (element instanceof HTMLCanvasElement || element instanceof HTMLImageElement) {
+        description += element.width + "x" + element.height;
+    }
     var fieldset = document.createElement('fieldset');
     var legend = document.createElement('legend');
     legend.appendChild(document.createTextNode(description));
@@ -15564,6 +15660,7 @@ function copy(cnv) {
 }
 
 function fetchPNGUint8ClampedArrayFromArrayBuffer(pngbuf, pnabuf) {
+    console.warn("SurfaceUtil.fetchPNGUint8ClampedArrayFromArrayBuffer is deprecated");
     return new Promise(function (resolve, reject) {
         reject("deplicated");
         /*
@@ -15824,7 +15921,7 @@ var Shell = _Shell3["default"];
 exports.Shell = Shell;
 },{"./Shell":17,"./Surface":18,"./SurfaceRender":19,"./SurfaceUtil":20}],22:[function(require,module,exports){
 arguments[4][17][0].apply(exports,arguments)
-},{"./Surface":23,"./SurfaceRender":24,"./SurfaceUtil":25,"dup":17,"eventemitter3":5,"jquery":34,"surfaces_txt2yaml":65}],23:[function(require,module,exports){
+},{"./Surface":23,"./SurfaceUtil":25,"dup":17,"eventemitter3":5,"jquery":34,"surfaces_txt2yaml":65}],23:[function(require,module,exports){
 arguments[4][18][0].apply(exports,arguments)
 },{"./SurfaceRender":24,"./SurfaceUtil":25,"dup":18,"eventemitter3":5,"jquery":34}],24:[function(require,module,exports){
 arguments[4][19][0].apply(exports,arguments)
@@ -15834,7 +15931,7 @@ arguments[4][20][0].apply(exports,arguments)
 arguments[4][21][0].apply(exports,arguments)
 },{"./Shell":22,"./Surface":23,"./SurfaceRender":24,"./SurfaceUtil":25,"dup":21}],27:[function(require,module,exports){
 arguments[4][17][0].apply(exports,arguments)
-},{"./Surface":28,"./SurfaceRender":29,"./SurfaceUtil":30,"dup":17,"eventemitter3":5,"jquery":34,"surfaces_txt2yaml":65}],28:[function(require,module,exports){
+},{"./Surface":28,"./SurfaceUtil":30,"dup":17,"eventemitter3":5,"jquery":34,"surfaces_txt2yaml":65}],28:[function(require,module,exports){
 arguments[4][18][0].apply(exports,arguments)
 },{"./SurfaceRender":29,"./SurfaceUtil":30,"dup":18,"eventemitter3":5,"jquery":34}],29:[function(require,module,exports){
 arguments[4][19][0].apply(exports,arguments)

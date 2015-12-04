@@ -52,7 +52,7 @@ Promise.all([
   var shell = arg[0];
   var balloon = arg[1];
 
-  var nmdmgr = new NamedManager.NamedManager()
+  var nmdmgr = new cuttlebone.NamedManager()
   document.body.appendChild(nmdmgr.element);
 
   var hwnd = nmdmgr.materialize(shell, balloon);
