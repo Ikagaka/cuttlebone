@@ -11,10 +11,10 @@
   "scripts": {
     "init": "npm run update; npm run build",
     "update": "rm -rf bower_components node_modules; npm update; bower update",
-    "clean": "rm lib/*.js dist/*.js demo/*.js",
+    "clean": "rm lib/*.js dist/*.js",
     "start": "http-server --silent -p 8000 & coffee -w --compile --output lib src/*.coffee & watchify lib/index.js --outfile dist/cuttlebone.js  --standalone cuttlebone -v",
     "stop": "killall -- node */http-server -p 8000",
-    "build": "coffee -c -o lib src/*.coffee; browserify lib/index.js --standalone cuttlebone -o dist/cuttlebone.js",
+    "build": "npm run clean; coffee -c -o lib src/*.coffee; browserify lib/index.js --standalone cuttlebone -o dist/cuttlebone.js",
     "patch": "mversion patch -m"
   },
   "repository": {

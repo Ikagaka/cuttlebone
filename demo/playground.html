@@ -45,27 +45,52 @@
     </textarea>
     </p>
   </fieldset>
+  <fieldset style="display:block;">
+    <legend>log</legend>
+    <p id="bootlog">
+    </p>
+  </fieldset>
 <script>
+(function(){
+  window.onerror = function(err){
+    $("#bootlog")
+    .append("<span style='color:red;'>"+err+"</span>").append("<br />")
+    .append("<span style='color:red;'>"+err.stack+"</span>").append("<br />");
+  }
+}());
 var shell = null;
 var balloon = null;
 var nmdmgr = new cuttlebone.NamedManager();
 var hwnd = null;
 $(function(){document.body.appendChild(nmdmgr.element);});
+$("#bootlog").append("downloading shell nar file.").append("<br />");
+$("#bootlog").append("downloading balloon nar file.").append("<br />");
 Promise.all([
   NarLoader.loadFromURL("../nar/mobilemaster.nar"),
   NarLoader.loadFromURL("../nar/origin.nar")
 ]).then(function(args){
+  $("#bootlog").append("downloaded.").append("<br />");
+  $("#bootlog").append("downloaded.").append("<br />");
   var balloonDir = args[1].asArrayBuffer();
   balloon = new cuttlebone.Balloon(balloonDir);
+  $("#bootlog").append("loading balloon nar file.").append("<br />");
   return balloon.load().then(function(){
+    $("#bootlog").append("loaded.").append("<br />");
     return args[0];
   })
 }).then(changeNar)
 $("#nar").change(function(ev){
-  nmdmgr.vanish(hwnd);
-  NarLoader.loadFromBlob($(this).prop("files")[0]).then(changeNar);
+  if(!!nmdmgr.namedies[hwnd]){
+    nmdmgr.vanish(hwnd);
+    $("#bootlog").append("vanished.").append("<br />");
+  }
+  if($(this).prop("files")[0] instanceof Blob){
+    $("#bootlog").append("loading shell nar file.").append("<br />");
+    NarLoader.loadFromBlob($(this).prop("files")[0]).then(changeNar);
+  }
 });
 function changeNar(nanikaDir){
+  $("#bootlog").append("loaded.").append("<br />");
   console.log(nanikaDir.files);
   var shelllist = nanikaDir.getDirectory("shell").listChildren();
   console.log(shelllist)
@@ -73,7 +98,7 @@ function changeNar(nanikaDir){
   shelllist.forEach(function(shellId){
     $("<option />").val(shellId).text(shellId).appendTo($frag);
   });
-  $("#shellId").children().remove().end().append($frag).change(function(){ changeShell(nanikaDir); });
+  $("#shellId").children().remove().end().append($frag).off().change(function(){ changeShell(nanikaDir); });
   if(shelllist.length === 0) return console.warn("this nar does not have any shell");
   if(shelllist.indexOf("master") !== -1) {
     $("#shellId").val("master").change();
@@ -84,15 +109,19 @@ function changeNar(nanikaDir){
 function changeShell(nanikaDir){
   var shellDir = nanikaDir.getDirectory("shell/"+$("#shellId").val()).asArrayBuffer();
   !!shell && shell.unload();
+  $("#bootlog").append("loading shell").append("<br />");
   shell = new cuttlebone.Shell(shellDir);
   shell.load().then(function(shell){
     console.log(shell);
+    $("#bootlog").append("loaded.").append("<br />");
     shell.on("mouse", function(ev){
       if(ev.type === "mousemove") return; // mousemoveは鬱陶しいので表示しない
       console.log(ev);
     });
+    $("#bootlog").append("materializing.").append("<br />");
     hwnd = nmdmgr.materialize(shell, balloon);
     var named = nmdmgr.named(hwnd);
+    $("#bootlog").append("materialized.").append("<br />");
     var ssp = new SakuraScriptPlayer(named);
 
     $("#play").off().on("click", function(){
@@ -107,6 +136,7 @@ function changeShell(nanikaDir){
 
     $("#kill").off().click(function(){
       nmdmgr.vanish(hwnd);
+      $("#bootlog").append("vanished.").append("<br />");
     });
 
     $("#bindgroupId").children().remove();
