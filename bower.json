@@ -1,13 +1,12 @@
 {
   "name": "cuttlebone",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ukagaka shell renderer package for web browser",
   "license": "MIT",
   "authors": [
     "legokichi"
   ],
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "narloader": "*",
     "qunit": "*",

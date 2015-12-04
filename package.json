@@ -1,6 +1,6 @@
 {
   "name": "cuttlebone",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ukagaka shell renderer package for web browser",
   "url": "https://github.com/ikagaka/cuttlebone.js",
   "keywords": [
@@ -26,8 +26,7 @@
     "ikagaka.balloon.js": "ikagaka/Balloon.js",
     "ikagaka.namedmanager.js": "ikagaka/namedmanager.js"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "bugs": {
     "url": "https://github.com/Ikagaka/cuttlebone/issues"
   },
