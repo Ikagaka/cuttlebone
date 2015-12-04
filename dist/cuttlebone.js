@@ -11,17 +11,6 @@
 
   ref2 = require("ikagaka.namedmanager.js"), NamedManager = ref2.NamedManager, Named = ref2.Named, Scope = ref2.Scope;
 
-  Named.prototype.load = function() {
-    console.log(this);
-    this.on("mouse", (function(_this) {
-      return function(ev) {
-        console.log(ev);
-        return _this.emit(ev.type, ev);
-      };
-    })(this));
-    return Promise.resolve(this);
-  };
-
   exports.Balloon = Balloon;
 
   exports.Blimp = Blimp;
