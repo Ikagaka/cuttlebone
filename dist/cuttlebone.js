@@ -13507,7 +13507,8 @@ if ('undefined' !== typeof module) {
             $(document.body).off("mouseup", onmouseup);
             $(document.body).off("mousemove", onmousemove);
             $(document.body).off("touchmove", onmousemove);
-            return $(document.body).off("touchend", onmouseup);
+            $(document.body).off("touchend", onmouseup);
+            return _this.shell.off("mouse");
           });
           return _this.shell.on("mouse", function(ev) {
             var $scope, clientX, clientY, left, pageX, pageY, ref, ref1, top;
@@ -13517,6 +13518,7 @@ if ('undefined' !== typeof module) {
             }
             switch (ev.type) {
               case "mousedown":
+              case "touchstart":
                 scopeId = ev.scopeId;
                 $target = $scope = $(_this.scopes[ev.scopeId].element);
                 ref = $target.offset(), top = ref.top, left = ref.left;
@@ -13532,40 +13534,57 @@ if ('undefined' !== typeof module) {
       })(this)();
       (function(_this) {
         return (function() {
-          var $target, relLeft, relTop;
+          var $target, onmousemove, onmouseup, relLeft, relTop, scopeId;
           relLeft = relTop = 0;
           $target = null;
+          scopeId = -1;
+          onmouseup = function() {
+            $target = null;
+            return scopeId = -1;
+          };
+          onmousemove = function(ev) {
+            var $scope, clientX, clientY, pageX, pageY, ref, screenX, screenY;
+            if ($target == null) {
+              return;
+            }
+            ref = SurfaceUtil.getEventPosition(ev), pageX = ref.pageX, pageY = ref.pageY, clientX = ref.clientX, clientY = ref.clientY, screenX = ref.screenX, screenY = ref.screenY;
+            $scope = $(_this.scopes[scopeId].element);
+            if (pageX - relLeft + $scope.width() / 2 > 0) {
+              _this.scope(scopeId).blimp().right();
+            } else {
+              _this.scope(scopeId).blimp().left();
+            }
+            return $target.css({
+              left: pageX - relLeft,
+              top: pageY - relTop,
+              right: "",
+              bottom: ""
+            });
+          };
+          $(document.body).on("mouseup", onmouseup);
+          $(document.body).on("mousemove", onmousemove);
+          $(document.body).on("touchmove", onmousemove);
+          $(document.body).on("touchend", onmouseup);
+          _this.destructors.push(function() {
+            $(document.body).off("mouseup", onmouseup);
+            $(document.body).off("mousemove", onmousemove);
+            $(document.body).off("touchmove", onmousemove);
+            $(document.body).off("touchend", onmouseup);
+            return this.balloon.off("mouse");
+          });
           return _this.balloon.on("mouse", function(ev) {
-            var $scope, clientX, clientY, left, offsetX, offsetY, pageX, pageY, ref, ref1, ref2, screenX, screenY, top, wait;
+            var $scope, clientX, clientY, left, offsetX, offsetY, pageX, pageY, ref, ref1, screenX, screenY, top, wait;
             $scope = $(_this.scopes[ev.scopeId].element);
             switch (ev.type) {
-              case "mouseup":
-                $target = null;
-                break;
-              case "mousemove":
-                if ($target != null) {
-                  ref = SurfaceUtil.getEventPosition(ev.event), pageX = ref.pageX, pageY = ref.pageY, clientX = ref.clientX, clientY = ref.clientY, screenX = ref.screenX, screenY = ref.screenY;
-                  $scope = $(_this.scopes[ev.scopeId].element);
-                  if (pageX - relLeft + $scope.width() / 2 > 0) {
-                    _this.scope(ev.scopeId).blimp().right();
-                  } else {
-                    _this.scope(ev.scopeId).blimp().left();
-                  }
-                  $target.css({
-                    left: pageX - relLeft,
-                    top: pageY - relTop,
-                    right: "",
-                    bottom: ""
-                  });
-                }
-                break;
               case "mousedown":
+              case "touchstart":
+                scopeId = ev.scopeId;
                 $scope = $(_this.scopes[ev.scopeId].element);
                 $target = $scope.find(".blimp");
-                ref1 = $target.offset(), top = ref1.top, left = ref1.left;
+                ref = $target.offset(), top = ref.top, left = ref.left;
                 offsetY = parseInt($target.css("left"), 10);
                 offsetX = parseInt($target.css("top"), 10);
-                ref2 = SurfaceUtil.getEventPosition(ev.event), pageX = ref2.pageX, pageY = ref2.pageY, clientX = ref2.clientX, clientY = ref2.clientY, screenX = ref2.screenX, screenY = ref2.screenY;
+                ref1 = SurfaceUtil.getEventPosition(ev.event), pageX = ref1.pageX, pageY = ref1.pageY, clientX = ref1.clientX, clientY = ref1.clientY, screenX = ref1.screenX, screenY = ref1.screenY;
                 relLeft = pageX - offsetY;
                 relTop = pageY - offsetX;
                 if ($(ev.event.target).hasClass("ikagaka-choice") || $(ev.event.target).hasClass("ikagaka-anchor")) {
@@ -13587,6 +13606,9 @@ if ('undefined' !== typeof module) {
           return _this.emit("balloon_select", ev);
         };
       })(this));
+      this.destructors.push(function() {
+        return this.balloon.off("select");
+      });
     };
 
     Named.prototype.destructor = function() {
@@ -13603,7 +13625,12 @@ if ('undefined' !== typeof module) {
 
     Named.prototype.scope = function(scopeId) {
       if (scopeId == null) {
-        return this.currentScope;
+        if (this.currentScope instanceof Scope) {
+          return this.currentScope;
+        } else {
+          console.error("Named#scope", "currentScope has not been defined yet, failback to scope 0", scopeId, this.currentScope, this);
+          return this.currentScope = this.scopes[0];
+        }
       }
       if (typeof scopeId !== "number") {
         console.warn("scopeId:", scopeId, "is not a number");
@@ -13783,6 +13810,7 @@ if ('undefined' !== typeof module) {
     Scope.prototype.destructor = function() {};
 
     Scope.prototype.surface = function(surfaceId) {
+      var tmp;
       if (surfaceId == null) {
         return this.currentSurface;
       }
@@ -13795,7 +13823,10 @@ if ('undefined' !== typeof module) {
         return this.currentSurface;
       }
       this.shell.detachSurface(this.$surface[0]);
-      this.currentSurface = this.shell.attachSurface(this.$surface[0], this.scopeId, surfaceId);
+      tmp = this.shell.attachSurface(this.$surface[0], this.scopeId, surfaceId);
+      if (tmp != null) {
+        this.currentSurface = tmp;
+      }
       this.$scope.width(this.$surface.width());
       this.$scope.height(this.$surface.height());
       this.$surface.show();
@@ -14418,6 +14449,8 @@ exports["default"] = Shell;
 module.exports = exports["default"];
 },{"./Surface":15,"./SurfaceUtil":17,"eventemitter3":5,"jquery":26,"surfaces_txt2yaml":57}],15:[function(require,module,exports){
 // todo: anim collision
+// todo: background+exclusive,(1,3,5)
+/// <reference path="../typings/tsd.d.ts"/>
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -14477,8 +14510,14 @@ var Surface = (function (_EventEmitter) {
         this.bindgroup = bindgroup;
         this.position = "fixed";
         this.surfaceTree = surfaceTree;
-        this.surfaceNode = this.surfaceTree[surfaceId];
+        this.surfaceNode = this.surfaceTree[surfaceId] || {
+            base: { cnv: null, png: null, pna: null },
+            elements: [],
+            collisions: [],
+            animations: []
+        };
         this.bufferCanvas = SurfaceUtil.createCanvas();
+        this.exclusive = -1;
         this.talkCount = 0;
         this.talkCounts = {};
         this.animationsQueue = {};
@@ -14489,6 +14528,7 @@ var Surface = (function (_EventEmitter) {
         this.destructors = [];
         // GCの発生を抑えるためレンダラはこれ１つを使いまわす
         this.bufferRender = new _SurfaceRender2["default"]();
+        //this.bufferRender.debug = true;
         this.initMouseEvent();
         this.surfaceNode.animations.forEach(function (anim) {
             _this.initAnimation(anim);
@@ -14504,10 +14544,14 @@ var Surface = (function (_EventEmitter) {
                 return fn();
             });
             this.element = null;
-            this.surfaceNode = null;
-            this.surfaceTree = null;
-            this.bindgroup = null;
-            this.element = null;
+            this.surfaceNode = {
+                base: { cnv: null, png: null, pna: null },
+                elements: [],
+                collisions: [],
+                animations: []
+            };
+            this.surfaceTree = [];
+            this.bindgroup = [];
             this.layers = [];
             this.animationsQueue = {};
             this.talkCounts = {};
@@ -14646,9 +14690,17 @@ var Surface = (function (_EventEmitter) {
             var patterns = anim.patterns;
             var option = anim.option;
             //isってなんだよって話は @narazaka さんに聞いて。SurfacesTxt2Yamlのせい。
+            if (option != null && !/^background$|^exclusive$/.test(option)) {
+                console.warn("Surfaces#initAnimation", "unsupportted option", option, animId, anim);
+            }
             var __intervals = interval.split("+"); // sometimes+talk
+            if (/^bind/.test(interval)) {
+                // bindから始まる場合は initBind にまるなげ
+                this.initBind(anim);
+                return;
+            }
             if (__intervals.length > 1) {
-                // 分解して再実行
+                // bind+でなければ分解して再実行
                 __intervals.forEach(function (interval) {
                     _this3.initAnimation({ interval: interval, is: animId, patterns: patterns, option: option });
                 });
@@ -14699,17 +14751,14 @@ var Surface = (function (_EventEmitter) {
                 case "talk":
                     this.talkCounts[animId] = n;
                     return;
-                default:
-                    if (/^bind$/.test(interval)) {
-                        this.initBind(anim);
-                        return;
-                    }
             }
             console.warn("Surface#initAnimation > unkown interval:", interval, anim);
         }
     }, {
         key: "initBind",
         value: function initBind(anim) {
+            var _this4 = this;
+
             var animId = anim.is;
             var interval = anim.interval;
             var patterns = anim.patterns;
@@ -14719,45 +14768,65 @@ var Surface = (function (_EventEmitter) {
             if (this.bindgroup[this.scopeId][animId] == null) return;
             if (this.bindgroup[this.scopeId][animId] === true) {
                 // 現在有効な bind
+
+                var _interval$split3 = interval.split("+");
+
+                var _interval$split32 = _toArray(_interval$split3);
+
+                var _ = _interval$split32[0];
+
+                var intervals = _interval$split32.slice(1);
+
+                // bind+sometimes
+                if (intervals.length > 0) {
+                    // bind+hogeは着せ替え付随アニメーション。
+                    // bind+sometimesを分解して実行
+                    intervals.forEach(function (interval) {
+                        _this4.initAnimation({ interval: interval, is: animId, patterns: patterns, option: option });
+                    });
+                    return;
+                }
+                // bind単体はレイヤーを重ねる着せ替え。
                 if (option === "background") {
                     this.backgrounds[animId] = patterns[patterns.length - 1];
                 } else {
                     this.layers[animId] = patterns[patterns.length - 1];
                 }
+                return;
+            } else {
+                //現在の合成レイヤから着せ替えレイヤを削除
+                if (option === "background") {
+                    delete this.backgrounds[animId];
+                } else {
+                    delete this.layers[animId];
+                }
                 // bind+sometimsなどを殺す
                 this.end(animId);
-                // bindは即座に反映
-                this.render();
                 return;
             }
-            //現在の合成レイヤから着せ替えレイヤを削除
-            if (option === "background") {
-                delete this.backgrounds[animId];
-            } else {
-                delete this.layers[animId];
-            }
-            this.render();
-            return;
         }
     }, {
         key: "updateBind",
         value: function updateBind() {
-            var _this4 = this;
+            var _this5 = this;
 
             // Shell.tsから呼ばれるためpublic
             // Shell#bind,Shell#unbindで発動
             this.surfaceNode.animations.forEach(function (anim) {
-                _this4.initBind(anim);
+                _this5.initBind(anim);
             });
+            // 即時に反映
+            this.render();
         }
 
-        // アニメーションタイミングループの開始
+        // アニメーションタイミングループの開始要請
     }, {
         key: "begin",
         value: function begin(animationId) {
             this.stopFlags[animationId] = false;
             var anim = this.surfaceNode.animations[animationId];
             this.initAnimation(anim);
+            this.render();
         }
 
         // アニメーションタイミングループの開始
@@ -14769,10 +14838,10 @@ var Surface = (function (_EventEmitter) {
     }, {
         key: "endAll",
         value: function endAll() {
-            var _this5 = this;
+            var _this6 = this;
 
             Object.keys(this.stopFlags).forEach(function (animationId) {
-                _this5.end(animationId);
+                _this6.end(animationId);
             });
         }
 
@@ -14780,13 +14849,21 @@ var Surface = (function (_EventEmitter) {
     }, {
         key: "play",
         value: function play(animationId, callback) {
-            var _this6 = this;
+            var _this7 = this;
 
             if (this.destructed) return;
             var anims = this.surfaceNode.animations;
             var anim = this.surfaceNode.animations[animationId];
             if (anim == null) return void setTimeout(callback); // そんなアニメーションはない
-            this.animationsQueue[animationId] = anim.patterns.map(function (pattern, i) {
+            var animId = anim.is;
+            var interval = anim.interval;
+            var patterns = anim.patterns;
+            var option = anim.option;
+
+            if (option != null && !/^background$|^exclusive$/.test(option)) {
+                console.warn("Surface#play", "unsupportted option", option, animationId, anim);
+            }
+            this.animationsQueue[animationId] = patterns.map(function (pattern, i) {
                 return function () {
                     var surface = pattern.surface;
                     var wait = pattern.wait;
@@ -14797,17 +14874,17 @@ var Surface = (function (_EventEmitter) {
 
                     switch (type) {
                         case "start":
-                            _this6.play(animation_ids[0], nextTick);
+                            _this7.play(animation_ids[0], nextTick);
                             return;
                         case "stop":
-                            _this6.stop(animation_ids[0]);
+                            _this7.stop(animation_ids[0]);
                             setTimeout(nextTick);
                             return;
                         case "alternativestart":
-                            _this6.play(SurfaceUtil.choice(animation_ids), nextTick);
+                            _this7.play(SurfaceUtil.choice(animation_ids), nextTick);
                             return;
                         case "alternativestop":
-                            _this6.stop(SurfaceUtil.choice(animation_ids));
+                            _this7.stop(SurfaceUtil.choice(animation_ids));
                             setTimeout(nextTick);
                             return;
                     }
@@ -14822,22 +14899,41 @@ var Surface = (function (_EventEmitter) {
 
                     var _wait = isFinite(Number(b)) ? SurfaceUtil.randomRange(Number(a), Number(b)) : Number(a);
                     setTimeout(function () {
-                        if (anim.option === "background") {
-                            _this6.backgrounds[animationId] = pattern;
+                        // 現在のコマをレイヤーに追加
+                        if (option === "background") {
+                            _this7.backgrounds[animationId] = pattern;
                         } else {
-                            _this6.layers[animationId] = pattern;
+                            _this7.layers[animationId] = pattern;
                         }
-                        _this6.render();
+                        if (_this7.exclusive >= 0) {
+                            // -1 以上なら排他再生中
+                            if (_this7.exclusive === animationId) {
+                                // 自分が排他実行中
+                                _this7.render();
+                            }
+                        } else {
+                            // 通常
+                            _this7.render();
+                        }
                         nextTick();
                     }, _wait);
                 };
             });
+            if (option === "exclusive") {
+                this.animationsQueue[animationId].unshift(function () {
+                    _this7.exclusive = animationId;
+                });
+                this.animationsQueue[animationId].push(function () {
+                    _this7.exclusive = -1;
+                });
+            }
             var nextTick = function nextTick() {
-                if (_this6.destructed) return;
-                var next = _this6.animationsQueue[animationId].shift();
+                if (_this7.destructed) return;
+                var next = _this7.animationsQueue[animationId].shift();
                 if (!(next instanceof Function)) {
                     // stop pattern animation.
-                    _this6.animationsQueue[animationId] = [];
+                    _this7.animationsQueue[animationId] = [];
+                    _this7.exclusive = -1;
                     setTimeout(callback);
                 } else {
                     next();
@@ -14855,27 +14951,30 @@ var Surface = (function (_EventEmitter) {
     }, {
         key: "talk",
         value: function talk() {
-            var _this7 = this;
+            var _this8 = this;
 
             var animations = this.surfaceNode.animations;
             this.talkCount++;
             var hits = animations.filter(function (anim) {
-                return (/talk/.test(anim.interval) && _this7.talkCount % _this7.talkCounts[anim.is] === 0
+                return (/talk/.test(anim.interval) && _this8.talkCount % _this8.talkCounts[anim.is] === 0
                 );
             });
             hits.forEach(function (anim) {
-                _this7.play(anim.is);
+                // そのアニメーションは再生が終了しているか？
+                if (_this8.animationsQueue[anim.is] == null || _this8.animationsQueue[anim.is].length === 0) {
+                    _this8.play(anim.is);
+                }
             });
         }
     }, {
         key: "yenE",
         value: function yenE() {
-            var _this8 = this;
+            var _this9 = this;
 
             var anims = this.surfaceNode.animations;
             anims.forEach(function (anim) {
                 if (anim.interval === "yen-e") {
-                    _this8.play(anim.is);
+                    _this9.play(anim.is);
                 }
             });
         }
@@ -14919,11 +15018,7 @@ var Surface = (function (_EventEmitter) {
             var base = this.surfaceNode.base;
             var elements = this.surfaceNode.elements;
             var fronts = this.composeAnimationPatterns(this.layers);
-            var renderLayers = [].concat(
-            // よめきつね対策
-            // ukadoc上ではbackgroundの上にbaseがくるとのことだｋが
-            // SSPの挙動を見る限りbackgroundがあるときはbaseが無視されているので
-            backgrounds.length > 0 ? backgrounds : [{ type: "overlay", canvas: base, x: 0, y: 0 }], elements);
+            var renderLayers = [].concat(backgrounds, elements.length > 0 ? elements : [{ type: "overlay", canvas: base, x: 0, y: 0 }]);
             this.bufferRender.reset(); // ベースサーフェスをバッファに描画。surface*.pngとかsurface *{base,*}とか
             this.bufferRender.composeElements(renderLayers); // 現在有効なアニメーションのレイヤを合成
             // elementまでがベースサーフェス扱い
@@ -14934,13 +15029,11 @@ var Surface = (function (_EventEmitter) {
             if (this.enableRegionDraw) {
                 this.bufferRender.drawRegions(this.surfaceNode.collisions, "" + this.surfaceId);
             }
-            /*
-            console.log(bufRender.log);
-            SurfaceUtil.log(bufRender.cnv);
-            document.body.scrollTop = 9999;
-            this.endAll();
-            debugger;
-            */
+            //console.log(this.bufferRender.log);
+            //SurfaceUtil.log(SurfaceUtil.copy(this.bufferRender.cnv));
+            //document.body.scrollTop += 100 + document.body.scrollTop;
+            //this.endAll();
+            //debugger;
             SurfaceUtil.init(this.cnv, this.ctx, this.bufferRender.cnv); // バッファから実DOMTree上のcanvasへ描画
             // SSPでのjuda.narを見る限り合成後のサーフェスはベースサーフェスの大きさではなく合成されたサーフェスの大きさになるようだ
             // juda-systemの\s[1050]のアニメーションはrunonceを同時実行しており、この場合の座標の原点の計算方法が不明。
@@ -15040,6 +15133,7 @@ var SurfaceRender = (function () {
                 // element 合成のみで作られるサーフェスの base は dummy SurfaceCanvas
                 return;
             }
+            //SurfaceUtil.log(canvas.cnv||canvas.png, type+"("+x+","+y+")");
             switch (type) {
                 case "base":
                     this.base(canvas);
@@ -15527,7 +15621,7 @@ function log(element) {
     var description = arguments.length <= 1 || arguments[1] === undefined ? "" : arguments[1];
 
     if (element instanceof HTMLCanvasElement || element instanceof HTMLImageElement) {
-        description += element.width + "x" + element.height;
+        description += "(" + element.width + "x" + element.height + ")";
     }
     var fieldset = document.createElement('fieldset');
     var legend = document.createElement('legend');
