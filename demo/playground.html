@@ -60,6 +60,7 @@
 }());
 var shell = null;
 var balloon = null;
+var balloonDir = null;
 var nmdmgr = new cuttlebone.NamedManager();
 var hwnd = null;
 $(function(){document.body.appendChild(nmdmgr.element);});
@@ -71,13 +72,8 @@ Promise.all([
 ]).then(function(args){
   $("#bootlog").append("downloaded.").append("<br />");
   $("#bootlog").append("downloaded.").append("<br />");
-  var balloonDir = args[1].asArrayBuffer();
-  balloon = new cuttlebone.Balloon(balloonDir);
-  $("#bootlog").append("loading balloon nar file.").append("<br />");
-  return balloon.load().then(function(){
-    $("#bootlog").append("loaded.").append("<br />");
-    return args[0];
-  })
+  balloonDir = args[1].asArrayBuffer();
+  return args[0];
 }).then(changeNar)
 $("#nar").change(function(ev){
   if(!!nmdmgr.namedies[hwnd]){
@@ -107,11 +103,17 @@ function changeNar(nanikaDir){
   }
 }
 function changeShell(nanikaDir){
-  var shellDir = nanikaDir.getDirectory("shell/"+$("#shellId").val()).asArrayBuffer();
-  !!shell && shell.unload();
-  $("#bootlog").append("loading shell").append("<br />");
-  shell = new cuttlebone.Shell(shellDir);
-  shell.load().then(function(shell){
+  balloon && balloon.unload();
+  balloon = new cuttlebone.Balloon(balloonDir);
+  $("#bootlog").append("loading balloon nar file.").append("<br />");
+  balloon.load().then(function(){
+    $("#bootlog").append("loaded.").append("<br />");
+    var shellDir = nanikaDir.getDirectory("shell/"+$("#shellId").val()).asArrayBuffer();
+    !!shell && shell.unload();
+    $("#bootlog").append("loading shell").append("<br />");
+    shell = new cuttlebone.Shell(shellDir);
+    return shell.load();
+  }).then(function(shell){
     console.log(shell);
     $("#bootlog").append("loaded.").append("<br />");
     shell.on("mouse", function(ev){
