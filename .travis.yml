@@ -11,6 +11,8 @@ script:
   - echo "nothing"
 after_script:
   - mkdir tmp
+  - mkdir tmp/demo
+  - mkdir tmp/dist
   - \cp -f -R demo/* tmp/demo
   - \cp -f -R dist/cuttlebone.js tmp/dist
   - rm -rf bower_components
