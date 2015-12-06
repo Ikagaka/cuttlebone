@@ -16,6 +16,7 @@ after_script:
   - mkdir tmp/dist
   - \cp -f -R demo/* tmp/demo
   - \cp -f -R dist/* tmp/dist
+  - \cp -f -R nar/* tmp/nar
   - rm -rf bower_components
   - git config remote.origin.fetch "+refs/heads/gh-pages:refs/remotes/origin/gh-pages"
   - git fetch origin gh-pages
@@ -28,8 +29,10 @@ after_script:
   - git add bower_components/ikagaka.sakurascriptplayer.js/dist/SakuraScriptPlayer.js
   - \cp -f -R tmp/demo/* demo
   - \cp -f -R tmp/dist/* dist
+  - \cp -f -R tmp/nar/* nar
   - git add demo
   - git add dist
+  - git add nar
   - git status
   - git commit -am "travis-auto-update"
   - git ls-files
