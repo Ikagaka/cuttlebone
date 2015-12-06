@@ -1,0 +1,32 @@
+language: node_js
+node_js:
+  - 5.0.0
+branches:
+  only: 'master'
+before_install:
+  - npm install -g bower
+before_script:
+  - bower update
+script:
+  - echo "nothing"
+after_script:
+  - mkdir tmp
+  - \cp -f -R demo/* tmp/demo
+  - \cp -f -R dist/cuttlebone.js tmp/dist
+  - rm -rf bower_components
+  - git config remote.origin.fetch "+refs/heads/gh-pages:refs/remotes/origin/gh-pages"
+  - git fetch origin gh-pages
+  - git checkout gh-pages
+  - bower update
+  - \cp -f -R tmp/demo/* demo
+  - \cp -f -R tmp/dist/cuttlebone.js dist
+  - git status
+  - git commit -am "travis-auto-update"
+  - '[ "$TRAVIS_BRANCH" == "master" ] && [ $GH_TOKEN ] && git push --quiet "https://${GH_TOKEN}@github.com/Ikagaka/cuttlebone.git" gh-pages:gh-pages > /dev/null 2>&1'
+env:
+  global:
+    - GIT_COMMITTER_NAME=legokichi
+    - GIT_COMMITTER_EMAIL=legokichi@gmail.com
+    - GIT_AUTHOR_NAME=legokichi
+    - GIT_AUTHOR_EMAIL=legokichi@gmail.com
+    - secure: "Qb4ImvPXMDvTX4tVQ16BxfaZZ8NUGWFsmwDT/Zgb4L2rWT8mPb4SXPe9wjazmzqW9AdxnQ4V1reuVfVhIxcu21nxzYDxnc1+IyJ4dhISRoi80994iOfhllfjztZLUDzRZBcyO475IEgpD+v2V5KzAbafpfoZRLgemIxFQmjvhOw="
