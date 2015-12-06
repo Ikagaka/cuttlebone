@@ -7,6 +7,7 @@ before_install:
   - npm install -g bower
 before_script:
   - bower update
+  - npm run build
 script:
   - echo "nothing"
 after_script:
