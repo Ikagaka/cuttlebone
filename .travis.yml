@@ -17,6 +17,7 @@ after_script:
   - \cp -f -R demo/* tmp/demo
   - \cp -f -R dist/* tmp/dist
   - \cp -f -R nar/* tmp/nar
+  - git stash
   - rm -rf bower_components
   - git config remote.origin.fetch "+refs/heads/gh-pages:refs/remotes/origin/gh-pages"
   - git fetch origin gh-pages
