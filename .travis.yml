@@ -14,6 +14,7 @@ after_script:
   - mkdir tmp
   - mkdir tmp/demo
   - mkdir tmp/dist
+  - mkdir tmp/nar
   - \cp -f -R demo/* tmp/demo
   - \cp -f -R dist/* tmp/dist
   - \cp -f -R nar/* tmp/nar
@@ -22,7 +23,7 @@ after_script:
   - git config remote.origin.fetch "+refs/heads/gh-pages:refs/remotes/origin/gh-pages"
   - git fetch origin gh-pages
   - git checkout gh-pages
-  - bower install bluebird encoding-japanese jszip narloader ikagaka.sakurascriptplayer.js
+  - bower update
   - git add bower_components/bluebird/js/browser/bluebird.min.js
   - git add bower_components/encoding-japanese/encoding.min.js
   - git add bower_components/jszip/dist/jszip.min.js
