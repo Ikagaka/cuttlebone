@@ -15,16 +15,19 @@ after_script:
   - mkdir tmp/demo
   - mkdir tmp/dist
   - \cp -f -R demo/* tmp/demo
-  - \cp -f -R dist/cuttlebone.js tmp/dist
+  - \cp -f -R dist/* tmp/dist
   - rm -rf bower_components
   - git config remote.origin.fetch "+refs/heads/gh-pages:refs/remotes/origin/gh-pages"
   - git fetch origin gh-pages
   - git checkout gh-pages
   - bower update
   - \cp -f -R tmp/demo/* demo
-  - \cp -f -R tmp/dist/cuttlebone.js dist
+  - \cp -f -R tmp/dist/* dist
+  - git add demo
+  - git add dist
   - git status
   - git commit -am "travis-auto-update"
+  - git ls-files
   - '[ "$TRAVIS_BRANCH" == "master" ] && [ $GH_TOKEN ] && git push --quiet "https://${GH_TOKEN}@github.com/Ikagaka/cuttlebone.git" gh-pages:gh-pages > /dev/null 2>&1'
 env:
   global:
