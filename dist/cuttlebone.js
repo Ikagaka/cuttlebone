@@ -12500,9 +12500,9 @@ if ('undefined' !== typeof module) {
     };
 
     Balloon.prototype.attachBlimp = function(element, scopeId, balloonId) {
-      var blimp, type;
+      var blimp, ref, type;
       type = scopeId === 0 ? "sakura" : "kero";
-      if (this.balloons[type][balloonId] == null) {
+      if (((ref = this.balloons[type]) != null ? ref[balloonId] : void 0) == null) {
         console.warn("balloon id:", balloonId, "is not defined");
         return null;
       }
@@ -13942,6 +13942,7 @@ var Shell = (function (_super) {
             .then(function () { return _this.loadCollisions(); }) // 3rd
             .then(function () { return _this.loadAnimations(); }) // 3rd
             .then(function () { return _this.loadElements(); }) // 3rd
+            .then(function () { return _this; }) // 3rd
             .catch(function (err) {
             console.error("Shell#load > ", err);
             return Promise.reject(err);
@@ -14029,10 +14030,11 @@ var Shell = (function (_super) {
     Shell.prototype.loadSurfaceTable = function () {
         var surfacetable_name = Object.keys(this.directory).filter(function (name) { return /^surfacetable.*\.txt$/i.test(name); })[0] || "";
         if (surfacetable_name === "") {
-            console.info("surfacetable.txt is not found.");
+            console.info("Shell#loadSurfaceTable", "surfacetable.txt is not found.");
         }
         else {
             var txt = SurfaceUtil.convert(this.directory[surfacetable_name]);
+            console.info("Shell#loadSurfaceTable", "surfacetable.txt not support yet.");
         }
         return Promise.resolve(this);
     };
@@ -14041,9 +14043,10 @@ var Shell = (function (_super) {
         var _this = this;
         var surface_names = Object.keys(this.directory).filter(function (filename) { return /^surface(\d+)\.png$/i.test(filename); });
         return new Promise(function (resolve, reject) {
-            var i = surface_names.length;
+            var i = 0;
             surface_names.forEach(function (filename) {
                 var n = Number(/^surface(\d+)\.png$/i.exec(filename)[1]);
+                i++;
                 _this.getPNGFromDirectory(filename, function (err, cnv) {
                     if (err != null) {
                         console.warn("Shell#loadSurfacePNG > " + err);
@@ -14076,12 +14079,15 @@ var Shell = (function (_super) {
         var srfs = this.surfacesTxt.surfaces;
         var hits = Object.keys(srfs).filter(function (name) { return !!srfs[name].elements; });
         return new Promise(function (resolve, reject) {
-            var i = hits.length;
+            var i = 0;
+            if (hits.length === 0)
+                return resolve(_this);
             hits.forEach(function (defname) {
                 var n = srfs[defname].is;
                 var elms = srfs[defname].elements;
                 var _prms = Object.keys(elms).map(function (elmname) {
                     var _a = elms[elmname], is = _a.is, type = _a.type, file = _a.file, x = _a.x, y = _a.y;
+                    i++;
                     _this.getPNGFromDirectory(file, function (err, canvas) {
                         if (err != null) {
                             console.warn("Shell#loadElements > " + err);
@@ -14166,7 +14172,7 @@ var Shell = (function (_super) {
                 cb(new Error("no such file in directory: " + filename.replace(/\.png$/i, "")), null);
                 return;
             }
-            console.warn("element file " + filename + " need '.png' extension");
+            console.warn("Shell#getPNGFromDirectory", "element file " + filename.substr(0, filename.length - ".png".length) + " need '.png' extension");
         }
         var _filename = SurfaceUtil.fastfind(Object.keys(this.directory), filename);
         var pnafilename = _filename.replace(/\.png$/i, ".pna");
@@ -14228,29 +14234,21 @@ var Shell = (function (_super) {
     Shell.prototype.attachSurface = function (div, scopeId, surfaceId) {
         var _this = this;
         var type = SurfaceUtil.scope(scopeId);
-        if (typeof surfaceId === "string") {
-            if (!!this.surfacesTxt.aliases && !!this.surfacesTxt.aliases[type] && !!this.surfacesTxt.aliases[type][surfaceId]) {
-                var _surfaceId = SurfaceUtil.choice(this.surfacesTxt.aliases[type][surfaceId]);
-            }
-            else
-                throw new Error("ReferenceError: surface alias scope:" + type + ", id:" + surfaceId + " is not defined.");
-        }
-        else if (typeof surfaceId === "number") {
-            var _surfaceId = surfaceId;
-        }
-        else
-            throw new Error("TypeError: surfaceId: number|string is not match " + typeof surfaceId);
         var hits = this.attachedSurface.filter(function (_a) {
             var _div = _a.div;
             return _div === div;
         });
         if (hits.length !== 0)
-            throw new Error("ReferenceError: this HTMLDivElement is already attached");
+            throw new Error("Shell#attachSurface > ReferenceError: this HTMLDivElement is already attached");
         if (scopeId < 0) {
-            throw new Error("TypeError: scopeId needs more than 0, but:" + scopeId);
+            throw new Error("Shell#attachSurface > TypeError: scopeId needs more than 0, but:" + scopeId);
         }
-        if (!this.surfaceTree[surfaceId]) {
-            console.warn("surfaceId:", surfaceId, "is not defined", this.surfaceTree);
+        var _surfaceId = this.getSurfaceAlias(scopeId, surfaceId);
+        if (_surfaceId !== surfaceId) {
+            console.info("Shell#attachSurface", "surface alias is decided on", _surfaceId, "as", type, surfaceId);
+        }
+        if (!this.surfaceTree[_surfaceId]) {
+            console.warn("surfaceId:", _surfaceId, "is not defined in surfaceTree", this.surfaceTree);
             return null;
         }
         var srf = new Surface_1.default(div, scopeId, _surfaceId, this.surfaceTree, this.bindgroup);
@@ -14279,23 +14277,28 @@ var Shell = (function (_super) {
         this.removeAllListeners(null);
         Shell.call(this, {}); // 初期化
     };
-    // サーフェスエイリアス込みでサーフェスが存在するか確認
-    Shell.prototype.hasSurface = function (scopeId, surfaceId) {
+    Shell.prototype.getSurfaceAlias = function (scopeId, surfaceId) {
         var type = SurfaceUtil.scope(scopeId);
-        if (typeof surfaceId === "string") {
+        if (typeof surfaceId === "string" || typeof surfaceId === "number") {
             if (!!this.surfacesTxt.aliases && !!this.surfacesTxt.aliases[type] && !!this.surfacesTxt.aliases[type][surfaceId]) {
+                // まずエイリアスを探す
                 var _surfaceId = SurfaceUtil.choice(this.surfacesTxt.aliases[type][surfaceId]);
             }
-            else {
-                throw new Error("RuntimeError: surface alias scope:" + type + ", id:" + surfaceId + " is not defined.");
+            else if (typeof surfaceId === "number") {
+                // 通常の処理
+                var _surfaceId = surfaceId;
             }
         }
-        else if (typeof surfaceId === "number") {
-            var _surfaceId = surfaceId;
+        else {
+            // そんなサーフェスはない
+            console.warn("Shell#hasSurface > surface alias scope:", scopeId + "as" + type + ", id:" + surfaceId + " is not defined.");
+            var _surfaceId = -1;
         }
-        else
-            throw new Error("TypeError: surfaceId: number|string is not match " + typeof surfaceId);
-        return this.surfaceTree[_surfaceId] != null;
+        return _surfaceId;
+    };
+    // サーフェスエイリアス込みでサーフェスが存在するか確認
+    Shell.prototype.hasSurface = function (scopeId, surfaceId) {
+        return this.getSurfaceAlias(scopeId, surfaceId) >= 0;
     };
     // 着せ替えオン
     Shell.prototype.bind = function (scopeId, bindgroupId) {
@@ -14395,6 +14398,7 @@ var Surface = (function (_super) {
         this.backgrounds = [];
         this.layers = [];
         this.stopFlags = {};
+        this.dynamicBase = null;
         this.destructed = false;
         this.destructors = [];
         // GCの発生を抑えるためレンダラはこれ１つを使いまわす
@@ -14741,7 +14745,14 @@ var Surface = (function (_super) {
             var base = srf.base, elements = srf.elements, collisions = srf.collisions, animations = srf.animations;
             this.bufferRender.reset(); // 対象サーフェスのbaseサーフェス(surface*.png)の上に
             this.bufferRender.composeElements([{ type: "overlay", canvas: base, x: 0, y: 0 }].concat(elements)); // elementを合成する
-            renderLayers.push({ type: type, x: x, y: y, canvas: this.bufferRender.getSurfaceCanvas() });
+            if (type === "base") {
+                // 新しい ベースサーフェス
+                // 12pattern0,300,30,base,0,0 みたいなの
+                this.dynamicBase = { type: type, x: x, y: y, canvas: this.bufferRender.getSurfaceCanvas() };
+            }
+            else {
+                renderLayers.push({ type: type, x: x, y: y, canvas: this.bufferRender.getSurfaceCanvas() });
+            }
         }
         return renderLayers;
     };
@@ -14752,15 +14763,21 @@ var Surface = (function (_super) {
         var base = this.surfaceNode.base;
         var elements = this.surfaceNode.elements;
         var fronts = this.composeAnimationPatterns(this.layers);
-        var renderLayers = [].concat(backgrounds, 
-        // element0 or base
-        elements[0] != null ?
-            // element0, element1...
-            elements :
-            // base, element1, element2...
-            [{ type: "overlay", canvas: base, x: 0, y: 0 }].concat(elements.slice(1)));
         this.bufferRender.reset(); // ベースサーフェスをバッファに描画。surface*.pngとかsurface *{base,*}とか
-        this.bufferRender.composeElements(renderLayers); // 現在有効なアニメーションのレイヤを合成
+        if (this.dynamicBase != null) {
+            // pattern base があればそちらを使用
+            this.bufferRender.composeElements([this.dynamicBase]);
+        }
+        else {
+            var renderLayers = [].concat(backgrounds, 
+            // element0 or base
+            elements[0] != null ?
+                // element0, element1...
+                elements :
+                // base, element1, element2...
+                [{ type: "overlay", canvas: base, x: 0, y: 0 }].concat(elements.slice(1)));
+            this.bufferRender.composeElements(renderLayers); // 現在有効な ベースサーフェスのレイヤを合成
+        }
         // elementまでがベースサーフェス扱い
         var baseWidth = this.bufferRender.cnv.width;
         var baseHeight = this.bufferRender.cnv.height;
@@ -14836,6 +14853,11 @@ var SurfaceRender = (function () {
     SurfaceRender.prototype.composeElement = function (canvas, type, x, y) {
         if (canvas.cnv == null && canvas.png == null) {
             // element 合成のみで作られるサーフェスの base は dummy SurfaceCanvas
+            return;
+        }
+        if (this.baseWidth === 0 || this.baseHeight === 0) {
+            // このサーフェスはまだ base を持たない
+            this.base(canvas);
             return;
         }
         //SurfaceUtil.log(canvas.cnv||canvas.png, type+"("+x+","+y+")");
@@ -14965,10 +14987,6 @@ var SurfaceRender = (function () {
     SurfaceRender.prototype.overlay = function (part, x, y) {
         if (!this.use_self_alpha)
             part = SurfaceUtil.pna(part);
-        if (this.baseWidth === 0 || this.baseHeight === 0) {
-            // このサーフェスはまだ base を持たない
-            return this.base(part);
-        }
         if (this.debug)
             this.log.push({ method: "overlay", args: [part, x, y] });
         this.prepareOverlay(part, x, y);
@@ -29015,12 +29033,12 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 module.exports = require('./lib/surfaces_txt2yaml.js')
 
 },{"./lib/surfaces_txt2yaml.js":58}],58:[function(require,module,exports){
-// Generated by CoffeeScript 1.8.0
+// Generated by CoffeeScript 1.10.0
 
 /* (C) 2014 Narazaka : Licensed under The MIT License - http://narazaka.net/license/MIT?2014 */
 var SurfacesTxt2Yaml, clone, copy, jsyaml,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
 clone = function(src) {
   var key, ret;
@@ -29035,17 +29053,17 @@ clone = function(src) {
 };
 
 copy = function(source, destination) {
-  var key, _results;
+  var key, results;
   if ((source instanceof Object) && (!(source instanceof Array))) {
-    _results = [];
+    results = [];
     for (key in source) {
       if ((destination[key] != null) && destination[key] instanceof Object) {
-        _results.push(copy(source[key], destination[key]));
+        results.push(copy(source[key], destination[key]));
       } else {
-        _results.push(destination[key] = clone(source[key]));
+        results.push(destination[key] = clone(source[key]));
       }
     }
-    return _results;
+    return results;
   } else {
     return destination = clone(source);
   }
@@ -29107,19 +29125,19 @@ SurfacesTxt2Yaml.Parser = (function() {
       this.options[name] = value;
     }
     return this.options.standard_comment_re = new RegExp('^\\s*(?:' + ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.options.comment_prefix;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        prefix = _ref[_i];
-        _results.push(prefix.replace(/\W/, '\\$&'));
+      var i, len, ref, results;
+      ref = this.options.comment_prefix;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        prefix = ref[i];
+        results.push(prefix.replace(/\W/, '\\$&'));
       }
-      return _results;
+      return results;
     }).call(this)).join('|') + ')|^\s*$');
   };
 
   Parser.prototype.parse = function(txt) {
-    var character, data, id, in_scope, index, line, lines, parsed_data, range, range_result, ranges, region_id, regions, result, scope, scope_begin, scope_content, scope_id, scope_id_delete, scope_id_str, scope_id_uniq, scope_id_value, scope_parser, setting, settings, surface, tooltip, type, _i, _j, _k, _l, _len, _len1, _len2, _m, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+    var character, data, i, id, in_scope, index, j, k, l, len, len1, len2, line, lines, m, parsed_data, range, range_result, ranges, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, region_id, regions, result, scope, scope_begin, scope_content, scope_id, scope_id_delete, scope_id_str, scope_id_uniq, scope_id_value, scope_parser, setting, settings, surface, tooltip, type;
     parsed_data = {};
     lines = txt.split(/\r?\n/);
     scope = null;
@@ -29128,17 +29146,17 @@ SurfacesTxt2Yaml.Parser = (function() {
     in_scope = false;
     scope_begin = null;
     scope_content = [];
-    for (index = _i = 0, _len = lines.length; _i < _len; index = ++_i) {
+    for (index = i = 0, len = lines.length; i < len; index = ++i) {
       line = lines[index];
       this.index = index;
       result = null;
       if (!in_scope) {
-        if (this.options.charset && (result = line.match(/^\s*charset,(.+)$/))) {
+        if (this.options.charset && (result = line.match(/^\s*charset\s*,\s*(.+)$/))) {
           if (parsed_data.charset != null) {
             this["throw"]('charset duplication found');
           }
           parsed_data.charset = result[1];
-        } else if ((this.options.surface_definition === 'materia' && (result = line.match(/^(?:(descript)|(surface)(\d+(?:,surface\d+)*)|(sakura|kero\d+)\.(surface\.alias))\s*({)?\s*$/))) || (this.options.surface_definition === 'ssp' && (result = line.match(/^\s*(?:(descript)|(surface(?:\.append)?)(!?(?:\d+-)?\d+(?:\s*,\s*(?:surface|!)?(?:\d+-)?\d+)*)|(sakura|kero|char\d+)\.(surface\.alias|cursor|tooltips))\s*({)?\s*$/))) || (this.options.surface_definition === 'ssp-lazy' && (result = line.match(/^\s*(?:(descript)|(surface(?:\.append)?)(.+)|(sakura|kero|char\d+)\.(surface\.alias|cursor|tooltips))\s*({)?\s*$/)))) {
+        } else if ((this.options.surface_definition === 'materia' && (result = line.match(/^(?:(descript)|(surface)(\d+(?:,\s*surface\d+)*)|(sakura|kero\d+)\.(surface\.alias))\s*({)?\s*$/))) || (this.options.surface_definition === 'ssp' && (result = line.match(/^\s*(?:(descript)|(surface(?:\.append)?)(!?(?:\d+-)?\d+(?:\s*,\s*(?:surface|!)?(?:\d+-)?\d+)*)|(sakura|kero|char\d+)\.(surface\.alias|cursor|tooltips))\s*({)?\s*$/))) || (this.options.surface_definition === 'ssp-lazy' && (result = line.match(/^\s*(?:(descript)|(surface(?:\.append)?)(.+)|(sakura|kero|char\d+)\.(surface\.alias|cursor|tooltips))\s*({)?\s*$/)))) {
           if (result[1] === 'descript') {
             scope = 'descript';
           } else if ((result[2] === 'surface') || (result[2] === 'surface.append')) {
@@ -29147,17 +29165,17 @@ SurfacesTxt2Yaml.Parser = (function() {
             scope_id_delete = {};
             scope_id_str = 'surface' + result[3];
             ranges = result[3].split(/[^0-9!]*,\s*(?:surface(?:\.append)?)?/);
-            for (_j = 0, _len1 = ranges.length; _j < _len1; _j++) {
-              range = ranges[_j];
+            for (j = 0, len1 = ranges.length; j < len1; j++) {
+              range = ranges[j];
               range_result = null;
               if (range_result = range.match(/^(\d+)-(\d+)$/)) {
-                for (id = _k = _ref = range_result[1], _ref1 = range_result[2]; _ref <= _ref1 ? _k <= _ref1 : _k >= _ref1; id = _ref <= _ref1 ? ++_k : --_k) {
+                for (id = k = ref = range_result[1], ref1 = range_result[2]; ref <= ref1 ? k <= ref1 : k >= ref1; id = ref <= ref1 ? ++k : --k) {
                   scope_id_uniq['surface' + id] = true;
                 }
               } else if (range.match(/^\d+$/)) {
                 scope_id_uniq['surface' + range] = true;
               } else if (range_result = range.match(/^!(\d+)-(\d+)$/)) {
-                for (id = _l = _ref2 = range_result[1], _ref3 = range_result[2]; _ref2 <= _ref3 ? _l <= _ref3 : _l >= _ref3; id = _ref2 <= _ref3 ? ++_l : --_l) {
+                for (id = l = ref2 = range_result[1], ref3 = range_result[2]; ref2 <= ref3 ? l <= ref3 : l >= ref3; id = ref2 <= ref3 ? ++l : --l) {
                   scope_id_delete['surface' + id] = true;
                 }
               } else if (range_result = range.match(/^!(\d+)$/)) {
@@ -29199,7 +29217,7 @@ SurfacesTxt2Yaml.Parser = (function() {
         if (parsed_data[scope] == null) {
           parsed_data[scope] = {};
         }
-        scope_parser = new SurfacesTxt2Yaml.ScopeParser[scope](this.options, (_ref4 = parsed_data.descript) != null ? _ref4.version : void 0);
+        scope_parser = new SurfacesTxt2Yaml.ScopeParser[scope](this.options, (ref4 = parsed_data.descript) != null ? ref4.version : void 0);
         data = scope_parser.parse(scope_content, scope_begin);
         if (scope_id != null) {
           if (scope_id instanceof Array) {
@@ -29207,8 +29225,8 @@ SurfacesTxt2Yaml.Parser = (function() {
               parsed_data[scope][scope_id_str] = {};
             }
             copy(data, parsed_data[scope][scope_id_str]);
-            for (_m = 0, _len2 = scope_id.length; _m < _len2; _m++) {
-              scope_id_value = scope_id[_m];
+            for (m = 0, len2 = scope_id.length; m < len2; m++) {
+              scope_id_value = scope_id[m];
               if (parsed_data[scope][scope_id_value] == null) {
                 parsed_data[scope][scope_id_value] = {};
               }
@@ -29247,9 +29265,9 @@ SurfacesTxt2Yaml.Parser = (function() {
     if (parsed_data.surface != null) {
       parsed_data.surfaces = parsed_data.surface;
       delete parsed_data.surface;
-      _ref5 = parsed_data.surfaces;
-      for (id in _ref5) {
-        surface = _ref5[id];
+      ref5 = parsed_data.surfaces;
+      for (id in ref5) {
+        surface = ref5[id];
         result = null;
         if (result = id.match(/^surface(\d+)$/)) {
           surface.is = result[1] - 0;
@@ -29264,9 +29282,9 @@ SurfacesTxt2Yaml.Parser = (function() {
       if (parsed_data.regions == null) {
         parsed_data.regions = {};
       }
-      _ref6 = parsed_data.cursor;
-      for (character in _ref6) {
-        settings = _ref6[character];
+      ref6 = parsed_data.cursor;
+      for (character in ref6) {
+        settings = ref6[character];
         if (parsed_data.regions[character] == null) {
           parsed_data.regions[character] = {};
         }
@@ -29287,9 +29305,9 @@ SurfacesTxt2Yaml.Parser = (function() {
       if (parsed_data.regions == null) {
         parsed_data.regions = {};
       }
-      _ref7 = parsed_data.tooltips;
-      for (character in _ref7) {
-        regions = _ref7[character];
+      ref7 = parsed_data.tooltips;
+      for (character in ref7) {
+        regions = ref7[character];
         if (parsed_data.regions[character] == null) {
           parsed_data.regions[character] = {};
         }
@@ -29353,22 +29371,22 @@ SurfacesTxt2Yaml.ScopeParser.Single = (function() {
       this.options[name] = value;
     }
     return this.options.standard_comment_re = new RegExp('^\\s*(?:' + ((function() {
-      var _i, _len, _ref, _results;
-      _ref = this.options.comment_prefix;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        prefix = _ref[_i];
-        _results.push(prefix.replace(/\W/, '\\$&'));
+      var i, len, ref, results;
+      ref = this.options.comment_prefix;
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        prefix = ref[i];
+        results.push(prefix.replace(/\W/, '\\$&'));
       }
-      return _results;
+      return results;
     }).call(this)).join('|') + ')|^\s*$');
   };
 
   Single.prototype.parse = function(lines, index_offset) {
-    var data, index, line, result, _i, _len;
+    var data, i, index, len, line, result;
     this.index_offset = index_offset;
     data = {};
-    for (index = _i = 0, _len = lines.length; _i < _len; index = ++_i) {
+    for (index = i = 0, len = lines.length; i < len; index = ++i) {
       line = lines[index];
       this.index = index;
       result = null;
@@ -29413,25 +29431,25 @@ SurfacesTxt2Yaml.ScopeParser.Single = (function() {
 
 })();
 
-SurfacesTxt2Yaml.ScopeParser.Multiple = (function(_super) {
-  __extends(Multiple, _super);
+SurfacesTxt2Yaml.ScopeParser.Multiple = (function(superClass) {
+  extend(Multiple, superClass);
 
   function Multiple() {
     return Multiple.__super__.constructor.apply(this, arguments);
   }
 
   Multiple.prototype.parse = function(lines, index_offset) {
-    var condition, data, index, line, match, result, _i, _j, _len, _len1, _ref;
+    var condition, data, i, index, j, len, len1, line, match, ref, result;
     this.index_offset = index_offset;
     data = {};
-    for (index = _i = 0, _len = lines.length; _i < _len; index = ++_i) {
+    for (index = i = 0, len = lines.length; i < len; index = ++i) {
       line = lines[index];
       this.index = index;
       result = null;
       match = false;
-      _ref = this.conditions;
-      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        condition = _ref[_j];
+      ref = this.conditions;
+      for (j = 0, len1 = ref.length; j < len1; j++) {
+        condition = ref[j];
         if (result = line.match(condition.test)) {
           match = condition.match.call(this, data, result);
           if (match) {
@@ -29452,8 +29470,8 @@ SurfacesTxt2Yaml.ScopeParser.Multiple = (function(_super) {
 
 })(SurfacesTxt2Yaml.ScopeParser.Single);
 
-SurfacesTxt2Yaml.ScopeParser.descript = (function(_super) {
-  __extends(descript, _super);
+SurfacesTxt2Yaml.ScopeParser.descript = (function(superClass) {
+  extend(descript, superClass);
 
   function descript() {
     return descript.__super__.constructor.apply(this, arguments);
@@ -29473,7 +29491,7 @@ SurfacesTxt2Yaml.ScopeParser.descript = (function(_super) {
         return true;
       }
     }, {
-      test: /^\s*(collision-sort|animation-sort),(.+)$/,
+      test: /^\s*(collision-sort|animation-sort)\s*,\s*(.+)$/,
       match: function(data, result) {
         data[result[1]] = result[2];
         return true;
@@ -29485,15 +29503,15 @@ SurfacesTxt2Yaml.ScopeParser.descript = (function(_super) {
 
 })(SurfacesTxt2Yaml.ScopeParser.Multiple);
 
-SurfacesTxt2Yaml.ScopeParser.tooltips = (function(_super) {
-  __extends(tooltips, _super);
+SurfacesTxt2Yaml.ScopeParser.tooltips = (function(superClass) {
+  extend(tooltips, superClass);
 
   function tooltips() {
     return tooltips.__super__.constructor.apply(this, arguments);
   }
 
   tooltips.prototype.condition = {
-    test: /^\s*([^,]+),(.+)$/,
+    test: /^\s*([^,]+)\s*,\s*(.+)$/,
     match: function(data, result) {
       return data[result[1]] = result[2];
     }
@@ -29503,15 +29521,15 @@ SurfacesTxt2Yaml.ScopeParser.tooltips = (function(_super) {
 
 })(SurfacesTxt2Yaml.ScopeParser.Single);
 
-SurfacesTxt2Yaml.ScopeParser.cursor = (function(_super) {
-  __extends(cursor, _super);
+SurfacesTxt2Yaml.ScopeParser.cursor = (function(superClass) {
+  extend(cursor, superClass);
 
   function cursor() {
     return cursor.__super__.constructor.apply(this, arguments);
   }
 
   cursor.prototype.condition = {
-    test: /^\s*(mouseup|mousedown)(\d+),([^,]+),(.+)$/,
+    test: /^\s*(mouseup|mousedown)(\d+)\s*,\s*([^,]+)\s*,\s*(.+)$/,
     match: function(data, result) {
       return data[result[1]] = {
         region_id: result[3],
@@ -29524,8 +29542,8 @@ SurfacesTxt2Yaml.ScopeParser.cursor = (function(_super) {
 
 })(SurfacesTxt2Yaml.ScopeParser.Single);
 
-SurfacesTxt2Yaml.ScopeParser['surface.alias'] = (function(_super) {
-  __extends(_Class, _super);
+SurfacesTxt2Yaml.ScopeParser['surface.alias'] = (function(superClass) {
+  extend(_Class, superClass);
 
   function _Class() {
     return _Class.__super__.constructor.apply(this, arguments);
@@ -29536,14 +29554,14 @@ SurfacesTxt2Yaml.ScopeParser['surface.alias'] = (function(_super) {
     match: function(data, result) {
       var id;
       return data[result[1]] = (function() {
-        var _i, _len, _ref, _results;
-        _ref = result[2].split(/\s*,\s*/);
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          id = _ref[_i];
-          _results.push(id - 0);
+        var i, len, ref, results;
+        ref = result[2].split(/\s*,\s*/);
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          id = ref[i];
+          results.push(id - 0);
         }
-        return _results;
+        return results;
       })();
     }
   };
@@ -29552,8 +29570,8 @@ SurfacesTxt2Yaml.ScopeParser['surface.alias'] = (function(_super) {
 
 })(SurfacesTxt2Yaml.ScopeParser.Single);
 
-SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
-  __extends(surface, _super);
+SurfacesTxt2Yaml.ScopeParser.surface = (function(superClass) {
+  extend(surface, superClass);
 
   function surface(options, seriko_version) {
     this.seriko_version = seriko_version != null ? seriko_version : 0;
@@ -29565,12 +29583,12 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
 
   surface.prototype.conditions = [
     {
-      test: /^\s*element(\d+),([^,]+),([^,]+),([-0-9]+),([-0-9]+)$/,
+      test: /^\s*element(\d+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
         return this.match_element(data, result);
       }
     }, {
-      test: /^\s*animation(\d+)\.interval,(.+)$/,
+      test: /^\s*animation(\d+)\.interval\s*,\s*(.+)$/,
       match: function(data, result) {
         if (this.options.check_seriko && this.seriko_version === 0) {
           this.warnthrow('not SERIKO/1.x definition : ' + result[0], this.options.check_seriko);
@@ -29581,7 +29599,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_animation_interval(data, result);
       }
     }, {
-      test: /^\s*(\d+)interval,(.+)$/,
+      test: /^\s*(\d+)interval\s*,\s*(.+)$/,
       match: function(data, result) {
         if (this.options.check_seriko && this.seriko_version === 1) {
           this.warnthrow('not SERIKO/2.0 definition : ' + result[0], this.options.check_seriko);
@@ -29592,7 +29610,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_animation_interval(data, result);
       }
     }, {
-      test: /^\s*animation(\d+)\.option,(.+)$/,
+      test: /^\s*animation(\d+)\.option\s*,\s*(.+)$/,
       match: function(data, result) {
         if (this.options.check_seriko && this.seriko_version === 0) {
           this.warnthrow('not SERIKO/1.x definition : ' + result[0], this.options.check_seriko);
@@ -29603,7 +29621,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_animation_option(data, result);
       }
     }, {
-      test: /^\s*(\d+)option,(.+)$/,
+      test: /^\s*(\d+)option\s*,\s*(.+)$/,
       match: function(data, result) {
         if (this.options.check_seriko && this.seriko_version === 1) {
           this.warnthrow('not SERIKO/2.0 definition : ' + result[0], this.options.check_seriko);
@@ -29614,7 +29632,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_animation_option(data, result);
       }
     }, {
-      test: /^\s*animation(\d+)\.pattern(\d+),([^,]+),(.+)$/,
+      test: /^\s*animation(\d+)\.pattern(\d+)\s*,\s*([^,]+)\s*,\s*(.+)$/,
       match: function(data, result) {
         if (this.options.check_seriko && this.seriko_version === 0) {
           this.warnthrow('not SERIKO/1.x definition : ' + result[0], this.options.check_seriko);
@@ -29625,7 +29643,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_animation_pattern(data, result);
       }
     }, {
-      test: /^\s*(\d+)pattern(\d+),([^,]+),([^,]+),([^,]+)(?:,(.+))?$/,
+      test: /^\s*(\d+)pattern(\d+)\s*,\s*([^,]+)\s*,\s*([^,]+)\s*,\s*([^,]+)(?:,\s*(.+))?$/,
       match: function(data, result) {
         if (this.options.check_seriko && this.seriko_version === 1) {
           this.warnthrow('not SERIKO/2.0 definition : ' + result[0], this.options.check_seriko);
@@ -29636,9 +29654,9 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_animation_pattern_old(data, result);
       }
     }, {
-      test: /^\s*animation(\d+)\.collision(\d+),([-0-9]+),([-0-9]+),([-0-9]+),([-0-9]+),(.+)$/,
+      test: /^\s*animation(\d+)\.collision(\d+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*(.+)$/,
       match: function(data, result) {
-        var id, _is;
+        var _is, id;
         _is = (result.splice(1, 1))[0] - 0;
         id = 'animation' + _is;
         if (data.animations == null) {
@@ -29652,9 +29670,9 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_collision(data.animations[id], result);
       }
     }, {
-      test: /^\s*animation(\d+)\.collisionex(\d+),([^,]+),(rect|ellipse),([-0-9]+),([-0-9]+),([-0-9]+),([-0-9]+)$/,
+      test: /^\s*animation(\d+)\.collisionex(\d+)\s*,\s*([^,]+)\s*,\s*(rect|ellipse)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
-        var id, _is;
+        var _is, id;
         _is = (result.splice(1, 1))[0] - 0;
         id = 'animation' + _is;
         if (data.animations == null) {
@@ -29668,9 +29686,9 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_collisionex_4(data.animations[id], result);
       }
     }, {
-      test: /^\s*animation(\d+)\.collisionex(\d+),([^,]+),(circle),([-0-9]+),([-0-9]+),([-0-9]+)$/,
+      test: /^\s*animation(\d+)\.collisionex(\d+)\s*,\s*([^,]+)\s*,\s*(circle)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
-        var id, _is;
+        var _is, id;
         _is = (result.splice(1, 1))[0] - 0;
         id = 'animation' + _is;
         if (data.animations == null) {
@@ -29684,9 +29702,9 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_collisionex_3(data.animations[id], result);
       }
     }, {
-      test: /^\s*animation(\d+)\.collisionex(\d+),([^,]+),polygon,(.+)$/,
+      test: /^\s*animation(\d+)\.collisionex(\d+)\s*,\s*([^,]+)\s*,\s*polygon\s*,\s*(.+)$/,
       match: function(data, result) {
-        var id, _is;
+        var _is, id;
         _is = (result.splice(1, 1))[0] - 0;
         id = 'animation' + _is;
         if (data.animations == null) {
@@ -29700,30 +29718,30 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return this.match_collisionex_n(data.animations[id], result);
       }
     }, {
-      test: /^\s*collision(\d+),([-0-9]+),([-0-9]+),([-0-9]+),([-0-9]+),(.+)$/,
+      test: /^\s*collision(\d+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*(.+)$/,
       match: function(data, result) {
         return this.match_collision(data, result);
       }
     }, {
-      test: /^\s*collisionex(\d+),([^,]+),(rect|ellipse),([-0-9]+),([-0-9]+),([-0-9]+),([-0-9]+)$/,
+      test: /^\s*collisionex(\d+)\s*,\s*([^,]+)\s*,\s*(rect|ellipse)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
         return this.match_collisionex_4(data, result);
       }
     }, {
-      test: /^\s*collisionex(\d+),([^,]+),(circle),([-0-9]+),([-0-9]+),([-0-9]+)$/,
+      test: /^\s*collisionex(\d+)\s*,\s*([^,]+)\s*,\s*(circle)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
         return this.match_collisionex_3(data, result);
       }
     }, {
-      test: /^\s*collisionex(\d+),([^,]+),polygon,(.+)$/,
+      test: /^\s*collisionex(\d+)\s*,\s*([^,]+)\s*,\s*polygon\s*,\s*(.+)$/,
       match: function(data, result) {
         return this.match_collisionex_n(data, result);
       }
     }, {
-      test: /^\s*point(?:\.(kinoko))?\.(center[xy]),([-0-9]+)$/,
+      test: /^\s*point(?:\.(kinoko))?\.(center[xy])\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
-        var coordinate, id, type, _ref;
-        _ref = result.slice(1, 4), id = _ref[0], type = _ref[1], coordinate = _ref[2];
+        var coordinate, id, ref, type;
+        ref = result.slice(1, 4), id = ref[0], type = ref[1], coordinate = ref[2];
         coordinate -= 0;
         if (data.points == null) {
           data.points = {};
@@ -29739,10 +29757,10 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return true;
       }
     }, {
-      test: /^\s*point\.basepos\.([xy]),([-0-9]+)$/,
+      test: /^\s*point\.basepos\.([xy])\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
-        var coordinate, type, _ref;
-        _ref = result.slice(1, 3), type = _ref[0], coordinate = _ref[1];
+        var coordinate, ref, type;
+        ref = result.slice(1, 3), type = ref[0], coordinate = ref[1];
         coordinate -= 0;
         if (data.points == null) {
           data.points = {};
@@ -29754,10 +29772,10 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         return true;
       }
     }, {
-      test: /^\s*(?:(sakura|kero)\.)?balloon\.(offset[xy]),([-0-9]+)$/,
+      test: /^\s*(?:(sakura|kero)\.)?balloon\.(offset[xy])\s*,\s*([-0-9]+)$/,
       match: function(data, result) {
-        var character, coordinate, type, _ref;
-        _ref = result.slice(1, 4), character = _ref[0], type = _ref[1], coordinate = _ref[2];
+        var character, coordinate, ref, type;
+        ref = result.slice(1, 4), character = ref[0], type = ref[1], coordinate = ref[2];
         coordinate -= 0;
         if (data.balloons == null) {
           data.balloons = {};
@@ -29776,8 +29794,8 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   ];
 
   surface.prototype.match_element = function(data, result) {
-    var file, id, type, x, y, _is, _ref;
-    _ref = result.slice(1, 6), _is = _ref[0], type = _ref[1], file = _ref[2], x = _ref[3], y = _ref[4];
+    var _is, file, id, ref, type, x, y;
+    ref = result.slice(1, 6), _is = ref[0], type = ref[1], file = ref[2], x = ref[3], y = ref[4];
     _is -= 0;
     x -= 0;
     y -= 0;
@@ -29803,16 +29821,16 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_animation_interval = function(data, result) {
-    var id, interval, _is, _ref, _ref1, _ref2;
-    _ref = result.slice(1, 3), _is = _ref[0], interval = _ref[1];
+    var _is, id, interval, ref, ref1, ref2;
+    ref = result.slice(1, 3), _is = ref[0], interval = ref[1];
     _is -= 0;
     id = 'animation' + _is;
     if (data.animations == null) {
       data.animations = {};
     }
-    if (((_ref1 = data.animations[id]) != null ? _ref1.interval : void 0) != null) {
+    if (((ref1 = data.animations[id]) != null ? ref1.interval : void 0) != null) {
       this.warnthrow('animation interval duplication found : ' + _is, this.options.check_surface_scope_duplication);
-      while (((_ref2 = data.animations[id]) != null ? _ref2.interval : void 0) != null) {
+      while (((ref2 = data.animations[id]) != null ? ref2.interval : void 0) != null) {
         id = 'animation' + ++_is;
       }
       this.warnthrow(' replace to : ' + _is, this.options.check_surface_scope_duplication);
@@ -29827,16 +29845,16 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_animation_option = function(data, result) {
-    var id, option, _is, _ref, _ref1, _ref2;
-    _ref = result.slice(1, 3), _is = _ref[0], option = _ref[1];
+    var _is, id, option, ref, ref1, ref2;
+    ref = result.slice(1, 3), _is = ref[0], option = ref[1];
     _is -= 0;
     id = 'animation' + _is;
     if (data.animations == null) {
       data.animations = {};
     }
-    if (((_ref1 = data.animations[id]) != null ? _ref1.option : void 0) != null) {
+    if (((ref1 = data.animations[id]) != null ? ref1.option : void 0) != null) {
       this.warnthrow('animation option duplication found : ' + _is, this.options.check_surface_scope_duplication);
-      while (((_ref2 = data.animations[id]) != null ? _ref2.option : void 0) != null) {
+      while (((ref2 = data.animations[id]) != null ? ref2.option : void 0) != null) {
         id = 'animation' + ++_is;
       }
       this.warnthrow(' replace to : ' + _is, this.options.check_surface_scope_duplication);
@@ -29851,8 +29869,8 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_animation_pattern = function(data, result) {
-    var animation_id, arg, args, args_str, id, name, p_id, type, _is, _ref, _ref1, _ref2;
-    _ref = result.slice(1, 5), _is = _ref[0], p_id = _ref[1], type = _ref[2], args_str = _ref[3];
+    var _is, animation_id, arg, args, args_str, id, name, p_id, ref, ref1, ref2, type;
+    ref = result.slice(1, 5), _is = ref[0], p_id = ref[1], type = ref[2], args_str = ref[3];
     _is -= 0;
     p_id -= 0;
     id = 'animation' + _is;
@@ -29889,7 +29907,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       case 'add':
       case 'reduce':
       case 'move':
-        _ref1 = args_str.split(','), args.surface = _ref1[0], args.wait = _ref1[1], args.x = _ref1[2], args.y = _ref1[3];
+        ref1 = args_str.split(','), args.surface = ref1[0], args.wait = ref1[1], args.x = ref1[2], args.y = ref1[3];
         if (args.surface != null) {
           args.surface -= 0;
         }
@@ -29904,7 +29922,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         }
         break;
       case 'base':
-        _ref2 = args_str.split(','), args.surface = _ref2[0], args.wait = _ref2[1];
+        ref2 = args_str.split(','), args.surface = ref2[0], args.wait = ref2[1];
         if (args.surface != null) {
           args.surface -= 0;
         }
@@ -29920,14 +29938,14 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       case 'alternativestart':
       case 'alternativestop':
         args.animation_ids = (function() {
-          var _i, _len, _ref3, _results;
-          _ref3 = args_str.match(/[\(\[]?(.*)[\]\)]?/)[1].split(/[.,]/);
-          _results = [];
-          for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-            animation_id = _ref3[_i];
-            _results.push('animation' + animation_id);
+          var i, len, ref3, results;
+          ref3 = args_str.match(/[\(\[]?(.*)[\]\)]?/)[1].split(/[.,]/);
+          results = [];
+          for (i = 0, len = ref3.length; i < len; i++) {
+            animation_id = ref3[i];
+            results.push('animation' + animation_id);
           }
-          return _results;
+          return results;
         })();
     }
     for (name in args) {
@@ -29940,8 +29958,8 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_animation_pattern_old = function(data, result) {
-    var animation_id, arg, args, args_str, id, name, p_id, surface, type, wait, wait_result, _is, _ref, _ref1, _ref2, _ref3;
-    _ref = result.slice(1, 7), _is = _ref[0], p_id = _ref[1], surface = _ref[2], wait = _ref[3], type = _ref[4], args_str = _ref[5];
+    var _is, animation_id, arg, args, args_str, id, name, p_id, ref, ref1, ref2, ref3, surface, type, wait, wait_result;
+    ref = result.slice(1, 7), _is = ref[0], p_id = ref[1], surface = ref[2], wait = ref[3], type = ref[4], args_str = ref[5];
     _is -= 0;
     p_id -= 0;
     surface -= 0;
@@ -29984,9 +30002,9 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       case 'add':
       case 'reduce':
       case 'move':
-        _ref1 = [surface, wait], args.surface = _ref1[0], args.wait = _ref1[1];
+        ref1 = [surface, wait], args.surface = ref1[0], args.wait = ref1[1];
         if (args_str) {
-          _ref2 = args_str.split(','), args.x = _ref2[0], args.y = _ref2[1];
+          ref2 = args_str.split(','), args.x = ref2[0], args.y = ref2[1];
           if (args.x != null) {
             args.x -= 0;
           }
@@ -29996,7 +30014,7 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
         }
         break;
       case 'base':
-        _ref3 = [surface, wait], args.surface = _ref3[0], args.wait = _ref3[1];
+        ref3 = [surface, wait], args.surface = ref3[0], args.wait = ref3[1];
         break;
       case 'insert':
       case 'start':
@@ -30006,14 +30024,14 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
       case 'alternativestart':
       case 'alternativestop':
         args.animation_ids = (function() {
-          var _i, _len, _ref4, _results;
-          _ref4 = args_str.split(',');
-          _results = [];
-          for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-            animation_id = _ref4[_i];
-            _results.push('animation' + animation_id);
+          var i, len, ref4, results;
+          ref4 = args_str.split(',');
+          results = [];
+          for (i = 0, len = ref4.length; i < len; i++) {
+            animation_id = ref4[i];
+            results.push('animation' + animation_id);
           }
-          return _results;
+          return results;
         })();
     }
     for (name in args) {
@@ -30026,8 +30044,8 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_collision = function(data, result) {
-    var bottom, id, left, name, right, top, _is, _ref;
-    _ref = result.slice(1, 7), _is = _ref[0], left = _ref[1], top = _ref[2], right = _ref[3], bottom = _ref[4], name = _ref[5];
+    var _is, bottom, id, left, name, ref, right, top;
+    ref = result.slice(1, 7), _is = ref[0], left = ref[1], top = ref[2], right = ref[3], bottom = ref[4], name = ref[5];
     _is -= 0;
     left -= 0;
     top -= 0;
@@ -30057,8 +30075,8 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_collisionex_4 = function(data, result) {
-    var bottom, id, left, name, right, top, type, _is, _ref;
-    _ref = result.slice(1, 8), _is = _ref[0], name = _ref[1], type = _ref[2], left = _ref[3], top = _ref[4], right = _ref[5], bottom = _ref[6];
+    var _is, bottom, id, left, name, ref, right, top, type;
+    ref = result.slice(1, 8), _is = ref[0], name = ref[1], type = ref[2], left = ref[3], top = ref[4], right = ref[5], bottom = ref[6];
     _is -= 0;
     left -= 0;
     top -= 0;
@@ -30088,8 +30106,8 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_collisionex_3 = function(data, result) {
-    var center_x, center_y, id, name, radius, type, _is, _ref;
-    _ref = result.slice(1, 8), _is = _ref[0], name = _ref[1], type = _ref[2], center_x = _ref[3], center_y = _ref[4], radius = _ref[5];
+    var _is, center_x, center_y, id, name, radius, ref, type;
+    ref = result.slice(1, 8), _is = ref[0], name = ref[1], type = ref[2], center_x = ref[3], center_y = ref[4], radius = ref[5];
     _is -= 0;
     center_x -= 0;
     center_y -= 0;
@@ -30117,8 +30135,8 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
   };
 
   surface.prototype.match_collisionex_n = function(data, result) {
-    var c, coordinate, coordinates, coordinates_str, id, index, name, _i, _is, _len, _ref, _ref1;
-    _ref = result.slice(1, 4), _is = _ref[0], name = _ref[1], coordinates_str = _ref[2];
+    var _is, c, coordinate, coordinates, coordinates_str, i, id, index, len, name, ref, ref1;
+    ref = result.slice(1, 4), _is = ref[0], name = ref[1], coordinates_str = ref[2];
     _is -= 0;
     id = 'collision' + _is;
     if (data.regions == null) {
@@ -30133,9 +30151,9 @@ SurfacesTxt2Yaml.ScopeParser.surface = (function(_super) {
     }
     coordinates = [];
     coordinate = {};
-    _ref1 = coordinates_str.split(',');
-    for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
-      c = _ref1[index];
+    ref1 = coordinates_str.split(',');
+    for (index = i = 0, len = ref1.length; i < len; index = ++i) {
+      c = ref1[index];
       if (index % 2 === 0) {
         coordinate.x = c - 0;
       } else {
@@ -30174,8 +30192,8 @@ SurfacesTxt2Yaml.txt_to_yaml = function(txt_str, options) {
       indent: 4,
       flowLevel: 6
     })).replace(/"y"/g, 'y');
-  } catch (_error) {
-    e = _error;
+  } catch (error) {
+    e = error;
     throw e;
   }
 };
