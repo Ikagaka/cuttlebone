@@ -49,12 +49,9 @@ function onNarLoad(nanikaDir) {
         console.log(i, scope.position());
         console.log(i, scope.position({right: 0, bottom:0}));
       })
-    })
-
-    named.load().then(function(){
-      nmdmgr.namedies.forEach(function(named){
-        talk(named);
-      });
+    });
+    nmdmgr.namedies.forEach(function(named){
+      talk(named);
     });
 
   })["catch"](function(err) { console.error(err, err.stack); });
