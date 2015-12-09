@@ -58,6 +58,7 @@
     .append("<span style='color:red;'>"+err.stack+"</span>").append("<br />");
   }
 }());
+$("#bootlog").append(JSON.stringify(cuttlebone.versions, null, "  ")).append("<br />");
 var shell = null;
 var balloon = null;
 var balloonDir = null;
