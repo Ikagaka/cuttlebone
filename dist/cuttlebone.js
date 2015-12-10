@@ -13372,7 +13372,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#17de24c156985f38868833140b253b7571ab2be9",
-  "_shasum": "acba6f8995a318969d43d6b58bc3ea4210296cd4",
+  "_shasum": "6c4adac8ed99bd46a1d86736b536208fd021021b",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -13563,6 +13563,7 @@ module.exports={
     };
 
     Named.prototype.initEventListener = function() {
+      var that;
       (function(_this) {
         return (function() {
           var $target, onmousemove, onmouseup, relLeft, relTop, scopeId;
@@ -13626,10 +13627,12 @@ module.exports={
                 ref1 = SurfaceUtil.getEventPosition(ev.event), pageX = ref1.pageX, pageY = ref1.pageY, clientX = ref1.clientX, clientY = ref1.clientY;
                 relLeft = clientX - (left - window.scrollX);
                 relTop = clientY - (top - window.scrollY);
-                _this.$named.append($scope);
-                _this.$named.appendTo(_this.nmdmgr.element);
+                setTimeout((function() {
+                  _this.$named.append($scope);
+                  return _this.$named.appendTo(_this.nmdmgr.element);
+                }), 300);
             }
-            _this.emit("shell_mouse", ev);
+            _this.emit(ev.type, ev);
           });
         });
       })(this)();
@@ -13691,27 +13694,69 @@ module.exports={
                 if ($(ev.event.target).hasClass("ikagaka-choice") || $(ev.event.target).hasClass("ikagaka-anchor")) {
                   wait = 500;
                 } else {
-                  wait = 0;
+                  wait = 300;
                 }
                 setTimeout((function() {
                   _this.$named.append($scope);
                   return _this.$named.appendTo(_this.nmdmgr.element);
                 }), wait);
             }
-            _this.emit("balloon_mouse", ev);
+            switch (ev.type) {
+              case "click":
+                ev.type = "balloonclick";
+                _this.emit("balloonclick", ev);
+                break;
+              case "dblclick":
+                ev.type = "balloondblclick";
+                _this.emit("balloondblclick", ev);
+            }
           });
         });
       })(this)();
       this.balloon.on("select", (function(_this) {
         return function(ev) {
-          return _this.emit("balloon_select", ev);
+          switch (ev.type) {
+            case "choiceselect":
+              _this.emit("choiceselect", ev);
+              break;
+            case "anchorselect":
+              _this.emit("anchorselect", ev);
+          }
         };
       })(this));
       this.destructors.push((function(_this) {
         return function() {
-          return _this.balloon.off("select");
+          _this.balloon.off("select");
+          return _this.$named.off("drop");
         };
       })(this));
+      that = this;
+      this.$named.on("dragenter", function(ev) {
+        ev.preventDefault();
+        return ev.stopPropagation();
+      });
+      this.$named.on("dragleave", function(ev) {
+        ev.preventDefault();
+        return ev.stopPropagation();
+      });
+      this.$named.on("dragover", function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        return that.emit("filedropping", {
+          type: "filedropping",
+          scopeId: Number($(this).attr("scopeId")),
+          event: ev
+        });
+      });
+      this.$named.on("drop", ".scope", function(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        return that.emit("filedrop", {
+          type: "filedrop",
+          scopeId: Number($(this).attr("scopeId")),
+          event: ev
+        });
+      });
     };
 
     Named.prototype.destructor = function() {
@@ -13724,6 +13769,10 @@ module.exports={
       });
       this.$named.children().remove();
       this.$named.remove();
+    };
+
+    Named.prototype.load = function() {
+      return Promise.resolbe(this);
     };
 
     Named.prototype.scope = function(scopeId) {
@@ -13757,7 +13806,7 @@ module.exports={
         "id": id,
         "content": prompt("UserInput", text)
       };
-      this.emit("balloon_input", event);
+      this.emit("userinput", event);
     };
 
     Named.prototype.openCommunicateBox = function(text) {
@@ -13770,7 +13819,7 @@ module.exports={
         "sender": "user",
         "content": prompt("Communicate", text)
       };
-      this.emit("balloon_input", event);
+      this.emit("communicateinput", event);
     };
 
     return Named;
@@ -13891,7 +13940,7 @@ module.exports={
     }
 
     Scope.prototype.initDOMStructure = function() {
-      this.$scope = $(this.element).addClass("scope");
+      this.$scope = $(this.element).addClass("scope").attr("scopeId", this.scopeId);
       this.$surface = $("<div />").addClass("surface").appendTo(this.$scope);
       this.$blimp = $("<div />").addClass("blimp").appendTo(this.$scope);
       this.$scope.css({
@@ -15846,7 +15895,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
-  "_shasum": "b591c112a5b7beef9a976f4264e35fac929fcb47",
+  "_shasum": "db51462653658452d3375760378aa3df03f34d79",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -15923,7 +15972,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/namedmanager.js",
-  "_id": "ikagaka.namedmanager.js@4.1.14",
+  "_id": "ikagaka.namedmanager.js@4.1.15",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js",
@@ -15954,8 +16003,8 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/namedmanager.js.git#dbd5d2d6963a987ba1a1a3fa7399b0a1a3255f40",
-  "_shasum": "29c562cd6e14deee81a2616c7afb499e74736cf6",
+  "_resolved": "git://github.com/ikagaka/namedmanager.js.git#6867ecd60fd74d261898af51352d05d40276f7c7",
+  "_shasum": "2cadfa82fd74a06e81cc9e0bda4faed474f54e6a",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/namedmanager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -15980,7 +16029,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "dbd5d2d6963a987ba1a1a3fa7399b0a1a3255f40",
+  "gitHead": "6867ecd60fd74d261898af51352d05d40276f7c7",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -15992,7 +16041,7 @@ module.exports={
   "main": "./lib/index.js",
   "name": "ikagaka.namedmanager.js",
   "optionalDependencies": {},
-  "readme": "# NamedManager.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.namedmanager.js.svg?style=flat)](https://npmjs.com/package/ikagaka.namedmanager.js) [![bower](https://img.shields.io/bower/v/ikagaka.namedmanager.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/NamedManager.js.svg?branch=master)](https://travis-ci.org/Ikagaka/NamedManager.js)\n\nIkagaka Window Manager\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/NamedManager.js/master/screenshot.gif)\n\n## About\nNamedManager.js is a `Ukagaka` compatible Shell renderer and Window Manager for Web Browser.\n\n* [demo](http://ikagaka.github.io/NamedManager.js/demo/sandbox.html)\n\n\n## Usage\n\n```html\n\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/NamedManager.js\"></script>\n<script>\nPromise.all([\n  NarLoader.loadFromURL(\"../nar/origin.nar\"),\n  NarLoader.loadFromURL(\"../nar/mobilemaster.nar\")\n]).then(function(tmp){\n  var balloonNDir = tmp[0];\n  var shellNDir = tmp[1];\n  var balloonDir = balloonNDir.asArrayBuffer();\n  var shellDir = shellNDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new NamedManager.Shell(shellDir);\n  var balloon = new NamedManager.Balloon(balloonDir);\n  return Promise.all([\n    shell.load(),\n    balloon.load()\n  ]);\n}).then(function(tmp){\n  var shell = tmp[0];\n  var balloon = tmp[1];\n\n  var nmdmgr = new NamedManager.NamedManager();\n  document.body.appendChild(nmdmgr.element);\n\n  var hwnd = nmdmgr.materialize(shell, balloon);\n  var named = nmdmgr.named(hwnd);\n\n  console.log(nmdmgr, hwnd, named, shell, balloon);\n\n  talk(named);\n});\n\nfunction wait(ms, callback) {\n  return function(ctx) {\n    return new Promise(function(resolve) {\n      setTimeout((function() {\n        callback(ctx);\n        resolve(ctx);\n      }), ms);\n    });\n  };\n}\n\nfunction talk(named){\n  Promise.resolve(named)\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().surface(0); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(1); }))\n  .then(wait(0, function(named) { named.scope().surface(10); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().blimp(0); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"H\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"e\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\",\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"w\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"r\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"d\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"!\"); }));\n}\n</script>\n\n```\n\n## ChangeLog\n* [release note](https://github.com/Ikagaka/NamedManager.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n## Document\n* 型はTypeScriptで、HTMLはJadeで、サンプルコードはCoffeeScriptで書かれています。\n\n### NamedManager Class\n#### constructor(): NamedManager\n* コンストラクタです。\n#### element: HTMLDivElement\n* `div.namedMgr` が入っています。構造は以下のとおりです。\n  ```jade\n  div.namedMgr\n    style(scoped)\n    div.named\n      div.scope\n        div.surface\n          canvas.surfaceCanvas\n        div.blimp\n          style(scoped)\n          canvas.blimpCanvas\n          div.blimpText\n      div.scope\n      ...\n    div.named\n    ...\n  ```\n* `document.body.appned`してRealDOMTreeに入れてください。\n\n#### destructor(): void\n* すべてのリソースを開放します\n\n#### materialize(shell: Shell, balloon: Balloon): number\n* ゴーストのレンダリングを開始します\n* 返り値`number`は`namedId`です。いわゆるウインドウハンドラです。\n\n#### vanish(namedId: number): void\n* `namedId`のゴーストのレンダリングを終了します。\n\n#### named(namedId: number): Named;\n* `namedId`のNamedクラスのインスタンスを返します\n\n### Named Class\n\n#### scope(scopeId?: number): Scope\n* `scopeId`のScopeクラスのインスタンスを返します。\n* 引数を省略した場合、現在のスコープを返します。\n\n#### openInputBox(id: string, placeHolder?: string): void\n* inputboxを表示します。\n\n#### openCommunicateBox(placeHolder?: string): void\n* communicateboxを表示します。\n\n#### on(event: \"balloon_select\", callback: (ev: BalloonSelectEvent)=> void): EventEmitter\n* アンカーか選択肢が押された時\n\n#### on(event: \"balloon_input\", callback: (ev: BalloonInputEvent)=> void): EventEmitter\n* ユーザーインプットかコミュニケートがあった時\n\n#### on(event: \"shell_mouse\", callback: (ev: ShellMouseEvent)=> void): EventEmitter\n* サーフェスが触られた時\n\n#### on(event: \"balloon_mouse\", callback: (ev: BalloonMouseEvent)=> void): EventEmitter\n* バルーンが触られた時\n\n### Scope Class\n\n#### surface(surfaceId?: number|string): Surface\n* numberのとき\n  * `surfaceId` のサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* stringのとき\n  * `surfaceAlias`のサーフェスエイリアスのサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* 指定したサーフェスが存在しない場合、現在のサーフェスのSurfaceを返します。\n* 引数を省略した場合、現在のSurfaceを返します。\n\n#### blimp(blimpId?: number): Blimp\n* `blimpId`のバルーンを表示します。\n* 引数を省略した場合、現在のBlimpを返します。\n\n\n#### position(pos?:{right: number, bottom: number}): {right: number, bottom: number}\n* 指定した座標に移動します。\n* 基準は画面右下です。\n* 引数を省略すると現在の座標が返ります。\n",
+  "readme": "# NamedManager.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.namedmanager.js.svg?style=flat)](https://npmjs.com/package/ikagaka.namedmanager.js) [![bower](https://img.shields.io/bower/v/ikagaka.namedmanager.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/NamedManager.js.svg?branch=master)](https://travis-ci.org/Ikagaka/NamedManager.js)\n\nIkagaka Window Manager\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/NamedManager.js/master/screenshot.gif)\n\n## About\nNamedManager.js is a `Ukagaka` compatible Shell renderer and Window Manager for Web Browser.\n\n* [demo](http://ikagaka.github.io/NamedManager.js/demo/sandbox.html)\n\n\n## Usage\n\n```html\n\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/NamedManager.js\"></script>\n<script>\nPromise.all([\n  NarLoader.loadFromURL(\"../nar/origin.nar\"),\n  NarLoader.loadFromURL(\"../nar/mobilemaster.nar\")\n]).then(function(tmp){\n  var balloonNDir = tmp[0];\n  var shellNDir = tmp[1];\n  var balloonDir = balloonNDir.asArrayBuffer();\n  var shellDir = shellNDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new NamedManager.Shell(shellDir);\n  var balloon = new NamedManager.Balloon(balloonDir);\n  return Promise.all([\n    shell.load(),\n    balloon.load()\n  ]);\n}).then(function(tmp){\n  var shell = tmp[0];\n  var balloon = tmp[1];\n\n  var nmdmgr = new NamedManager.NamedManager();\n  document.body.appendChild(nmdmgr.element);\n\n  var hwnd = nmdmgr.materialize(shell, balloon);\n  var named = nmdmgr.named(hwnd);\n\n  console.log(nmdmgr, hwnd, named, shell, balloon);\n\n  talk(named);\n});\n\nfunction wait(ms, callback) {\n  return function(ctx) {\n    return new Promise(function(resolve) {\n      setTimeout((function() {\n        callback(ctx);\n        resolve(ctx);\n      }), ms);\n    });\n  };\n}\n\nfunction talk(named){\n  Promise.resolve(named)\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().surface(0); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(1); }))\n  .then(wait(0, function(named) { named.scope().surface(10); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().blimp(0); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"H\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"e\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\",\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"w\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"r\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"d\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"!\"); }));\n}\n</script>\n\n```\n\n## ChangeLog\n* [release note](https://github.com/Ikagaka/NamedManager.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n## Document\n* 型はTypeScriptで、HTMLはJadeで、サンプルコードはCoffeeScriptで書かれています。\n\n### NamedManager Class\n#### constructor(): NamedManager\n* コンストラクタです。\n#### element: HTMLDivElement\n* `div.namedMgr` が入っています。構造は以下のとおりです。\n  ```jade\n  div.namedMgr\n    style(scoped)\n    div.named\n      div.scope\n        div.surface\n          canvas.surfaceCanvas\n        div.blimp\n          style(scoped)\n          canvas.blimpCanvas\n          div.blimpText\n      div.scope\n      ...\n    div.named\n    ...\n  ```\n* `document.body.appned`してRealDOMTreeに入れてください。\n\n#### destructor(): void\n* すべてのリソースを開放します\n\n#### materialize(shell: Shell, balloon: Balloon): number\n* ゴーストのレンダリングを開始します\n* 返り値`number`は`namedId`です。いわゆるウインドウハンドラです。\n\n#### vanish(namedId: number): void\n* `namedId`のゴーストのレンダリングを終了します。\n\n#### named(namedId: number): Named;\n* `namedId`のNamedクラスのインスタンスを返します\n\n### Named Class\n\n#### scope(scopeId?: number): Scope\n* `scopeId`のScopeクラスのインスタンスを返します。\n* 引数を省略した場合、現在のスコープを返します。\n\n#### openInputBox(id: string, placeHolder?: string): void\n* inputboxを表示します。\n\n#### openCommunicateBox(placeHolder?: string): void\n* communicateboxを表示します。\n\n#### on(event: string, callback: (ev: Event)=> void): void\n\n```typescript\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // true\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n\ninterface BalloonMouseEvent {\n  type: string; // click|dblclikck|mousemove|mouseup|mousedown\n  scopeId: number; // \\p[n]\n  balloonId: number; // \\b[n]\n}\n\ninterface BalloonInputEvent {\n  type: string; //userinput|communicateinput\n  id: string;\n  content: string;\n}\n\ninterface BalloonSelectEvent {\n  type: string; //anchorselect|choiceselect\n  id: string;\n  text: string;\n  args: string[];\n}\n\ninterface FileDropEvent {\n  type: string; //filedrop\n  scopeId: number;\n  event: UIEvent;\n}\n```\n\n##### on(event: \"mousedown\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mousemove\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mouseup\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mouseclick\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mousedblclick\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"balloonclick\", callback: (ev: BalloonMouseEvent)=> void): void\n##### on(event: \"balloondblclick\", callback: (ev: BalloonMouseEvent)=> void): void\n##### on(event: \"anchorselect\", callback: (ev: BalloonSelectEvent)=> void): void\n##### on(event: \"choiceselect\", callback: (ev: BalloonSelectEvent)=> void): void\n##### on(event: \"userinput\", callback: (ev: BalloonInputEvent)=> void): void\n##### on(event: \"communicateinput\", callback: (ev: BalloonInputEvent)=> void): void\n##### on(event: \"filedrop\", callback: (ev: FileDropEvent)=> void): void\n\n\n### Scope Class\n\n#### surface(surfaceId?: number|string): Surface\n* numberのとき\n  * `surfaceId` のサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* stringのとき\n  * `surfaceAlias`のサーフェスエイリアスのサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* 指定したサーフェスが存在しない場合、現在のサーフェスのSurfaceを返します。\n* 引数を省略した場合、現在のSurfaceを返します。\n\n#### blimp(blimpId?: number): Blimp\n* `blimpId`のバルーンを表示します。\n* 引数を省略した場合、現在のBlimpを返します。\n\n\n#### position(pos?:{right: number, bottom: number}): {right: number, bottom: number}\n* 指定した座標に移動します。\n* 基準は画面右下です。\n* 引数を省略すると現在の座標が返ります。\n",
   "readmeFilename": "readme.md",
   "repository": {
     "type": "git",
@@ -16002,13 +16051,13 @@ module.exports={
     "build": "coffee -c -o lib src/*.coffee; browserify lib/index.js --standalone NamedManager -o dist/NamedManager.js",
     "clean": "rm lib/*.js dist/*.js",
     "init": "npm run update; npm run build",
-    "patch": "mversion patch -m",
+    "patch": "mversion patch",
     "start": "http-server --silent -p 8000 & watchify lib/index.js --standalone NamedManager -o dist/NamedManager.js -v & coffee -c -w -o lib src/*.coffee",
     "stop": "killall -- node */http-server -p 8000",
     "update": "rm -rf bower_components node_modules; npm update; bower update"
   },
   "url": "https://github.com/ikagaka/NamedManager.js",
-  "version": "4.1.14"
+  "version": "4.1.15"
 }
 
 },{}],22:[function(require,module,exports){
@@ -16057,7 +16106,7 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
-  "_shasum": "17a943e5a7262f531cef85f17758c38530ff9d10",
+  "_shasum": "a810c993622ad60c51a6eef42f8f86a311f1f09f",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
