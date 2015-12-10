@@ -13372,7 +13372,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#17de24c156985f38868833140b253b7571ab2be9",
-  "_shasum": "e3009ff414f4304bb14cae3b987bcee7bf9e0f8e",
+  "_shasum": "acba6f8995a318969d43d6b58bc3ea4210296cd4",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -14769,10 +14769,10 @@ var Surface = (function (_super) {
             var surface = pattern.surface, wait = pattern.wait, type = pattern.type, x = pattern.x, y = pattern.y, animation_ids = pattern.animation_ids, animation_id = pattern.animation_id;
             switch (type) {
                 case "start":
-                    _this.play(Number((/\d+/.exec(animation_id) || ["", "-1"])[1]), nextTick);
+                    _this.play(Number((/(\d+)$/.exec(animation_id) || ["", "-1"])[1]), nextTick);
                     return;
                 case "stop":
-                    _this.stop(Number((/\d+/.exec(animation_id) || ["", "-1"])[1]));
+                    _this.stop(Number((/(\d+)$/.exec(animation_id) || ["", "-1"])[1]));
                     setTimeout(nextTick);
                     return;
                 case "alternativestart":
@@ -14894,8 +14894,13 @@ var Surface = (function (_super) {
                 renderLayers = renderLayers.concat(__renderLayers);
                 continue;
             }
-            if (surface < 0)
-                continue; // idが-1つまり非表示指定
+            if (surface < 0) {
+                // idが-1つまり非表示指定
+                if (type === "base") {
+                    this.dynamicBase = null;
+                }
+                continue;
+            }
             var srf = this.surfaceTree[surface]; // 該当のサーフェス
             if (srf == null) {
                 console.warn("Surface#composeAnimationPatterns: surface id " + surface + " is not defined.", pattern);
@@ -15815,7 +15820,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/Shell.js#master",
-  "_id": "ikagaka.shell.js@4.2.15",
+  "_id": "ikagaka.shell.js@4.2.16",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js/ikagaka.shell.js",
@@ -15840,8 +15845,8 @@ module.exports={
   "_requiredBy": [
     "/ikagaka.namedmanager.js"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#415e3fc89f980251001eb7481265a34a36749750",
-  "_shasum": "84b400040c95cf76bd4bb40c57c744daa597c8f3",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
+  "_shasum": "b591c112a5b7beef9a976f4264e35fac929fcb47",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -15875,7 +15880,7 @@ module.exports={
     "gulp-typescript": "^2.9.2",
     "typescript": "^1.6.2"
   },
-  "gitHead": "415e3fc89f980251001eb7481265a34a36749750",
+  "gitHead": "ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
   "keywords": [
     "ikagaka",
     "ikagaka",
@@ -15899,14 +15904,14 @@ module.exports={
     "dtsm-search": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline search",
     "dtsm-update": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline update",
     "init": "npm run update; npm run build",
-    "patch": "mversion patch -m",
+    "patch": "mversion patch",
     "start": "http-server --silent -p 8000 & gulp watch & watchify lib/index.js --standalone Shell -o dist/Shell.js -v",
     "stop": "killall -- node */http-server -p 8000",
     "update": "rm -rf bower_components typeings; npm update; bower update; dtsm fetch; dtsm update --save"
   },
   "typings": "./lib/src/index.d.ts",
   "url": "https://github.com/ikagaka/Shell.js",
-  "version": "4.2.15"
+  "version": "4.2.16"
 }
 
 },{}],21:[function(require,module,exports){
@@ -15950,7 +15955,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/namedmanager.js.git#dbd5d2d6963a987ba1a1a3fa7399b0a1a3255f40",
-  "_shasum": "8737b38b434d14da37809aec3b7105c23ea54cbf",
+  "_shasum": "29c562cd6e14deee81a2616c7afb499e74736cf6",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/namedmanager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -16025,7 +16030,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/Shell.js",
-  "_id": "ikagaka.shell.js@4.2.15",
+  "_id": "ikagaka.shell.js@4.2.16",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.shell.js",
@@ -16051,8 +16056,8 @@ module.exports={
     "/",
     "/ikagaka.balloon.js"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#415e3fc89f980251001eb7481265a34a36749750",
-  "_shasum": "23733ce3e4d78b9b58384eed38ced97733db041f",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
+  "_shasum": "17a943e5a7262f531cef85f17758c38530ff9d10",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -16086,7 +16091,7 @@ module.exports={
     "gulp-typescript": "^2.9.2",
     "typescript": "^1.6.2"
   },
-  "gitHead": "415e3fc89f980251001eb7481265a34a36749750",
+  "gitHead": "ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
   "keywords": [
     "ikagaka",
     "ikagaka",
@@ -16110,14 +16115,14 @@ module.exports={
     "dtsm-search": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline search",
     "dtsm-update": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline update",
     "init": "npm run update; npm run build",
-    "patch": "mversion patch -m",
+    "patch": "mversion patch",
     "start": "http-server --silent -p 8000 & gulp watch & watchify lib/index.js --standalone Shell -o dist/Shell.js -v",
     "stop": "killall -- node */http-server -p 8000",
     "update": "rm -rf bower_components typeings; npm update; bower update; dtsm fetch; dtsm update --save"
   },
   "typings": "./lib/src/index.d.ts",
   "url": "https://github.com/ikagaka/Shell.js",
-  "version": "4.2.15"
+  "version": "4.2.16"
 }
 
 },{}],28:[function(require,module,exports){
