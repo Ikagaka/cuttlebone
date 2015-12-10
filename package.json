@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "init": "npm run update; npm run build",
-    "update": "rm -rf bower_components node_modules; npm update; bower update",
+    "update": "rm -rf bower_components; npm update; bower update",
     "clean": "rm lib/*.js dist/*.js",
     "start": "http-server --silent -p 8000 & coffee -w --compile --output lib src/*.coffee & watchify lib/index.js --outfile dist/cuttlebone.js  --standalone cuttlebone -v",
     "stop": "killall -- node */http-server -p 8000",
@@ -22,9 +22,9 @@
     "url": "https://github.com/ikagaka/cuttlebone"
   },
   "dependencies": {
-    "ikagaka.shell.js": "ikagaka/Shell.js",
-    "ikagaka.balloon.js": "ikagaka/Balloon.js",
-    "ikagaka.namedmanager.js": "ikagaka/namedmanager.js"
+    "ikagaka.shell.js": "Ikagaka/Shell.js",
+    "ikagaka.balloon.js": "Ikagaka/Balloon.js",
+    "ikagaka.namedmanager.js": "Ikagaka/NamedManager.js"
   },
   "devDependencies": {},
   "bugs": {

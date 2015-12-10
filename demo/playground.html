@@ -115,17 +115,50 @@ function changeShell(nanikaDir){
     shell = new cuttlebone.Shell(shellDir);
     return shell.load();
   }).then(function(shell){
-    console.log(shell);
+
     $("#bootlog").append("loaded.").append("<br />");
-    shell.on("mouse", function(ev){
-      if(ev.type === "mousemove") return; // mousemoveは鬱陶しいので表示しない
-      console.log(ev);
-    });
     $("#bootlog").append("materializing.").append("<br />");
     hwnd = nmdmgr.materialize(shell, balloon);
     var named = nmdmgr.named(hwnd);
     $("#bootlog").append("materialized.").append("<br />");
     var ssp = new SakuraScriptPlayer(named);
+
+    function onEvent(ev) { console.log(ev); }
+    named.on("mousedown", onEvent);
+    //named.on("mousemove", onEvent);
+    named.on("mouseup", onEvent);
+    named.on("mouseclick", onEvent);
+    named.on("mousedblclick", onEvent);
+    named.on("balloonclick", onEvent);
+    named.on("balloondblclick", onEvent);
+    named.on("anchorselect", onEvent);
+    named.on("anchorselectex", onEvent);
+    named.on("raise", onEvent);
+    named.on("choiceselectex", onEvent);
+    named.on("choiceselect", onEvent);
+    named.contextmenu(function(ev){
+      // ここで動的に生成
+      return {
+        callback: function(key){
+          switch(key){
+            case "quit":
+              nmdmgr.vanish(hwnd);
+              break;
+          }
+        },
+        items: {
+          "edit": {name: "これはスコープ"+ev.scopeId+"です"},
+          "sep1": "---------",
+          "fold1": {
+            "name": "とくに意味のないサブグループ",
+            "items": {
+              "fold1-key1": {"name": "とくに意味のない項目"},
+            }
+          },
+          "quit": {name: "終了"}
+        }
+      };
+    });
 
     $("#play").off().on("click", function(){
       ssp.play($("#code").val().replace(/\n|\r/, ""));
