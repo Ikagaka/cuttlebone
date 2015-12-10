@@ -13372,7 +13372,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#17de24c156985f38868833140b253b7571ab2be9",
-  "_shasum": "6c4adac8ed99bd46a1d86736b536208fd021021b",
+  "_shasum": "907df9eb96b9afa9fef52126e60917c2dabb73af",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -13772,7 +13772,7 @@ module.exports={
     };
 
     Named.prototype.load = function() {
-      return Promise.resolbe(this);
+      return Promise.resolve(this);
     };
 
     Named.prototype.scope = function(scopeId) {
@@ -15895,7 +15895,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
-  "_shasum": "db51462653658452d3375760378aa3df03f34d79",
+  "_shasum": "f1f0b5ac006f2102424354d336faa3986d69c45b",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -15972,7 +15972,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/namedmanager.js",
-  "_id": "ikagaka.namedmanager.js@4.1.15",
+  "_id": "ikagaka.namedmanager.js@4.1.16",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js",
@@ -16003,8 +16003,8 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/namedmanager.js.git#6867ecd60fd74d261898af51352d05d40276f7c7",
-  "_shasum": "2cadfa82fd74a06e81cc9e0bda4faed474f54e6a",
+  "_resolved": "git://github.com/ikagaka/namedmanager.js.git#2a5d03a52c41e5e62a8e0ed65cddc323a21a4732",
+  "_shasum": "e7ea8ef420d6e28abbd5001e61a2efa1e9eaa38b",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/namedmanager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -16029,7 +16029,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "6867ecd60fd74d261898af51352d05d40276f7c7",
+  "gitHead": "2a5d03a52c41e5e62a8e0ed65cddc323a21a4732",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -16057,7 +16057,7 @@ module.exports={
     "update": "rm -rf bower_components node_modules; npm update; bower update"
   },
   "url": "https://github.com/ikagaka/NamedManager.js",
-  "version": "4.1.15"
+  "version": "4.1.16"
 }
 
 },{}],22:[function(require,module,exports){
@@ -16106,7 +16106,7 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#ac4e474eb5aa2d315ea6a575c75ea8ddad0de233",
-  "_shasum": "a810c993622ad60c51a6eef42f8f86a311f1f09f",
+  "_shasum": "747d3ac78b318fd09e72c8ff3dcd77215af4abea",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
