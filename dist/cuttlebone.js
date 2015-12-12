@@ -13376,7 +13376,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#e98229912ecb102a1fb1b44e3e02bb127363beda",
-  "_shasum": "ba609aea68906003a3b9962d0b02aa51e647e8c7",
+  "_shasum": "442ba7ec1aad1ea0e014ed05adf601c27c4c6be4",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -17798,7 +17798,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "ad7483424806d6c1523c3e0295af63d930ed8ab4",
+  "_shasum": "7caa5f78847dbdf87d0978ef6794c2805021cc16",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -28259,7 +28259,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/NamedManager.js.git#aff74bbf2f598211a501bbf7672ed94f93f4791a",
-  "_shasum": "58f9a94600aa22e6c0757e97fd6d658fe7a17833",
+  "_shasum": "97c45a8038e2423a38c8ee0a99b1ffb9b1e7ce39",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -28361,7 +28361,7 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "be7643ef0c3be10bbec4d1edaec312d474d8f988",
+  "_shasum": "9eecb9cea26452abc880c3372c8078d327f42434",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -41940,7 +41940,7 @@ SurfacesTxt2Yaml.Parser = (function() {
       if (!in_scope) {
         if (this.options.charset && (result = line.match(/^\s*charset\s*,\s*(.+)$/))) {
           if (parsed_data.charset != null) {
-            this["throw"]('charset duplication found');
+            this.warnthrow('charset duplication found');
           }
           parsed_data.charset = result[1];
         } else if ((this.options.surface_definition === 'materia' && (result = line.match(/^(?:(descript)|(surface)(\d+(?:,\s*surface\d+)*)|(sakura|kero\d+)\.(surface\.alias))\s*({)?\s*$/))) || (this.options.surface_definition === 'ssp' && (result = line.match(/^\s*(?:(descript)|(surface(?:\.append)?)(!?(?:\d+-)?\d+(?:\s*,\s*(?:surface|!)?(?:\d+-)?\d+)*)|(sakura|kero|char\d+)\.(surface\.alias|cursor|tooltips))\s*({)?\s*$/))) || (this.options.surface_definition === 'ssp-lazy' && (result = line.match(/^\s*(?:(descript)|(surface(?:\.append)?)(.+)|(sakura|kero|char\d+)\.(surface\.alias|cursor|tooltips))\s*({)?\s*$/)))) {
