@@ -13376,7 +13376,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#e98229912ecb102a1fb1b44e3e02bb127363beda",
-  "_shasum": "560b35de883bbb458b8449317946c87272eb542d",
+  "_shasum": "b940a6f3f956ade7da67c2e512159e7b335758bc",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/home/legokichi/GitHub/cuttlebone",
@@ -13443,8 +13443,8 @@ module.exports={
     var clientX, clientY, left, offsetX, offsetY, pageX, pageY, ref, ref1, result, tmp, top, under;
     ref = SurfaceUtil.getEventPosition(ev), clientX = ref.clientX, clientY = ref.clientY, pageX = ref.pageX, pageY = ref.pageY;
     ref1 = $(target).offset(), left = ref1.left, top = ref1.top;
-    offsetX = clientX - (left - window.scrollX);
-    offsetY = clientY - (top - window.scrollY);
+    offsetX = clientX - (left - (window.scrollX || window.pageXOffset || (document.documentElement || document.body.parentNode || document.body).scrollLeft));
+    offsetY = clientY - (top - (window.scrollY || window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop));
     if ($(parent).find(target).length > 0 && target instanceof HTMLCanvasElement && SurfaceUtil.isHit(target, offsetX, offsetY)) {
       eventPropagationSim(target, ev);
       return target;
@@ -17805,7 +17805,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "df4ae978d50c90ac7bc0e8fb1d7a1a218f995fd8",
+  "_shasum": "2834f0c4000045456d0e7fbd1c8714112d908686",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/home/legokichi/GitHub/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -28235,7 +28235,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/NamedManager.js",
-  "_id": "ikagaka.namedmanager.js@4.1.20",
+  "_id": "ikagaka.namedmanager.js@4.1.21",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js",
@@ -28265,8 +28265,8 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#9700739a5e4f6833526c2c75f9fc070a7bcdf9e0",
-  "_shasum": "68b06c57b5e316ceb2612aaba410c0be4ab0699f",
+  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#1a22cb9bca279650b46f0c0afa85f7f63c017a42",
+  "_shasum": "6277793bbaa17331a4181d6900157a583a37db8f",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
   "_where": "/home/legokichi/GitHub/cuttlebone",
@@ -28291,7 +28291,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "9700739a5e4f6833526c2c75f9fc070a7bcdf9e0",
+  "gitHead": "1a22cb9bca279650b46f0c0afa85f7f63c017a42",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -28319,7 +28319,7 @@ module.exports={
     "update": "rm -rf bower_components; npm update; bower update"
   },
   "url": "https://github.com/ikagaka/NamedManager.js",
-  "version": "4.1.20"
+  "version": "4.1.21"
 }
 
 },{}],24:[function(require,module,exports){
@@ -28368,7 +28368,7 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "6cb53885fd861797bc9aa53bce0e0f84922ed58e",
+  "_shasum": "bff0d41049a684014651dc3407bea64b1ae16693",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/home/legokichi/GitHub/cuttlebone",
