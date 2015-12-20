@@ -13346,7 +13346,7 @@ module.exports={
   "_args": [
     [
       "github:ikagaka/Balloon.js",
-      "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone"
+      "/home/legokichi/GitHub/cuttlebone"
     ]
   ],
   "_from": "ikagaka/Balloon.js",
@@ -13376,10 +13376,10 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#e98229912ecb102a1fb1b44e3e02bb127363beda",
-  "_shasum": "442ba7ec1aad1ea0e014ed05adf601c27c4c6be4",
+  "_shasum": "4567b460575ec9dcf73ab4c64a75140a2188ef50",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
-  "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
+  "_where": "/home/legokichi/GitHub/cuttlebone",
   "author": {
     "name": "Ikagaka"
   },
@@ -13471,23 +13471,30 @@ module.exports={
     ev.preventDefault();
     ev.stopPropagation();
     if (/^mouse|contextmenu|click$/.test(ev.type)) {
-      mev = new MouseEvent(ev.type, {
-        screenX: ev.screenX,
-        screenY: ev.screenY,
-        clientX: ev.clientX,
-        clientY: ev.clientY,
-        ctrlKey: ev.ctrlKey,
-        altKey: ev.altKey,
-        shiftKey: ev.shiftKey,
-        metaKey: ev.metaKey,
-        button: ev.button,
-        buttons: ev.originalEvent["buttons"],
-        relatedTarget: ev.relatedTarget,
-        view: ev.originalEvent["view"],
-        detail: ev.originalEvent["detail"],
-        bubbles: true
-      });
-      return target.dispatchEvent(mev);
+      ua = window.navigator.userAgent.toLowerCase();
+      if (ua.indexOf("msie") !== -1) {
+        mev = document.createEvent("MouseEvent");
+        mev.initMouseEvent(ev.type, true, true, ev.originalEvent["view"], ev.originalEvent["detail"], ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey, ev.button, ev.relatedTarget);
+        return target.dispatchEvent(mev);
+      } else {
+        mev = new MouseEvent(ev.type, {
+          screenX: ev.screenX,
+          screenY: ev.screenY,
+          clientX: ev.clientX,
+          clientY: ev.clientY,
+          ctrlKey: ev.ctrlKey,
+          altKey: ev.altKey,
+          shiftKey: ev.shiftKey,
+          metaKey: ev.metaKey,
+          button: ev.button,
+          buttons: ev.originalEvent["buttons"],
+          relatedTarget: ev.relatedTarget,
+          view: ev.originalEvent["view"],
+          detail: ev.originalEvent["detail"],
+          bubbles: true
+        });
+        return target.dispatchEvent(mev);
+      }
     } else if (/^touch/.test(ev.type)) {
       ua = window.navigator.userAgent.toLowerCase();
       if (!(document.createTouch instanceof Function)) {
@@ -17768,7 +17775,7 @@ module.exports={
   "_args": [
     [
       "ikagaka.shell.js@github:ikagaka/Shell.js#master",
-      "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js"
+      "/home/legokichi/GitHub/cuttlebone/node_modules/ikagaka.namedmanager.js"
     ]
   ],
   "_from": "ikagaka/Shell.js#master",
@@ -17798,10 +17805,10 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "7caa5f78847dbdf87d0978ef6794c2805021cc16",
+  "_shasum": "75b8429bc2bc96f4d5beccb113e1cda35de939bf",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
-  "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
+  "_where": "/home/legokichi/GitHub/cuttlebone/node_modules/ikagaka.namedmanager.js",
   "author": {
     "name": "Ikagaka"
   },
@@ -28224,7 +28231,7 @@ module.exports={
   "_args": [
     [
       "github:ikagaka/NamedManager.js",
-      "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone"
+      "/home/legokichi/GitHub/cuttlebone"
     ]
   ],
   "_from": "ikagaka/NamedManager.js",
@@ -28258,11 +28265,11 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#aff74bbf2f598211a501bbf7672ed94f93f4791a",
-  "_shasum": "97c45a8038e2423a38c8ee0a99b1ffb9b1e7ce39",
+  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#c524bcb307687561efa3f81bead869329bec1eff",
+  "_shasum": "6b3f59554d00ea92f871d53dc23466226d571cc7",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
-  "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
+  "_where": "/home/legokichi/GitHub/cuttlebone",
   "author": {
     "name": "Ikagaka"
   },
@@ -28284,7 +28291,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "aff74bbf2f598211a501bbf7672ed94f93f4791a",
+  "gitHead": "c524bcb307687561efa3f81bead869329bec1eff",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -28330,7 +28337,7 @@ module.exports={
   "_args": [
     [
       "github:ikagaka/Shell.js",
-      "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone"
+      "/home/legokichi/GitHub/cuttlebone"
     ]
   ],
   "_from": "ikagaka/Shell.js",
@@ -28361,10 +28368,10 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "9eecb9cea26452abc880c3372c8078d327f42434",
+  "_shasum": "3be174f178704b4edb827b6a875b1cd37431f3e8",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
-  "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
+  "_where": "/home/legokichi/GitHub/cuttlebone",
   "author": {
     "name": "Ikagaka"
   },
