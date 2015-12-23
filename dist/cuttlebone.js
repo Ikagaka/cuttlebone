@@ -13376,7 +13376,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#e98229912ecb102a1fb1b44e3e02bb127363beda",
-  "_shasum": "442ba7ec1aad1ea0e014ed05adf601c27c4c6be4",
+  "_shasum": "d3a595fe021263215bb9753115381b1911506689",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -13440,11 +13440,12 @@ module.exports={
   SurfaceUtil = require("ikagaka.shell.js").SurfaceUtil;
 
   recursiveElementFromPoint = function(ev, parent, target) {
-    var clientX, clientY, left, offsetX, offsetY, pageX, pageY, ref, ref1, result, tmp, top, under;
+    var clientX, clientY, left, offsetX, offsetY, pageX, pageY, ref, ref1, ref2, result, scrollX, scrollY, tmp, top, under;
     ref = SurfaceUtil.getEventPosition(ev), clientX = ref.clientX, clientY = ref.clientY, pageX = ref.pageX, pageY = ref.pageY;
-    ref1 = $(target).offset(), left = ref1.left, top = ref1.top;
-    offsetX = clientX - (left - window.scrollX);
-    offsetY = clientY - (top - window.scrollY);
+    ref1 = SurfaceUtil.getScrollXY(), scrollX = ref1.scrollX, scrollY = ref1.scrollY;
+    ref2 = $(target).offset(), left = ref2.left, top = ref2.top;
+    offsetX = clientX - (left - scrollX);
+    offsetY = clientY - (top - scrollY);
     if ($(parent).find(target).length > 0 && target instanceof HTMLCanvasElement && SurfaceUtil.isHit(target, offsetX, offsetY)) {
       eventPropagationSim(target, ev);
       return target;
@@ -13471,23 +13472,30 @@ module.exports={
     ev.preventDefault();
     ev.stopPropagation();
     if (/^mouse|contextmenu|click$/.test(ev.type)) {
-      mev = new MouseEvent(ev.type, {
-        screenX: ev.screenX,
-        screenY: ev.screenY,
-        clientX: ev.clientX,
-        clientY: ev.clientY,
-        ctrlKey: ev.ctrlKey,
-        altKey: ev.altKey,
-        shiftKey: ev.shiftKey,
-        metaKey: ev.metaKey,
-        button: ev.button,
-        buttons: ev.originalEvent["buttons"],
-        relatedTarget: ev.relatedTarget,
-        view: ev.originalEvent["view"],
-        detail: ev.originalEvent["detail"],
-        bubbles: true
-      });
-      return target.dispatchEvent(mev);
+      ua = window.navigator.userAgent.toLowerCase();
+      if (ua.indexOf("msie") !== -1 || ua.indexOf("trident") !== -1) {
+        mev = document.createEvent("MouseEvent");
+        mev.initMouseEvent(ev.type, true, true, ev.originalEvent["view"], ev.originalEvent["detail"], ev.screenX, ev.screenY, ev.clientX, ev.clientY, ev.ctrlKey, ev.altKey, ev.shiftKey, ev.metaKey, ev.button, ev.relatedTarget);
+        return target.dispatchEvent(mev);
+      } else {
+        mev = new MouseEvent(ev.type, {
+          screenX: ev.screenX,
+          screenY: ev.screenY,
+          clientX: ev.clientX,
+          clientY: ev.clientY,
+          ctrlKey: ev.ctrlKey,
+          altKey: ev.altKey,
+          shiftKey: ev.shiftKey,
+          metaKey: ev.metaKey,
+          button: ev.button,
+          buttons: ev.originalEvent["buttons"],
+          relatedTarget: ev.relatedTarget,
+          view: ev.originalEvent["view"],
+          detail: ev.originalEvent["detail"],
+          bubbles: true
+        });
+        return target.dispatchEvent(mev);
+      }
     } else if (/^touch/.test(ev.type)) {
       ua = window.navigator.userAgent.toLowerCase();
       if (!(document.createTouch instanceof Function)) {
@@ -15495,7 +15503,7 @@ module.exports = function ($) {
             return _this.shell.off("mouse");
           });
           _this.shell.on("mouse", function(ev) {
-            var $scope, clientX, clientY, left, pageX, pageY, ref, ref1, top;
+            var $scope, clientX, clientY, left, pageX, pageY, ref, ref1, ref2, scrollX, scrollY, top;
             if (ev.transparency === true && ev.type !== "mousemove") {
               ev.event.preventDefault();
               recursiveElementFromPoint(ev.event, _this.nmdmgr.element, ev.event.target);
@@ -15509,8 +15517,9 @@ module.exports = function ($) {
                     $target = $scope = $(_this.scopes[ev.scopeId].element);
                     ref = $target.offset(), top = ref.top, left = ref.left;
                     ref1 = SurfaceUtil.getEventPosition(ev.event), pageX = ref1.pageX, pageY = ref1.pageY, clientX = ref1.clientX, clientY = ref1.clientY;
-                    relLeft = clientX - (left - window.scrollX);
-                    relTop = clientY - (top - window.scrollY);
+                    ref2 = SurfaceUtil.getScrollXY(), scrollX = ref2.scrollX, scrollY = ref2.scrollY;
+                    relLeft = clientX - (left - scrollX);
+                    relTop = clientY - (top - scrollY);
                     if ($(_this.element).children().last()[0] !== $scope[0]) {
                       _this.$named.append($scope);
                     }
@@ -15921,7 +15930,7 @@ module.exports = function ($) {
     };
 
     Scope.prototype.position = function(obj) {
-      var left, ref, top;
+      var left, ref, ref1, scrollX, scrollY, top;
       if (obj != null) {
         this.$scope.css({
           "bottom": obj.bottom,
@@ -15931,9 +15940,10 @@ module.exports = function ($) {
         });
       }
       ref = this.$scope.offset(), top = ref.top, left = ref.left;
+      ref1 = SurfaceUtil.getScrollXY(), scrollX = ref1.scrollX, scrollY = ref1.scrollY;
       return {
-        right: window.innerWidth - window.scrollX - left - this.$surface.width(),
-        bottom: window.innerHeight - window.scrollY - top - this.$surface.height()
+        right: window.innerWidth - scrollX - left - this.$surface.width(),
+        bottom: window.innerHeight - scrollY - top - this.$surface.height()
       };
     };
 
@@ -15991,6 +16001,7 @@ var Shell = (function (_super) {
     function Shell(directory) {
         _super.call(this);
         this.descript = {};
+        this.config = {};
         this.directory = directory;
         this.attachedSurface = [];
         this.surfacesTxt = {};
@@ -16003,6 +16014,7 @@ var Shell = (function (_super) {
         var _this = this;
         return Promise.resolve(this)
             .then(function () { return _this.loadDescript(); }) // 1st // ←なにこれ（自問自
+            .then(function () { return _this.loadConfig(); })
             .then(function () { return _this.loadBindGroup(); }) // 2nd // 依存関係的なやつだと思われ
             .then(function () { return _this.loadSurfacesTxt(); }) // 1st
             .then(function () { return _this.loadSurfaceTable(); }) // 1st
@@ -16030,6 +16042,92 @@ var Shell = (function (_super) {
         else {
             this.descript = SurfaceUtil.parseDescript(SurfaceUtil.convert(dir[descript_name]));
         }
+        return Promise.resolve(this);
+    };
+    Shell.prototype.loadConfig = function () {
+        var _this = this;
+        // configへ流し込む
+        var descript = this.descript;
+        // オートマージ
+        Object.keys(descript).forEach(function (key) {
+            var ptr = _this.config;
+            var props = key.split(".");
+            for (var i = 0; i < props.length; i++) {
+                var prop = props[i];
+                var _a = Array.prototype.slice.call(/^([^\d]+)(\d+)?$/.exec(prop) || ["", "", ""], 1), _prop = _a[0], num = _a[1];
+                var _num = Number(num);
+                if (isFinite(_num)) {
+                    if (!Array.isArray(ptr[_prop])) {
+                        ptr[_prop] = [];
+                    }
+                    ptr[_prop][_num] = ptr[_prop][_num] || {};
+                    if (i !== props.length - 1) {
+                        ptr = ptr[_prop][_num];
+                    }
+                    else {
+                        if (ptr[_prop][_num] instanceof Object && Object.keys(ptr[_prop][_num]).length > 0) {
+                            // menu, 0 -> menu.value
+                            // menu.font...
+                            ptr[_prop][_num].value = Number(descript[key]) || descript[key];
+                        }
+                        else {
+                            ptr[_prop][_num] = Number(descript[key]) || descript[key];
+                        }
+                    }
+                }
+                else {
+                    ptr[_prop] = ptr[_prop] || {};
+                    if (i !== props.length - 1) {
+                        ptr = ptr[_prop];
+                    }
+                    else {
+                        if (ptr[_prop] instanceof Object && Object.keys(ptr[_prop]).length > 0) {
+                            ptr[_prop].value = Number(descript[key]) || descript[key];
+                        }
+                        else {
+                            ptr[_prop] = Number(descript[key]) || descript[key];
+                        }
+                    }
+                }
+            }
+        });
+        if (typeof this.config.menu.value === "number") {
+            this.config.menu.value = (+this.config.menu.value) > 0; // number -> boolean
+        }
+        else {
+            this.config.menu.value = true; // default value
+        }
+        this.config.char = this.config.char || [];
+        // sakura -> char0
+        this.config.char[0] = this.config.char[0] || {};
+        $.extend(true, this.config["char"][0], this.config["sakura"]);
+        delete this.config["sakura"];
+        // kero -> char1
+        this.config.char = this.config.char || [];
+        this.config.char[1] = this.config.char[1] || {};
+        $.extend(true, this.config.char[1], this.config["kero"]);
+        delete this.config["kero"];
+        // char*
+        this.config.char.forEach(function (char) {
+            // char1.bindgroup[20].name = "装備,飛行装備" -> {category: "装備", parts: "飛行装備", thumbnail: ""};
+            if (Array.isArray(char.bindgroup)) {
+                char.bindgroup.forEach(function (bindgroup) {
+                    if (typeof bindgroup.name === "string") {
+                        var _a = ("" + bindgroup.name).split(",").map(function (a) { return a.trim(); }), category = _a[0], parts = _a[1], thumbnail = _a[2];
+                        bindgroup.name = { category: category, parts: parts, thumbnail: thumbnail };
+                    }
+                });
+            }
+            // sakura.bindoption0.group = "アクセサリ,multiple" -> {category: "アクセサリ", options: "multiple"}
+            if (Array.isArray(char.bindoption)) {
+                char.bindoption.forEach(function (bindoption) {
+                    if (typeof bindoption.group === "string") {
+                        var _a = ("" + bindoption.group).split(",").map(function (a) { return a.trim(); }), category = _a[0], options = _a.slice(1);
+                        bindoption.group = { category: category, options: options };
+                    }
+                });
+            }
+        });
         return Promise.resolve(this);
     };
     // descript.txtからbindgroup探してデフォルト値を反映
@@ -16094,7 +16192,7 @@ var Shell = (function (_super) {
             if (typeof this.surfacesTxt.descript["collision-sort"] === "string") {
                 console.warn("Shell#loadSurfacesTxt", "collision-sort is not supported yet.");
             }
-            if (typeof this.surfacesTxt.descript["collision-sort"] === "string") {
+            if (typeof this.surfacesTxt.descript["animation-sort"] === "string") {
                 console.warn("Shell#loadSurfacesTxt", "animation-sort is not supported yet.");
             }
         }
@@ -16364,29 +16462,67 @@ var Shell = (function (_super) {
     Shell.prototype.hasSurface = function (scopeId, surfaceId) {
         return this.getSurfaceAlias(scopeId, surfaceId) >= 0;
     };
-    // 着せ替えオン
-    Shell.prototype.bind = function (scopeId, bindgroupId) {
-        if (this.bindgroup[scopeId] == null) {
-            console.warn("Shell#bind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
-            return;
+    Shell.prototype.bind = function (a, b) {
+        var _this = this;
+        if (typeof a === "number" && typeof b === "number") {
+            var scopeId = a;
+            var bindgroupId = b;
+            if (this.bindgroup[scopeId] == null) {
+                console.warn("Shell#bind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
+                return;
+            }
+            this.bindgroup[scopeId][bindgroupId] = true;
+            this.attachedSurface.forEach(function (_a) {
+                var srf = _a.surface, div = _a.div;
+                srf.updateBind();
+            });
         }
-        this.bindgroup[scopeId][bindgroupId] = true;
-        this.attachedSurface.forEach(function (_a) {
-            var srf = _a.surface, div = _a.div;
-            srf.updateBind();
-        });
+        else if (typeof a === "string" && typeof b === "string") {
+            var _category = a;
+            var _parts = b;
+            this.config.char.forEach(function (char, scopeId) {
+                char.bindgroup.forEach(function (bindgroup, bindgroupId) {
+                    var _a = bindgroup.name, category = _a.category, parts = _a.parts;
+                    if (_category === category && _parts === parts) {
+                        _this.bind(scopeId, bindgroupId);
+                    }
+                });
+            });
+        }
+        else {
+            console.error("Shell#bind", "TypeError:", a, b);
+        }
     };
-    // 着せ替えオフ
-    Shell.prototype.unbind = function (scopeId, bindgroupId) {
-        if (this.bindgroup[scopeId] == null) {
-            console.warn("Shell#unbind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
-            return;
+    Shell.prototype.unbind = function (a, b) {
+        var _this = this;
+        if (typeof a === "number" && typeof b === "number") {
+            var scopeId = a;
+            var bindgroupId = b;
+            if (this.bindgroup[scopeId] == null) {
+                console.warn("Shell#unbind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
+                return;
+            }
+            this.bindgroup[scopeId][bindgroupId] = false;
+            this.attachedSurface.forEach(function (_a) {
+                var srf = _a.surface, div = _a.div;
+                srf.updateBind();
+            });
         }
-        this.bindgroup[scopeId][bindgroupId] = false;
-        this.attachedSurface.forEach(function (_a) {
-            var srf = _a.surface, div = _a.div;
-            srf.updateBind();
-        });
+        else if (typeof a === "string" && typeof b === "string") {
+            var _category = a;
+            var _parts = b;
+            this.config.char.forEach(function (char, scopeId) {
+                char.bindgroup.forEach(function (bindgroup, bindgroupId) {
+                    var _a = bindgroup.name, category = _a.category, parts = _a.parts;
+                    if (_category === category && _parts === parts) {
+                        _this.unbind(scopeId, bindgroupId);
+                    }
+                });
+            });
+        }
+        else {
+            console.error("Shell#unbind", "TypeError:", a, b);
+        }
     };
     // 全サーフェス強制再描画
     Shell.prototype.render = function () {
@@ -16413,20 +16549,11 @@ var Shell = (function (_super) {
         });
         this.render();
     };
-    Shell.prototype.getBindGroups = function () {
-        var descript = this.descript;
-        var grep = function (dic, reg) {
-            return Object.keys(dic).filter(function (key) { return reg.test(key); });
-        };
-        var reg = /^(sakura|kero|char\d+)\.bindgroup(\d+)\.name/;
-        var scopes = [];
-        grep(descript, reg).forEach(function (key) {
-            var _a = reg.exec(key), _ = _a[0], charId = _a[1], bindgroupId = _a[2], dflt = _a[3];
-            var _charId = SurfaceUtil.unscope(charId);
-            var _b = descript[key].split(","), category = _b[0], parts = _b[1], thumbnail = _b[2];
-            scopes[_charId][Number(bindgroupId)] = { category: category, parts: parts, thumbnail: thumbnail };
+    // 着せ替えメニュー用情報ていきょう
+    Shell.prototype.getBindGroups = function (scopeId) {
+        return this.config.char[scopeId].bindgroup.map(function (bindgroup, bindgroupId) {
+            return bindgroup.name;
         });
-        return scopes;
     };
     return Shell;
 })(EventEmitter);
@@ -16550,8 +16677,9 @@ var Surface = (function (_super) {
         var _a = SurfaceUtil.getEventPosition(ev), pageX = _a.pageX, pageY = _a.pageY, clientX = _a.clientX, clientY = _a.clientY;
         var _b = $(ev.target).offset(), left = _b.left, top = _b.top;
         // body直下 fixed だけにすべきかうーむ
-        var _c = this.position !== "fixed" ? [pageX, pageY] : [clientX, clientY], baseX = _c[0], baseY = _c[1];
-        var _d = this.position !== "fixed" ? [left, top] : [left - window.scrollX, top - window.scrollY], _left = _d[0], _top = _d[1];
+        var _c = SurfaceUtil.getScrollXY(), scrollX = _c.scrollX, scrollY = _c.scrollY;
+        var _d = this.position !== "fixed" ? [pageX, pageY] : [clientX, clientY], baseX = _d[0], baseY = _d[1];
+        var _e = this.position !== "fixed" ? [left, top] : [left - scrollX, top - scrollY], _left = _e[0], _top = _e[1];
         var basePosY = parseInt($(this.cnv).css("top"), 10); // overlayでのずれた分を
         var basePosX = parseInt($(this.cnv).css("left"), 10); // とってくる
         var offsetX = baseX - _left - basePosX; //canvas左上からのx座標
@@ -17351,12 +17479,12 @@ function pna(srfCnv) {
     }
     if (cnv == null && png != null && pna == null) {
         // 背景色抜き
-        cnv = copy(png);
-        var ctx = cnv.getContext("2d");
-        var imgdata = ctx.getImageData(0, 0, cnv.width, cnv.height);
+        var cnvA = copy(png);
+        var ctxA = cnvA.getContext("2d");
+        var imgdata = ctxA.getImageData(0, 0, cnvA.width, cnvA.height);
         chromakey_snipet(imgdata.data);
-        ctx.putImageData(imgdata, 0, 0);
-        srfCnv.cnv = cnv; // キャッシュに反映
+        ctxA.putImageData(imgdata, 0, 0);
+        srfCnv.cnv = cnvA; // キャッシュに反映
         return srfCnv;
     }
     if (cnv == null && png != null && pna != null) {
@@ -17377,33 +17505,13 @@ function pna(srfCnv) {
             }
         }
         ctxA.putImageData(imgdataA, 0, 0);
-        cnv = cnvA;
-        srfCnv.cnv = cnv; // キャッシュに反映
+        srfCnv.cnv = cnvA; // キャッシュに反映
         return srfCnv;
     }
     // png, cnv が null なのは element だけで構成されたサーフェスの dummy base
     return srfCnv;
 }
 exports.pna = pna;
-function createSurfaceCanvasFromURL(url) {
-    console.warn("SurfaceUtil.createSurfaceCanvasFromURL is deprecated");
-    return fetchArrayBuffer(url)
-        .then(createSurfaceCanvasFromArrayBuffer);
-}
-exports.createSurfaceCanvasFromURL = createSurfaceCanvasFromURL;
-function createSurfaceCanvasFromArrayBuffer(buffer) {
-    console.warn("SurfaceUtil.createSurfaceCanvasFromArrayBuffer is deprecated");
-    return fetchImageFromArrayBuffer(buffer)
-        .then(function (img) {
-        var cnv = copy(img);
-        var ctx = cnv.getContext("2d");
-        var imgdata = ctx.getImageData(0, 0, cnv.width, cnv.height);
-        chromakey_snipet(imgdata.data);
-        ctx.putImageData(imgdata, 0, 0);
-        return { cnv: cnv, img: img };
-    });
-}
-exports.createSurfaceCanvasFromArrayBuffer = createSurfaceCanvasFromArrayBuffer;
 function init(cnv, ctx, src) {
     cnv.width = src.width;
     cnv.height = src.height;
@@ -17448,14 +17556,12 @@ function parseDescript(text) {
         text = text.replace(match, "");
     }
     var lines = text.split("\n");
-    lines = lines.filter(function (line) { return line.length !== 0; }); // remove no content line
-    var dic = lines.reduce(function (dic, line) {
-        var tmp = line.split(",");
-        var key = tmp[0];
-        var vals = tmp.slice(1);
-        key = key.trim();
+    var _lines = lines.filter(function (line) { return line.length !== 0; }); // remove no content line
+    var dic = _lines.reduce(function (dic, line) {
+        var _a = line.split(","), key = _a[0], vals = _a.slice(1);
+        var _key = key.trim();
         var val = vals.join(",").trim();
-        dic[key] = val;
+        dic[_key] = val;
         return dic;
     }, {});
     return dic;
@@ -17746,6 +17852,13 @@ function getRegion(element, collisions, offsetX, offsetY) {
     return "";
 }
 exports.getRegion = getRegion;
+function getScrollXY() {
+    return {
+        scrollX: window.scrollX || window.pageXOffset || (document.documentElement || document.body.parentNode || document.body).scrollLeft,
+        scrollY: window.scrollY || window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop
+    };
+}
+exports.getScrollXY = getScrollXY;
 
 },{"encoding-japanese":3}],20:[function(require,module,exports){
 /// <reference path="../typings/tsd.d.ts"/>
@@ -17772,7 +17885,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/Shell.js#master",
-  "_id": "ikagaka.shell.js@4.3.0",
+  "_id": "ikagaka.shell.js@4.3.2",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js/ikagaka.shell.js",
@@ -17797,8 +17910,8 @@ module.exports={
   "_requiredBy": [
     "/ikagaka.namedmanager.js"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "7caa5f78847dbdf87d0978ef6794c2805021cc16",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#60559b4e0fe52b50f836e75d0508d9da4eb4db51",
+  "_shasum": "21d0508114aa49aa0ebd803afd0f179a6dfe5f4f",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -17824,15 +17937,11 @@ module.exports={
   "devDependencies": {
     "coffee-script": "^1.10.0",
     "gulp": "^3.9.0",
-    "gulp-babel": "^5.2.1",
     "gulp-coffee": "^2.3.1",
     "gulp-espower": "^1.0.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-tslint": "^3.3.0",
-    "gulp-typescript": "^2.9.2",
     "typescript": "^1.6.2"
   },
-  "gitHead": "7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
+  "gitHead": "60559b4e0fe52b50f836e75d0508d9da4eb4db51",
   "keywords": [
     "ikagaka",
     "ikagaka",
@@ -17843,27 +17952,27 @@ module.exports={
   "main": "./lib/index.js",
   "name": "ikagaka.shell.js",
   "optionalDependencies": {},
-  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### load(directory: { [path: string]: ArrayBuffer; }): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdettatchSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### dettatchSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n\n#### getBindGroups(): getBindGroups(): {category: string, parts: string, thumbnail: string}[][]\n* bindgroups[charId][bindgroupId] === {category: string, parts: string, thumbnail: string};\n",
+  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### load(directory: { [path: string]: ArrayBuffer; }): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdettatchSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### dettatchSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n#### bind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,1]` 相当\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n#### unbind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,0]` 相当\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n\n#### getBindGroups(scopeId: number): {category: string, parts: string, thumbnail: string}[]\n* bindgroup[scopeId]: {category: string, parts: string, thumbnail: string};\n",
   "readmeFilename": "readme.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/ikagaka/ikagaka/Shell.js.git"
   },
   "scripts": {
-    "build": "npm run clean; gulp build; browserify lib/index.js --outfile dist/Shell.js --standalone Shell",
+    "build": "npm run clean; tsc -p ./src; gulp; browserify lib/index.js --outfile dist/Shell.js --standalone Shell",
     "clean": "rm lib/*.js dist/*.js demo/test/*.js",
     "dtsm-fetch": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git fetch",
     "dtsm-search": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline search",
     "dtsm-update": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline update",
     "init": "npm run update; npm run build",
     "patch": "mversion patch",
-    "start": "http-server --silent -p 8000 & gulp watch & watchify lib/index.js --standalone Shell -o dist/Shell.js -v",
+    "start": "http-server --silent -p 8000 & tsc -w -p src & gulp watch & watchify lib/index.js --standalone Shell -o dist/Shell.js -v",
     "stop": "killall -- node */http-server -p 8000",
     "update": "rm -rf bower_components typeings; npm update; bower update; dtsm fetch; dtsm update --save"
   },
-  "typings": "./lib/src/index.d.ts",
+  "typings": "./lib/index.d.ts",
   "url": "https://github.com/ikagaka/Shell.js",
-  "version": "4.3.0"
+  "version": "4.3.2"
 }
 
 },{}],22:[function(require,module,exports){
@@ -28228,7 +28337,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/NamedManager.js",
-  "_id": "ikagaka.namedmanager.js@4.1.19",
+  "_id": "ikagaka.namedmanager.js@4.1.22",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js",
@@ -28258,8 +28367,8 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#aff74bbf2f598211a501bbf7672ed94f93f4791a",
-  "_shasum": "97c45a8038e2423a38c8ee0a99b1ffb9b1e7ce39",
+  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#8346b482bcb620134986fcd887ec7c11d28b79e2",
+  "_shasum": "97a0b8b18f2b2aa2aecdd1b758d09c1b72ac2e0d",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -28284,7 +28393,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "aff74bbf2f598211a501bbf7672ed94f93f4791a",
+  "gitHead": "8346b482bcb620134986fcd887ec7c11d28b79e2",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -28312,7 +28421,7 @@ module.exports={
     "update": "rm -rf bower_components; npm update; bower update"
   },
   "url": "https://github.com/ikagaka/NamedManager.js",
-  "version": "4.1.19"
+  "version": "4.1.22"
 }
 
 },{}],24:[function(require,module,exports){
@@ -28334,7 +28443,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/Shell.js",
-  "_id": "ikagaka.shell.js@4.3.0",
+  "_id": "ikagaka.shell.js@4.3.2",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.shell.js",
@@ -28360,8 +28469,8 @@ module.exports={
     "/",
     "/ikagaka.balloon.js"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
-  "_shasum": "9eecb9cea26452abc880c3372c8078d327f42434",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#60559b4e0fe52b50f836e75d0508d9da4eb4db51",
+  "_shasum": "864abe810affd95349ef833610fd3cf285aa5aaa",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -28387,15 +28496,11 @@ module.exports={
   "devDependencies": {
     "coffee-script": "^1.10.0",
     "gulp": "^3.9.0",
-    "gulp-babel": "^5.2.1",
     "gulp-coffee": "^2.3.1",
     "gulp-espower": "^1.0.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-tslint": "^3.3.0",
-    "gulp-typescript": "^2.9.2",
     "typescript": "^1.6.2"
   },
-  "gitHead": "7160321a7e3cc4ec64e06d0c21cf3c875f954a6f",
+  "gitHead": "60559b4e0fe52b50f836e75d0508d9da4eb4db51",
   "keywords": [
     "ikagaka",
     "ikagaka",
@@ -28406,27 +28511,27 @@ module.exports={
   "main": "./lib/index.js",
   "name": "ikagaka.shell.js",
   "optionalDependencies": {},
-  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### load(directory: { [path: string]: ArrayBuffer; }): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdettatchSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### dettatchSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n\n#### getBindGroups(): getBindGroups(): {category: string, parts: string, thumbnail: string}[][]\n* bindgroups[charId][bindgroupId] === {category: string, parts: string, thumbnail: string};\n",
+  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### load(directory: { [path: string]: ArrayBuffer; }): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdettatchSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### dettatchSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n#### bind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,1]` 相当\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n#### unbind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,0]` 相当\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n\n#### getBindGroups(scopeId: number): {category: string, parts: string, thumbnail: string}[]\n* bindgroup[scopeId]: {category: string, parts: string, thumbnail: string};\n",
   "readmeFilename": "readme.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/ikagaka/ikagaka/Shell.js.git"
   },
   "scripts": {
-    "build": "npm run clean; gulp build; browserify lib/index.js --outfile dist/Shell.js --standalone Shell",
+    "build": "npm run clean; tsc -p ./src; gulp; browserify lib/index.js --outfile dist/Shell.js --standalone Shell",
     "clean": "rm lib/*.js dist/*.js demo/test/*.js",
     "dtsm-fetch": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git fetch",
     "dtsm-search": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline search",
     "dtsm-update": "dtsm --ref master --remote https://gist.github.com/c3d5420057bcb554dc11.git --offline update",
     "init": "npm run update; npm run build",
     "patch": "mversion patch",
-    "start": "http-server --silent -p 8000 & gulp watch & watchify lib/index.js --standalone Shell -o dist/Shell.js -v",
+    "start": "http-server --silent -p 8000 & tsc -w -p src & gulp watch & watchify lib/index.js --standalone Shell -o dist/Shell.js -v",
     "stop": "killall -- node */http-server -p 8000",
     "update": "rm -rf bower_components typeings; npm update; bower update; dtsm fetch; dtsm update --save"
   },
-  "typings": "./lib/src/index.d.ts",
+  "typings": "./lib/index.d.ts",
   "url": "https://github.com/ikagaka/Shell.js",
-  "version": "4.3.0"
+  "version": "4.3.2"
 }
 
 },{}],30:[function(require,module,exports){

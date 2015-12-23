@@ -8,7 +8,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "narloader": "legokichi/NarLoader#issue12",
+    "narloader": "legokichi/NarLoader#master",
     "qunit": "*",
     "qunit-tap": "*",
     "empower": "*",
