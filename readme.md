@@ -68,8 +68,8 @@ Promise.all([
 </script>
 ```
 
-詳しくは以下のドキュメントも参照してください。
+各クラスの詳細は以下のドキュメントも参照してください。
 
 * [NamedManager.js](https://github.com/Ikagaka/NamedManager.js/)
-  * [Shell.js](https://github.com/Ikagaka/Shell.js/)
-  * [Balloon.js](https://github.com/Ikagaka/Balloon.js/)
+* [Shell.js](https://github.com/Ikagaka/Shell.js/)
+* [Balloon.js](https://github.com/Ikagaka/Balloon.js/)
