@@ -156,7 +156,7 @@ function changeShell(nanikaDir){
                   name: b,
                   callback: function(){
                     var shellDir = shellNDir.getDirectory("shell/"+shelllist[i]).asArrayBuffer();
-                    var shell = new Shell(shellDir);
+                    var shell = new cuttlebone.Shell(shellDir);
                     console.log(shell, shellDir, shellNDir);
                     shell.load().then(function(){
                       named.changeShell(shell);
@@ -177,7 +177,7 @@ function changeShell(nanikaDir){
                 Array.prototype.slice.call(ev.target.files).forEach(function(file){
                   NarLoader.loadFromBlob(file).then(function(balloonNDir){
                     var balloonDir = balloonNDir.asArrayBuffer();
-                    var balloon = new Balloon(balloonDir);
+                    var balloon = new cuttlebone.Balloon(balloonDir);
                     balloon.load().then(function(){
                       named.changeBalloon(balloon);
                     });
@@ -253,8 +253,8 @@ function changeShell(nanikaDir){
       var scopeId = $(this).attr("data-scopeId");
       $(this).each(function(){
         var bindgroupId = $(this).val();
-        if($(this).prop("checked")) shell.bind(scopeId, bindgroupId);
-        else                        shell.unbind(scopeId, bindgroupId);
+        if($(this).prop("checked")) shell.bind(Number(scopeId), Number(bindgroupId));
+        else                        shell.unbind(Number(scopeId), Number(bindgroupId));
       });
       shell.render();
     });
