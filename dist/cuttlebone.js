@@ -13376,7 +13376,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#e98229912ecb102a1fb1b44e3e02bb127363beda",
-  "_shasum": "d3a595fe021263215bb9753115381b1911506689",
+  "_shasum": "9f7eb46010627be382c4c8657e3d5c26ae83636e",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -15415,9 +15415,7 @@ module.exports = function ($) {
       this.contextmenuHandler = null;
       this.initDOMStructure();
       this.initEventListener();
-      this.scope(0).surface(0);
-      this.scope(1).surface(10);
-      Promise.resolve(this);
+      this.initDefaultSurface();
     }
 
     Named.prototype.initDOMStructure = function() {
@@ -15425,263 +15423,308 @@ module.exports = function ($) {
     };
 
     Named.prototype.initEventListener = function() {
-      (function(_this) {
-        return (function() {
-          $.contextMenu({
-            selector: ".namedMgr .named[namedId=" + _this.namedId + "] .context-menu",
-            build: function($trigger, ev) {
-              var scopeId;
-              ev.preventDefault();
-              scopeId = $trigger.attr("scopeId");
-              if (_this.contextmenuHandler != null) {
-                return _this.contextmenuHandler({
-                  type: "contextmenu",
-                  scopeId: scopeId,
-                  scope: scopeId,
-                  event: ev
-                });
-              } else {
-                return {
-                  items: {
-                    sep1: "---"
-                  }
-                };
-              }
-            }
-          });
-          _this.destructors.push(function() {
-            return _this.$named.find(".context-menu").contextMenu("destroy");
-          });
-        });
-      })(this)();
-      (function(_this) {
-        return (function() {
-          var $target, onmousemove, onmouseup, relLeft, relTop, scopeId;
-          relLeft = relTop = 0;
-          $target = null;
-          scopeId = -1;
-          onmouseup = function() {
-            $target = null;
-            return scopeId = -1;
-          };
-          onmousemove = function(ev) {
-            var $element, alignment, bottom, clientX, clientY, pageX, pageY, ref, right;
-            if ($target == null) {
-              return;
-            }
-            $element = $(_this.scopes[scopeId].element);
-            ref = SurfaceUtil.getEventPosition(ev), pageX = ref.pageX, pageY = ref.pageY, clientX = ref.clientX, clientY = ref.clientY;
-            right = window.innerWidth - clientX - ($element.width() - relLeft);
-            bottom = window.innerHeight - clientY - ($element.height() - relTop);
-            alignment = _this.shell.descript["seriko.alignmenttodesktop"] || _this.shell.descript[(SurfaceUtil.scope(scopeId)) + ".alignmenttodesktop"] || "bottom";
-            switch (alignment) {
-              case "free":
-                break;
-              case "top":
-                console.warn("seriko.alignmenttodesktop, free", "have not been supported yet");
-                break;
-              case "bottom":
-                bottom = 0;
-                break;
-            }
-            return $target.css({
-              right: right,
-              bottom: bottom,
-              top: "",
-              left: ""
-            });
-          };
-          $(document.body).on("mouseup", onmouseup);
-          $(document.body).on("mousemove", onmousemove);
-          $(document.body).on("touchmove", onmousemove);
-          $(document.body).on("touchend", onmouseup);
-          _this.destructors.push(function() {
-            $(document.body).off("mouseup", onmouseup);
-            $(document.body).off("mousemove", onmousemove);
-            $(document.body).off("touchmove", onmousemove);
-            $(document.body).off("touchend", onmouseup);
-            return _this.shell.off("mouse");
-          });
-          _this.shell.on("mouse", function(ev) {
-            var $scope, clientX, clientY, left, pageX, pageY, ref, ref1, ref2, scrollX, scrollY, top;
-            if (ev.transparency === true && ev.type !== "mousemove") {
-              ev.event.preventDefault();
-              recursiveElementFromPoint(ev.event, _this.nmdmgr.element, ev.event.target);
-              return;
-            }
-            switch (ev.button) {
-              case 0:
-                switch (ev.type) {
-                  case "mousedown":
-                    scopeId = ev.scopeId;
-                    $target = $scope = $(_this.scopes[ev.scopeId].element);
-                    ref = $target.offset(), top = ref.top, left = ref.left;
-                    ref1 = SurfaceUtil.getEventPosition(ev.event), pageX = ref1.pageX, pageY = ref1.pageY, clientX = ref1.clientX, clientY = ref1.clientY;
-                    ref2 = SurfaceUtil.getScrollXY(), scrollX = ref2.scrollX, scrollY = ref2.scrollY;
-                    relLeft = clientX - (left - scrollX);
-                    relTop = clientY - (top - scrollY);
-                    if ($(_this.element).children().last()[0] !== $scope[0]) {
-                      _this.$named.append($scope);
-                    }
-                    if ($(_this.nmdmgr.element).children().last()[0] !== _this.element) {
-                      _this.$named.appendTo(_this.nmdmgr.element);
-                    }
-                }
-            }
-            ev.scope = ev.scopeId;
-            _this.emit(ev.type, ev);
-          });
-        });
-      })(this)();
-      (function(_this) {
-        return (function() {
-          var $target, onmousemove, onmouseup, relLeft, relTop, scopeId;
-          relLeft = relTop = 0;
-          $target = null;
-          scopeId = -1;
-          onmouseup = function() {
-            $target = null;
-            return scopeId = -1;
-          };
-          onmousemove = function(ev) {
-            var $scope, clientX, clientY, pageX, pageY, ref, screenX, screenY;
-            if ($target == null) {
-              return;
-            }
-            ref = SurfaceUtil.getEventPosition(ev), pageX = ref.pageX, pageY = ref.pageY, clientX = ref.clientX, clientY = ref.clientY, screenX = ref.screenX, screenY = ref.screenY;
-            $scope = $(_this.scopes[scopeId].element);
-            if (pageX - relLeft + $scope.width() / 2 > 0) {
-              _this.scope(scopeId).blimp().right();
+      this.initContextMenuEvent();
+      this.initShellMouseEvent();
+      this.initBalloonMouseEvent();
+      this.initBalloonSelectEvent();
+      return this.initFileDropEvent();
+    };
+
+    Named.prototype.initDefaultSurface = function() {
+      this.scope(0).surface(0);
+      return this.scope(1).surface(10);
+    };
+
+    Named.prototype.initContextMenuEvent = function() {
+      $.contextMenu({
+        selector: ".namedMgr .named[namedId=" + this.namedId + "] .context-menu",
+        build: (function(_this) {
+          return function($trigger, ev) {
+            var scopeId;
+            ev.preventDefault();
+            scopeId = $trigger.attr("scopeId");
+            if (_this.contextmenuHandler != null) {
+              return _this.contextmenuHandler({
+                type: "contextmenu",
+                scopeId: scopeId,
+                scope: scopeId,
+                event: ev
+              });
             } else {
-              _this.scope(scopeId).blimp().left();
-            }
-            return $target.css({
-              left: pageX - relLeft,
-              top: pageY - relTop,
-              right: "",
-              bottom: ""
-            });
-          };
-          $(document.body).on("mouseup", onmouseup);
-          $(document.body).on("mousemove", onmousemove);
-          $(document.body).on("touchmove", onmousemove);
-          $(document.body).on("touchend", onmouseup);
-          _this.destructors.push(function() {
-            $(document.body).off("mouseup", onmouseup);
-            $(document.body).off("mousemove", onmousemove);
-            $(document.body).off("touchmove", onmousemove);
-            $(document.body).off("touchend", onmouseup);
-            return _this.balloon.off("mouse");
-          });
-          _this.balloon.on("mouse", function(ev) {
-            var $scope, clientX, clientY, left, offsetX, offsetY, pageX, pageY, ref, ref1, screenX, screenY, top;
-            switch (ev.event.button) {
-              case 0:
-                $scope = $(_this.scopes[ev.scopeId].element);
-                switch (ev.type) {
-                  case "mousedown":
-                    scopeId = ev.scopeId;
-                    $scope = $(_this.scopes[ev.scopeId].element);
-                    $target = $scope.find(".blimp");
-                    ref = $target.offset(), top = ref.top, left = ref.left;
-                    offsetY = parseInt($target.css("left"), 10);
-                    offsetX = parseInt($target.css("top"), 10);
-                    ref1 = SurfaceUtil.getEventPosition(ev.event), pageX = ref1.pageX, pageY = ref1.pageY, clientX = ref1.clientX, clientY = ref1.clientY, screenX = ref1.screenX, screenY = ref1.screenY;
-                    relLeft = pageX - offsetY;
-                    relTop = pageY - offsetX;
-                    if ($(_this.element).children().last()[0] !== $scope[0]) {
-                      _this.$named.append($scope);
-                    }
-                    if ($(_this.nmdmgr.element).children().last()[0] !== _this.element) {
-                      _this.$named.appendTo(_this.nmdmgr.element);
-                    }
+              return {
+                items: {
+                  sep1: "---"
                 }
+              };
             }
-            ev.scope = ev.scopeId;
-            switch (ev.type) {
-              case "click":
-                ev.type = "balloonclick";
-                _this.emit("balloonclick", ev);
-                break;
-              case "dblclick":
-                ev.type = "balloondblclick";
-                _this.emit("balloondblclick", ev);
-            }
+          };
+        })(this)
+      });
+      this.destructors.push((function(_this) {
+        return function() {
+          return _this.$named.find(".context-menu").contextMenu("destroy");
+        };
+      })(this));
+    };
+
+    Named.prototype.initShellMouseEvent = function() {
+      var $target, onmousemove, onmouseup, relLeft, relTop, scopeId;
+      relLeft = relTop = 0;
+      $target = null;
+      scopeId = -1;
+      onmouseup = (function(_this) {
+        return function() {
+          $target = null;
+          return scopeId = -1;
+        };
+      })(this);
+      onmousemove = (function(_this) {
+        return function(ev) {
+          var $element, alignment, bottom, clientX, clientY, pageX, pageY, ref, right;
+          if ($target == null) {
+            return;
+          }
+          $element = $(_this.scopes[scopeId].element);
+          ref = SurfaceUtil.getEventPosition(ev), pageX = ref.pageX, pageY = ref.pageY, clientX = ref.clientX, clientY = ref.clientY;
+          right = window.innerWidth - clientX - ($element.width() - relLeft);
+          bottom = window.innerHeight - clientY - ($element.height() - relTop);
+          alignment = _this.shell.descript["seriko.alignmenttodesktop"] || _this.shell.descript[(SurfaceUtil.scope(scopeId)) + ".alignmenttodesktop"] || "bottom";
+          switch (alignment) {
+            case "free":
+              break;
+            case "top":
+              console.warn("seriko.alignmenttodesktop, free", "have not been supported yet");
+              break;
+            case "bottom":
+              bottom = 0;
+              break;
+          }
+          return $target.css({
+            right: right,
+            bottom: bottom,
+            top: "",
+            left: ""
           });
+        };
+      })(this);
+      $(document.body).on("mouseup", onmouseup);
+      $(document.body).on("mousemove", onmousemove);
+      $(document.body).on("touchmove", onmousemove);
+      $(document.body).on("touchend", onmouseup);
+      this.destructors.push((function(_this) {
+        return function() {
+          $(document.body).off("mouseup", onmouseup);
+          $(document.body).off("mousemove", onmousemove);
+          $(document.body).off("touchmove", onmousemove);
+          $(document.body).off("touchend", onmouseup);
+          return _this.shell.off("mouse");
+        };
+      })(this));
+      this.shell.on("mouse", (function(_this) {
+        return function(ev) {
+          var $scope, clientX, clientY, left, pageX, pageY, ref, ref1, ref2, scrollX, scrollY, top;
+          _this.$named.find(".context-menu").contextMenu(false);
+          if (ev.transparency === true && ev.type !== "mousemove") {
+            ev.event.preventDefault();
+            recursiveElementFromPoint(ev.event, _this.nmdmgr.element, ev.event.target);
+            return;
+          }
+          switch (ev.button) {
+            case 1:
+              switch (ev.type) {
+                case "mousedown":
+                  _this.$named.find(".context-menu").contextMenu(true);
+                  $(".namedMgr .named[namedId=" + _this.namedId + "] .scope[scopeId=" + ev.scopeId + "] .context-menu").trigger($.Event('contextmenu', {
+                    data: ev.event.data,
+                    pageX: ev.event.pageX,
+                    pageY: ev.event.pageY
+                  }));
+                  _this.$named.find(".context-menu").contextMenu(false);
+              }
+              break;
+            case 0:
+              switch (ev.type) {
+                case "mousedown":
+                  scopeId = ev.scopeId;
+                  $target = $scope = $(_this.scopes[ev.scopeId].element);
+                  ref = $target.offset(), top = ref.top, left = ref.left;
+                  ref1 = SurfaceUtil.getEventPosition(ev.event), pageX = ref1.pageX, pageY = ref1.pageY, clientX = ref1.clientX, clientY = ref1.clientY;
+                  ref2 = SurfaceUtil.getScrollXY(), scrollX = ref2.scrollX, scrollY = ref2.scrollY;
+                  relLeft = clientX - (left - scrollX);
+                  relTop = clientY - (top - scrollY);
+                  if ($(_this.element).children().last()[0] !== $scope[0]) {
+                    _this.$named.append($scope);
+                  }
+                  if ($(_this.nmdmgr.element).children().last()[0] !== _this.element) {
+                    _this.$named.appendTo(_this.nmdmgr.element);
+                  }
+              }
+          }
+          ev.scope = ev.scopeId;
+          _this.emit(ev.type, ev);
+        };
+      })(this));
+    };
+
+    Named.prototype.initBalloonMouseEvent = function() {
+      var $target, onmousemove, onmouseup, relLeft, relTop, scopeId;
+      relLeft = relTop = 0;
+      $target = null;
+      scopeId = -1;
+      onmouseup = (function(_this) {
+        return function() {
+          $target = null;
+          return scopeId = -1;
+        };
+      })(this);
+      onmousemove = (function(_this) {
+        return function(ev) {
+          var $scope, clientX, clientY, pageX, pageY, ref, screenX, screenY;
+          if ($target == null) {
+            return;
+          }
+          ref = SurfaceUtil.getEventPosition(ev), pageX = ref.pageX, pageY = ref.pageY, clientX = ref.clientX, clientY = ref.clientY, screenX = ref.screenX, screenY = ref.screenY;
+          $scope = $(_this.scopes[scopeId].element);
+          if (pageX - relLeft + $scope.width() / 2 > 0) {
+            _this.scope(scopeId).blimp().right();
+          } else {
+            _this.scope(scopeId).blimp().left();
+          }
+          return $target.css({
+            left: pageX - relLeft,
+            top: pageY - relTop,
+            right: "",
+            bottom: ""
+          });
+        };
+      })(this);
+      $(document.body).on("mouseup", onmouseup);
+      $(document.body).on("mousemove", onmousemove);
+      $(document.body).on("touchmove", onmousemove);
+      $(document.body).on("touchend", onmouseup);
+      this.destructors.push((function(_this) {
+        return function() {
+          $(document.body).off("mouseup", onmouseup);
+          $(document.body).off("mousemove", onmousemove);
+          $(document.body).off("touchmove", onmousemove);
+          $(document.body).off("touchend", onmouseup);
+          console.log(_this);
+          return _this.balloon.off("mouse");
+        };
+      })(this));
+      this.balloon.on("mouse", (function(_this) {
+        return function(ev) {
+          var $scope, clientX, clientY, left, offsetX, offsetY, pageX, pageY, ref, ref1, screenX, screenY, top;
+          switch (ev.event.button) {
+            case 0:
+              $scope = $(_this.scopes[ev.scopeId].element);
+              switch (ev.type) {
+                case "mousedown":
+                  scopeId = ev.scopeId;
+                  $scope = $(_this.scopes[ev.scopeId].element);
+                  $target = $scope.find(".blimp");
+                  ref = $target.offset(), top = ref.top, left = ref.left;
+                  offsetY = parseInt($target.css("left"), 10);
+                  offsetX = parseInt($target.css("top"), 10);
+                  ref1 = SurfaceUtil.getEventPosition(ev.event), pageX = ref1.pageX, pageY = ref1.pageY, clientX = ref1.clientX, clientY = ref1.clientY, screenX = ref1.screenX, screenY = ref1.screenY;
+                  relLeft = pageX - offsetY;
+                  relTop = pageY - offsetX;
+                  if ($(_this.element).children().last()[0] !== $scope[0]) {
+                    _this.$named.append($scope);
+                  }
+                  if ($(_this.nmdmgr.element).children().last()[0] !== _this.element) {
+                    _this.$named.appendTo(_this.nmdmgr.element);
+                  }
+              }
+          }
+          ev.scope = ev.scopeId;
+          switch (ev.type) {
+            case "click":
+              ev.type = "balloonclick";
+              _this.emit("balloonclick", ev);
+              break;
+            case "dblclick":
+              ev.type = "balloondblclick";
+              _this.emit("balloondblclick", ev);
+          }
+        };
+      })(this));
+    };
+
+    Named.prototype.initBalloonSelectEvent = function() {
+      this.balloon.on("select", (function(_this) {
+        return function(ev) {
+          ev.scope = ev.scopeId;
+          switch (ev.type) {
+            case "choiceselect":
+              _this.emit("choiceselect", ev);
+              break;
+            case "anchorselect":
+              _this.emit("anchorselect", ev);
+          }
+        };
+      })(this));
+      this.destructors.push((function(_this) {
+        return function() {
+          return _this.balloon.off("select");
+        };
+      })(this));
+    };
+
+    Named.prototype.initFileDropEvent = function() {
+      var that;
+      that = this;
+      this.$named.on("dragenter", function(ev) {
+        ev.preventDefault();
+        return ev.stopPropagation();
+      });
+      this.$named.on("dragleave", function(ev) {
+        ev.preventDefault();
+        return ev.stopPropagation();
+      });
+      this.$named.on("dragover", function(ev) {
+        var scopeId;
+        ev.preventDefault();
+        ev.stopPropagation();
+        scopeId = Number($(this).attr("scopeId"));
+        return that.emit("filedropping", {
+          type: "filedropping",
+          scopeId: scopeId,
+          scope: scopeId,
+          event: ev
         });
-      })(this)();
-      (function(_this) {
-        return (function() {
-          _this.balloon.on("select", function(ev) {
-            ev.scope = ev.scopeId;
-            switch (ev.type) {
-              case "choiceselect":
-                _this.emit("choiceselect", ev);
-                break;
-              case "anchorselect":
-                _this.emit("anchorselect", ev);
-            }
-          });
-          _this.destructors.push(function() {
-            return _this.balloon.off("select");
-          });
+      });
+      this.$named.on("drop", ".scope", function(ev) {
+        var scopeId;
+        ev.preventDefault();
+        ev.stopPropagation();
+        scopeId = Number($(this).attr("scopeId"));
+        return that.emit("filedrop", {
+          type: "filedrop",
+          scopeId: scopeId,
+          scope: scopeId,
+          event: ev
         });
-      })(this)();
-      (function(_this) {
-        return (function() {
-          var that;
-          that = _this;
-          _this.$named.on("dragenter", function(ev) {
-            ev.preventDefault();
-            return ev.stopPropagation();
-          });
-          _this.$named.on("dragleave", function(ev) {
-            ev.preventDefault();
-            return ev.stopPropagation();
-          });
-          _this.$named.on("dragover", function(ev) {
-            var scopeId;
-            ev.preventDefault();
-            ev.stopPropagation();
-            scopeId = Number($(this).attr("scopeId"));
-            return that.emit("filedropping", {
-              type: "filedropping",
-              scopeId: scopeId,
-              scope: scopeId,
-              event: ev
-            });
-          });
-          _this.$named.on("drop", ".scope", function(ev) {
-            var scopeId;
-            ev.preventDefault();
-            ev.stopPropagation();
-            scopeId = Number($(this).attr("scopeId"));
-            return that.emit("filedrop", {
-              type: "filedrop",
-              scopeId: scopeId,
-              scope: scopeId,
-              event: ev
-            });
-          });
-          _this.destructors.push(function() {
-            _this.$named.off("dragenter");
-            _this.$named.off("dragleave");
-            _this.$named.off("dragover");
-            return _this.$named.off("drop");
-          });
-        });
-      })(this)();
+      });
+      this.destructors.push((function(_this) {
+        return function() {
+          _this.$named.off("dragenter");
+          _this.$named.off("dragleave");
+          _this.$named.off("dragover");
+          return _this.$named.off("drop");
+        };
+      })(this));
     };
 
     Named.prototype.destructor = function() {
+      this.destructors.forEach(function(fn) {
+        return fn();
+      });
       this.scopes.forEach(function(scope) {
         return scope.destructor();
       });
       this.scopes = [];
       this.contextmenuHandler = null;
-      this.destructors.forEach(function(fn) {
-        return fn();
-      });
       this.$named.children().remove();
       this.$named.remove();
     };
@@ -15709,6 +15752,36 @@ module.exports = function ($) {
       this.currentScope = this.scopes[scopeId];
       this.$named.append(this.scopes[scopeId].element);
       return this.currentScope;
+    };
+
+    Named.prototype.changeShell = function(shell) {
+      this.shell = shell;
+      return this.reload();
+    };
+
+    Named.prototype.changeBalloon = function(balloon) {
+      this.balloon = balloon;
+      return this.reload();
+    };
+
+    Named.prototype.reload = function() {
+      var _contextmenuHandler, args, positions;
+      args = [this.namedId, this.shell, this.balloon, this.nmdmgr];
+      positions = this.scopes.map(function(scope) {
+        return scope.position();
+      });
+      _contextmenuHandler = this.contextmenuHandler;
+      this.destructor();
+      this.constructor.apply(this, args);
+      positions.forEach((function(_this) {
+        return function(pos, i) {
+          _this.scope(i).surface(i === 0 ? 0 : 10);
+          console.log(pos, i);
+          return _this.scope(i).position(pos);
+        };
+      })(this));
+      this.contextmenuHandler = _contextmenuHandler;
+      return this.nmdmgr.$namedMgr.append(this.element);
     };
 
     Named.prototype.openInputBox = function(id, text) {
@@ -15803,6 +15876,15 @@ module.exports = function ($) {
       this.$namedMgr.remove();
     };
 
+    NamedManager.prototype.materialize2 = function(shell, balloon) {
+      var named, namedId;
+      namedId = this.namedies.length;
+      named = new Named(namedId, shell, balloon, this);
+      this.namedies.push(named);
+      this.$namedMgr.append(named.element);
+      return named;
+    };
+
     NamedManager.prototype.materialize = function(shell, balloon) {
       var named, namedId;
       namedId = this.namedies.length;
@@ -15840,7 +15922,9 @@ module.exports = function ($) {
 },{"./Named":12,"eventemitter3":5,"jquery":22}],14:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
-  var $, Scope;
+  var $, Scope, SurfaceUtil;
+
+  SurfaceUtil = require("ikagaka.shell.js").SurfaceUtil;
 
   $ = require("jquery");
 
@@ -15878,7 +15962,11 @@ module.exports = function ($) {
       this.blimp(-1);
     };
 
-    Scope.prototype.destructor = function() {};
+    Scope.prototype.destructor = function() {
+      this.shell.detachSurface(this.$surface[0]);
+      this.$surface.children().remove();
+      this.$surface.remove();
+    };
 
     Scope.prototype.surface = function(surfaceId) {
       var tmp;
@@ -15955,7 +16043,7 @@ module.exports = function ($) {
 
 }).call(this);
 
-},{"jquery":22}],15:[function(require,module,exports){
+},{"ikagaka.shell.js":20,"jquery":22}],15:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
   var $, Named, NamedManager, Scope, version;
@@ -16110,23 +16198,25 @@ var Shell = (function (_super) {
         // char*
         this.config.char.forEach(function (char) {
             // char1.bindgroup[20].name = "装備,飛行装備" -> {category: "装備", parts: "飛行装備", thumbnail: ""};
-            if (Array.isArray(char.bindgroup)) {
-                char.bindgroup.forEach(function (bindgroup) {
-                    if (typeof bindgroup.name === "string") {
-                        var _a = ("" + bindgroup.name).split(",").map(function (a) { return a.trim(); }), category = _a[0], parts = _a[1], thumbnail = _a[2];
-                        bindgroup.name = { category: category, parts: parts, thumbnail: thumbnail };
-                    }
-                });
+            if (!Array.isArray(char.bindgroup)) {
+                char.bindgroup = [];
             }
+            char.bindgroup.forEach(function (bindgroup) {
+                if (typeof bindgroup.name === "string") {
+                    var _a = ("" + bindgroup.name).split(",").map(function (a) { return a.trim(); }), category = _a[0], parts = _a[1], thumbnail = _a[2];
+                    bindgroup.name = { category: category, parts: parts, thumbnail: thumbnail };
+                }
+            });
             // sakura.bindoption0.group = "アクセサリ,multiple" -> {category: "アクセサリ", options: "multiple"}
-            if (Array.isArray(char.bindoption)) {
-                char.bindoption.forEach(function (bindoption) {
-                    if (typeof bindoption.group === "string") {
-                        var _a = ("" + bindoption.group).split(",").map(function (a) { return a.trim(); }), category = _a[0], options = _a.slice(1);
-                        bindoption.group = { category: category, options: options };
-                    }
-                });
+            if (!Array.isArray(char.bindoption)) {
+                char.bindoption = [];
             }
+            char.bindoption.forEach(function (bindoption) {
+                if (typeof bindoption.group === "string") {
+                    var _a = ("" + bindoption.group).split(",").map(function (a) { return a.trim(); }), category = _a[0], options = _a.slice(1);
+                    bindoption.group = { category: category, options: options };
+                }
+            });
         });
         return Promise.resolve(this);
     };
@@ -16813,7 +16903,14 @@ var Surface = (function (_super) {
         var _this = this;
         // Shell.tsから呼ばれるためpublic
         // Shell#bind,Shell#unbindで発動
-        this.surfaceNode.animations.forEach(function (anim) { _this.initBind(anim); });
+        this.surfaceNode.animations.forEach(function (anim) {
+            if (anim.intervals.some(function (_a) {
+                var interval = _a[0], args = _a[1];
+                return "bind" === interval;
+            })) {
+                _this.initBind(anim);
+            }
+        });
         // 即時に反映
         this.render();
     };
@@ -17885,7 +17982,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/Shell.js#master",
-  "_id": "ikagaka.shell.js@4.3.2",
+  "_id": "ikagaka.shell.js@4.3.3",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js/ikagaka.shell.js",
@@ -17910,8 +18007,8 @@ module.exports={
   "_requiredBy": [
     "/ikagaka.namedmanager.js"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#60559b4e0fe52b50f836e75d0508d9da4eb4db51",
-  "_shasum": "21d0508114aa49aa0ebd803afd0f179a6dfe5f4f",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#574af8943a3775fe527e1a11c0c3b8be2ecb5f98",
+  "_shasum": "5814b80ce7a9564f13ba2cffa7be32f257c8ced8",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -17941,7 +18038,7 @@ module.exports={
     "gulp-espower": "^1.0.1",
     "typescript": "^1.6.2"
   },
-  "gitHead": "60559b4e0fe52b50f836e75d0508d9da4eb4db51",
+  "gitHead": "574af8943a3775fe527e1a11c0c3b8be2ecb5f98",
   "keywords": [
     "ikagaka",
     "ikagaka",
@@ -17952,7 +18049,7 @@ module.exports={
   "main": "./lib/index.js",
   "name": "ikagaka.shell.js",
   "optionalDependencies": {},
-  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### load(directory: { [path: string]: ArrayBuffer; }): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdettatchSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### dettatchSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n#### bind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,1]` 相当\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n#### unbind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,0]` 相当\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n\n#### getBindGroups(scopeId: number): {category: string, parts: string, thumbnail: string}[]\n* bindgroup[scopeId]: {category: string, parts: string, thumbnail: string};\n",
+  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### constructor(directory: { [path: string]: ArrayBuffer; }): Shell\n* コンストラクタです\n\n#### load(): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdetachSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### detachSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n#### bind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,1]` 相当\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n#### unbind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,0]` 相当\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n#### getBindGroups(scopeId: number): {category: string, parts: string, thumbnail: string}[]\n* bindgroup[scopeId]: {category: string, parts: string, thumbnail: string};\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n",
   "readmeFilename": "readme.md",
   "repository": {
     "type": "git",
@@ -17972,7 +18069,7 @@ module.exports={
   },
   "typings": "./lib/index.d.ts",
   "url": "https://github.com/ikagaka/Shell.js",
-  "version": "4.3.2"
+  "version": "4.3.3"
 }
 
 },{}],22:[function(require,module,exports){
@@ -28337,7 +28434,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/NamedManager.js",
-  "_id": "ikagaka.namedmanager.js@4.1.22",
+  "_id": "ikagaka.namedmanager.js@4.1.26",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.namedmanager.js",
@@ -28367,8 +28464,8 @@ module.exports={
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#8346b482bcb620134986fcd887ec7c11d28b79e2",
-  "_shasum": "97a0b8b18f2b2aa2aecdd1b758d09c1b72ac2e0d",
+  "_resolved": "git://github.com/ikagaka/NamedManager.js.git#f648ff8bfefa97a757ce8b03326067492a32c168",
+  "_shasum": "037f4667e0b827bc2d4bffce726c965b12ac222f",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -28393,7 +28490,7 @@ module.exports={
   },
   "description": "Ikagaka Window Manager",
   "devDependencies": {},
-  "gitHead": "8346b482bcb620134986fcd887ec7c11d28b79e2",
+  "gitHead": "f648ff8bfefa97a757ce8b03326067492a32c168",
   "homepage": "https://github.com/ikagaka/NamedManager.js#readme",
   "keywords": [
     "ikagaka",
@@ -28405,7 +28502,7 @@ module.exports={
   "main": "./lib/index.js",
   "name": "ikagaka.namedmanager.js",
   "optionalDependencies": {},
-  "readme": "# NamedManager.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.namedmanager.js.svg?style=flat)](https://npmjs.com/package/ikagaka.namedmanager.js) [![bower](https://img.shields.io/bower/v/ikagaka.namedmanager.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/NamedManager.js.svg?branch=master)](https://travis-ci.org/Ikagaka/NamedManager.js)\n\nIkagaka Window Manager\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/NamedManager.js/master/screenshot.gif)\n\n## About\nNamedManager.js is a `Ukagaka` compatible Shell renderer and Window Manager for Web Browser.\n\n* [demo](http://ikagaka.github.io/NamedManager.js/demo/sandbox.html)\n\n\n## Usage\n\n```html\n\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/NamedManager.js\"></script>\n<script>\nPromise.all([\n  NarLoader.loadFromURL(\"../nar/origin.nar\"),\n  NarLoader.loadFromURL(\"../nar/mobilemaster.nar\")\n]).then(function(tmp){\n  var balloonNDir = tmp[0];\n  var shellNDir = tmp[1];\n  var balloonDir = balloonNDir.asArrayBuffer();\n  var shellDir = shellNDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new NamedManager.Shell(shellDir);\n  var balloon = new NamedManager.Balloon(balloonDir);\n  return Promise.all([\n    shell.load(),\n    balloon.load()\n  ]);\n}).then(function(tmp){\n  var shell = tmp[0];\n  var balloon = tmp[1];\n\n  var nmdmgr = new NamedManager.NamedManager();\n  document.body.appendChild(nmdmgr.element);\n\n  var hwnd = nmdmgr.materialize(shell, balloon);\n  var named = nmdmgr.named(hwnd);\n\n  console.log(nmdmgr, hwnd, named, shell, balloon);\n\n  talk(named);\n});\n\nfunction wait(ms, callback) {\n  return function(ctx) {\n    return new Promise(function(resolve) {\n      setTimeout((function() {\n        callback(ctx);\n        resolve(ctx);\n      }), ms);\n    });\n  };\n}\n\nfunction talk(named){\n  Promise.resolve(named)\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().surface(0); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(1); }))\n  .then(wait(0, function(named) { named.scope().surface(10); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().blimp(0); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"H\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"e\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\",\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"w\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"r\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"d\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"!\"); }));\n}\n</script>\n\n```\n\n## ChangeLog\n* [release note](https://github.com/Ikagaka/NamedManager.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n## Document\n* 型はTypeScriptで、HTMLはJadeで、サンプルコードはCoffeeScriptで書かれています。\n\n### NamedManager Class\n#### constructor(): NamedManager\n* コンストラクタです。\n#### element: HTMLDivElement\n* `div.namedMgr` が入っています。構造は以下のとおりです。\n  ```jade\n  div.namedMgr\n    style(scoped)\n    div.named\n      div.scope\n        div.surface\n          canvas.surfaceCanvas\n        div.blimp\n          style(scoped)\n          canvas.blimpCanvas\n          div.blimpText\n      div.scope\n      ...\n    div.named\n    ...\n  ```\n* `document.body.appned`してRealDOMTreeに入れてください。\n\n#### destructor(): void\n* すべてのリソースを開放します\n\n#### materialize(shell: Shell, balloon: Balloon): number\n* ゴーストのレンダリングを開始します\n* 返り値`number`は`namedId`です。いわゆるウインドウハンドラです。\n\n#### vanish(namedId: number): void\n* `namedId`のゴーストのレンダリングを終了します。\n\n#### named(namedId: number): Named;\n* `namedId`のNamedクラスのインスタンスを返します\n\n### Named Class\n\n#### scope(scopeId?: number): Scope\n* `scopeId`のScopeクラスのインスタンスを返します。\n* 引数を省略した場合、現在のスコープを返します。\n\n#### openInputBox(id: string, placeHolder?: string): void\n* inputboxを表示します。\n\n#### openCommunicateBox(placeHolder?: string): void\n* communicateboxを表示します。\n\n#### contextmenu((ev: ContextMenuEvent)=> ContextMenuObject): void\n* 内部で  [swisnl/jQuery-contextMenu](https://github.com/swisnl/jQuery-contextMenu) を使っています\n\n```typescript\ninterface ContextMenuEvent {\n  type: string;\n  scopeId: number;\n  event: UIEvent;\n}\ninterface ContextMenuObject {\n  callback: (key: string)=> void;\n  items: {[key: string]: Item|SubGroup}\n}\ninterface Item {\n  name: string;\n}\ninterface SubGroup {\n  name: string;\n  items: {[key: string]: Item|SubGroup};\n}\n```\n\n#### on(event: string, callback: (ev: {type: string})=> void): void\n\n```typescript\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // true\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n\ninterface BalloonMouseEvent {\n  type: string; // click|dblclikck|mousemove|mouseup|mousedown\n  scopeId: number; // \\p[n]\n  balloonId: number; // \\b[n]\n}\n\ninterface BalloonInputEvent {\n  type: string; //userinput|communicateinput\n  id: string;\n  content: string;\n}\n\ninterface BalloonSelectEvent {\n  type: string; //anchorselect|choiceselect\n  id: string;\n  text: string;\n  args: string[];\n}\n\ninterface FileDropEvent {\n  type: string; //filedrop\n  scopeId: number;\n  event: UIEvent;\n}\n```\n\n##### on(event: \"mousedown\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mousemove\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mouseup\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mouseclick\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mousedblclick\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"balloonclick\", callback: (ev: BalloonMouseEvent)=> void): void\n##### on(event: \"balloondblclick\", callback: (ev: BalloonMouseEvent)=> void): void\n##### on(event: \"anchorselect\", callback: (ev: BalloonSelectEvent)=> void): void\n##### on(event: \"choiceselect\", callback: (ev: BalloonSelectEvent)=> void): void\n##### on(event: \"userinput\", callback: (ev: BalloonInputEvent)=> void): void\n##### on(event: \"communicateinput\", callback: (ev: BalloonInputEvent)=> void): void\n##### on(event: \"filedrop\", callback: (ev: FileDropEvent)=> void): void\n\n\n### Scope Class\n\n#### surface(surfaceId?: number|string): Surface\n* numberのとき\n  * `surfaceId` のサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* stringのとき\n  * `surfaceAlias`のサーフェスエイリアスのサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* 指定したサーフェスが存在しない場合、現在のサーフェスのSurfaceを返します。\n* 引数を省略した場合、現在のSurfaceを返します。\n\n#### blimp(blimpId?: number): Blimp\n* `blimpId`のバルーンを表示します。\n* 引数を省略した場合、現在のBlimpを返します。\n\n\n#### position(pos?:{right: number, bottom: number}): {right: number, bottom: number}\n* 指定した座標に移動します。\n* 基準は画面右下です。\n* 引数を省略すると現在の座標が返ります。\n",
+  "readme": "# NamedManager.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.namedmanager.js.svg?style=flat)](https://npmjs.com/package/ikagaka.namedmanager.js) [![bower](https://img.shields.io/bower/v/ikagaka.namedmanager.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/NamedManager.js.svg?branch=master)](https://travis-ci.org/Ikagaka/NamedManager.js)\n\nIkagaka Window Manager\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/NamedManager.js/master/screenshot.gif)\n\n## About\nNamedManager.js is a `Ukagaka` compatible Shell renderer and Window Manager for Web Browser.\n\n* [demo](http://ikagaka.github.io/NamedManager.js/demo/sandbox.html)\n\n\n## Usage\n\n```html\n\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/NamedManager.js\"></script>\n<script>\nPromise.all([\n  NarLoader.loadFromURL(\"../nar/origin.nar\"),\n  NarLoader.loadFromURL(\"../nar/mobilemaster.nar\")\n]).then(function(tmp){\n  var balloonNDir = tmp[0];\n  var shellNDir = tmp[1];\n  var balloonDir = balloonNDir.asArrayBuffer();\n  var shellDir = shellNDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new NamedManager.Shell(shellDir);\n  var balloon = new NamedManager.Balloon(balloonDir);\n  return Promise.all([\n    shell.load(),\n    balloon.load()\n  ]);\n}).then(function(tmp){\n  var shell = tmp[0];\n  var balloon = tmp[1];\n\n  var nmdmgr = new NamedManager.NamedManager();\n  document.body.appendChild(nmdmgr.element);\n\n  var hwnd = nmdmgr.materialize(shell, balloon);\n  var named = nmdmgr.named(hwnd);\n\n  console.log(nmdmgr, hwnd, named, shell, balloon);\n\n  talk(named);\n});\n\nfunction wait(ms, callback) {\n  return function(ctx) {\n    return new Promise(function(resolve) {\n      setTimeout((function() {\n        callback(ctx);\n        resolve(ctx);\n      }), ms);\n    });\n  };\n}\n\nfunction talk(named){\n  Promise.resolve(named)\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().surface(0); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(1); }))\n  .then(wait(0, function(named) { named.scope().surface(10); }))\n  .then(wait(0, function(named) { named.scope().blimp().clear(); }))\n  .then(wait(0, function(named) { named.scope(0); }))\n  .then(wait(0, function(named) { named.scope().blimp(0); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"H\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"e\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\",\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"w\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"o\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"r\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"l\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"d\"); }))\n  .then(wait(80, function(named) { named.scope().blimp().talk(\"!\"); }));\n}\n</script>\n\n```\n\n## ChangeLog\n* [release note](https://github.com/Ikagaka/NamedManager.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n## Document\n* 型はTypeScriptで、HTMLはJadeで、サンプルコードはCoffeeScriptで書かれています。\n\n### NamedManager Class\n#### constructor(): NamedManager\n* コンストラクタです。\n#### element: HTMLDivElement\n* `div.namedMgr` が入っています。構造は以下のとおりです。\n  ```jade\n  div.namedMgr\n    style(scoped)\n    div.named\n      div.scope\n        div.surface\n          canvas.surfaceCanvas\n        div.blimp\n          style(scoped)\n          canvas.blimpCanvas\n          div.blimpText\n      div.scope\n      ...\n    div.named\n    ...\n  ```\n* `document.body.appned`してDOM Treeに入れてください。\n\n#### destructor(): void\n* すべてのリソースを開放します\n\n#### materialize(shell: Shell, balloon: Balloon): namedId\n#### materialize2(shell: Shell, balloon: Balloon): Named\n* ゴーストのDOMを構築しシェルのレンダリングを開始します\n\n#### vanish(namedId: number): void\n* `namedId`のゴーストのDOM構造を消しシェルのレンダリングを終了します。\n\n#### named(namedId: number): Named;\n* `namedId`のNamedクラスのインスタンスを返します\n\n### Named Class\n\n#### namedId: number\n* このNamedのIDです\n\n#### scope(scopeId?: number): Scope\n* `scopeId`のScopeクラスのインスタンスを返します。\n* まだ存在しないスコープの場合、新しいスコープを追加します。\n* 引数を省略した場合、現在のスコープを返します。\n\n#### openInputBox(id: string, placeHolder?: string): void\n* inputboxを表示します。\n\n#### openCommunicateBox(placeHolder?: string): void\n* communicateboxを表示します。\n\n#### contextmenu((ev: ContextMenuEvent)=> ContextMenuObject): void\n* 内部で  [swisnl/jQuery-contextMenu](https://github.com/swisnl/jQuery-contextMenu) を使っています\n\n```typescript\ninterface ContextMenuEvent {\n  type: string;\n  scopeId: number;\n  event: UIEvent;\n}\ninterface ContextMenuObject {\n  callback: (key: string)=> void;\n  items: {[key: string]: Item|SubGroup}\n}\ninterface Item {\n  name: string;\n}\ninterface SubGroup {\n  name: string;\n  items: {[key: string]: Item|SubGroup};\n}\n```\n\n#### on(event: string, callback: (ev: {type: string})=> void): void\n\n```typescript\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // true\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n\ninterface BalloonMouseEvent {\n  type: string; // click|dblclikck|mousemove|mouseup|mousedown\n  scopeId: number; // \\p[n]\n  balloonId: number; // \\b[n]\n}\n\ninterface BalloonInputEvent {\n  type: string; //userinput|communicateinput\n  id: string;\n  content: string;\n}\n\ninterface BalloonSelectEvent {\n  type: string; //anchorselect|choiceselect\n  id: string;\n  text: string;\n  args: string[];\n}\n\ninterface FileDropEvent {\n  type: string; //filedrop\n  scopeId: number;\n  event: UIEvent;\n}\n```\n\n##### on(event: \"mousedown\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mousemove\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mouseup\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mouseclick\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"mousedblclick\", callback: (ev: SurfaceMouseEvent)=> void): void\n##### on(event: \"balloonclick\", callback: (ev: BalloonMouseEvent)=> void): void\n##### on(event: \"balloondblclick\", callback: (ev: BalloonMouseEvent)=> void): void\n##### on(event: \"anchorselect\", callback: (ev: BalloonSelectEvent)=> void): void\n##### on(event: \"choiceselect\", callback: (ev: BalloonSelectEvent)=> void): void\n##### on(event: \"userinput\", callback: (ev: BalloonInputEvent)=> void): void\n##### on(event: \"communicateinput\", callback: (ev: BalloonInputEvent)=> void): void\n##### on(event: \"filedrop\", callback: (ev: FileDropEvent)=> void): void\n\n#### changeShell(shell: Shell): void\n* 現在のシェルを動的に変更します。\n\n#### changeBalloon(balloon: Balloon): void\n* 現在のバルーンシェルを動的に変更します。\n\n### Scope Class\n\n#### surface(surfaceId?: number|string): Surface\n* numberのとき\n  * `surfaceId` のサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* stringのとき\n  * `surfaceAlias`のサーフェスエイリアスのサーフェスを表示し、Surfaceクラスのインスタンスを返します。\n* 指定したサーフェスが存在しない場合、現在のサーフェスのSurfaceを返します。\n* 引数を省略した場合、現在のSurfaceを返します。\n\n#### blimp(blimpId?: number): Blimp\n* `blimpId`のバルーンを表示します。\n* 引数を省略した場合、現在のBlimpを返します。\n\n\n#### position(pos?:{right: number, bottom: number}): {right: number, bottom: number}\n* 指定した座標に移動します。\n* 基準は画面右下です。\n* 引数を省略すると現在の座標が返ります。\n",
   "readmeFilename": "readme.md",
   "repository": {
     "type": "git",
@@ -28421,7 +28518,7 @@ module.exports={
     "update": "rm -rf bower_components; npm update; bower update"
   },
   "url": "https://github.com/ikagaka/NamedManager.js",
-  "version": "4.1.22"
+  "version": "4.1.26"
 }
 
 },{}],24:[function(require,module,exports){
@@ -28443,7 +28540,7 @@ module.exports={
     ]
   ],
   "_from": "ikagaka/Shell.js",
-  "_id": "ikagaka.shell.js@4.3.2",
+  "_id": "ikagaka.shell.js@4.3.3",
   "_inCache": true,
   "_installable": true,
   "_location": "/ikagaka.shell.js",
@@ -28469,8 +28566,8 @@ module.exports={
     "/",
     "/ikagaka.balloon.js"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#60559b4e0fe52b50f836e75d0508d9da4eb4db51",
-  "_shasum": "864abe810affd95349ef833610fd3cf285aa5aaa",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#574af8943a3775fe527e1a11c0c3b8be2ecb5f98",
+  "_shasum": "2e2abee0f50fce91c089277e4f28fdade1be37ef",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js",
   "_where": "/Users/yohsukeino/GitHub/Ikagaka/cuttlebone",
@@ -28500,7 +28597,7 @@ module.exports={
     "gulp-espower": "^1.0.1",
     "typescript": "^1.6.2"
   },
-  "gitHead": "60559b4e0fe52b50f836e75d0508d9da4eb4db51",
+  "gitHead": "574af8943a3775fe527e1a11c0c3b8be2ecb5f98",
   "keywords": [
     "ikagaka",
     "ikagaka",
@@ -28511,7 +28608,7 @@ module.exports={
   "main": "./lib/index.js",
   "name": "ikagaka.shell.js",
   "optionalDependencies": {},
-  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### load(directory: { [path: string]: ArrayBuffer; }): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdettatchSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### dettatchSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n#### bind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,1]` 相当\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n#### unbind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,0]` 相当\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n\n#### getBindGroups(scopeId: number): {category: string, parts: string, thumbnail: string}[]\n* bindgroup[scopeId]: {category: string, parts: string, thumbnail: string};\n",
+  "readme": "# Shell.js\n\n[![npm](https://img.shields.io/npm/v/ikagaka.shell.js.svg?style=flat)](https://npmjs.com/package/ikagaka.shell.js) [![bower](https://img.shields.io/bower/v/ikagaka.shell.js.svg)](http://bower.io/search/?q=ikagaka)\n[![Build Status](https://travis-ci.org/Ikagaka/Shell.js.svg?branch=master)](https://travis-ci.org/Ikagaka/Shell.js)\n\nUkagaka Shell Renderer for Web Browser\n\n![screenshot](https://raw.githubusercontent.com/Ikagaka/Shell.js/master/screenshot1.png )\n\n## About\nShell.js is a `Ukagaka` compatible Shell renderer for HTML canvas.\n\n* [demo](https://ikagaka.github.io/Shell.js/demo/playground.html)\n\n## Usage\n```html\n<script src=\"../bower_components/encoding-japanese/encoding.js\"></script>\n<script src=\"../bower_components/jszip/dist/jszip.min.js\"></script>\n<script src=\"../bower_components/narloader/NarLoader.js\"></script>\n<script src=\"../dist/Shell.js\"></script>\n<script>\nNarLoader\n.loadFromURL(\"../nar/mobilemaster.nar\")\n.then(function(nanikaDir){\n  var shellDir = nanikaDir.getDirectory(\"shell/master\").asArrayBuffer();\n  var shell = new Shell.Shell(shellDir);\n  return shell.load();\n}).then(function(shell){\n  var div = document.createElement(\"div\");\n  var srf = shell.attachSurface(div, 0, 0);\n  console.dir(srf);\n  srf.on(\"mouseclick\", function(ev){ console.log(ev); });\n  document.body.appendChild(div);\n}).catch(function(err){\n  console.error(err, err.stack);\n});\n</script>\n```\n\n## ChangeLog\n* [release log](https://github.com/Ikagaka/Shell.js/releases)\n\n## Development\n```sh\nnpm install -g bower dtsm gulp browserify watchify http-server\nnpm run init\nnpm run build\n```\n\n\n## Document\n* 型はTypeScriptで、サンプルコードはCoffeeScriptで書かれています。\n\n### Shell Class\n* `Shell/***/` 以下のファイルを扱います。\n* surfaces.txtなどをパースして情報をまとめて保持します。\n* canvas要素にSurfaceクラスを割り当てるためのクラスです。\n\n#### constructor(directory: { [path: string]: ArrayBuffer; }): Shell\n* コンストラクタです\n\n#### load(): Promise<Shell>\n* `Shell/master/` 以下のファイル一覧とそのArrayBufferを持つObjectを渡してください。\n* ArrayBufferはnarファイルをzip解凍や、\n  ネットワーク更新用の`updates2.dau`をXHRして入手してください。\n* ディレクトリ区切りは UNIXと同じ`/`を使ってください。\n  windowsの`\\`は対応していません。\n* このファイルパスと値のkey-value形式で渡す引数は、\n  メモリを多く消費するため、将来的に変更される可能性があります。\n\n```coffeescript\n\nshellDir =\n  \"descript.txt\": new ArrayBuffer()\n  \"surface0.png\": new ArrayBuffer()\n  \"elements/element0.png\": new ArrayBuffer()\n  \"surfaces.txt\": new ArrayBuffer()\n\nshell = new Shell(shellDir)\n```\n\n#### unload(): void\n* Shellクラスが管理しているすべてのリソースを開放します。\n* すべてのサーフェスがdetachSurfaceされます。\n* すべてのイベントハンドラも解除されます。\n* すべてのプロパティにnullが代入され、GCを促します\n\n#### descript: { [key: string]: string; }\n* descript.txtの中身をkey-value形式で持っています。\n\n```coffeescript\nshell.load().then (shell)->\n  console.log(shell.descript)\n```\n\n#### attatchSurface(div: HTMLDivElement, scopeId: number, surfaceId: number|string): Surface|null\n* 指定したdivの中にcanvas要素を追加しscopeIdのsurfaceIdのサーフェスの描画を行います。\n  * SakuraScriptでなら`\\0\\s[0]`に該当します。\n* surfaceIdはサーフェスエイリアスが考慮されます。\n  * 該当するサーフェスが存在しなかった場合、nullが返ります。\n\n\n```coffeescript\n\ncnv = document.createElement(\"canvas\")\nsrf = shell.attachSurface(cnv, 0, 0) # \\0\\s[0]\ndocument.body.appendChild(cnv)\ncnv2 = document.createElement(\"canvas\")\nsrf2 = shell.attachSurface(cnv, 0, \"びっくり\") # \\0\\s[びっくり]\ndocument.body.appendChild(cnv2)\n```\n#### detachSurface(div: HTMLDivElement): void\n* attachSurfaceしたdivを描画対象から外します。\n* ___サーフェスを変更する前に必ず呼び出してください___\n\n#### bind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,1]` 相当\n\n#### bind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを着せます。\n\n#### unbind(category: string, parts: string): void\n* `\\![bind,カテゴリ名,パーツ名,0]` 相当\n\n#### unbind(scopeId: number, bindgroupId: number): void\n* `scopeId` 番目のキャラクターの`bindgroupId`の着せ替えを脱がせます。\n\n#### showRegion(): void\n* このシェルの当たり判定を表示します。\n\n#### hideRegion(): void\n* このシェルの当たり判定を非表示にします。\n\n#### on(\"mouse\", callback: (event: SurfaceMouseEvent)=> void): void\n* マウスイベントのイベントリスナーです。\n* 対応しているイベントは以下の通りです。\n  * `mouse`\n    * タッチイベントとマウスイベントの区別は現状していません。\n    * mousewheelまだ\n* 透明領域のマウスイベントにも反応します。 `ev.transparency` で判定してください、。\n  * これはsurface canvasレイヤが重なった時のマウスイベントの透過処理のためのフラグです。\n  * 複数レイヤ間の重なりの上下順番を管理するNamedMgr.jsなどが使います。\n* ShellクラスはEventEmitterを継承しているので`off`や`removeAllListener`などもあります\n```typescript\n\ninterface SurfaceMouseEvent {\n  type: string; // mousedown|mousemove|mouseup|mouseclick|mousedblclick のどれか\n  transparency: boolean; // 透明領域ならtrue\n  button: number; // マウスのボタン。 https://developer.mozilla.org/ja/docs/Web/API/MouseEvent/button\n  offsetX: number; // canvas左上からのx座標\n  offsetY: number; // canvas左上からのy座標\n  region: string; // collisionの名前,\"Bust\",\"Head\",\"Face\"など\n  scopeId: number; // このサーフェスのスコープ番号\n  wheel: number; // mousewheel実装したら使われるかも\n  event: UIEvent // 生のDOMイベント。 https://developer.mozilla.org/ja/docs/Web/API/UIEvent\n}\n```\n\n#### getBindGroups(scopeId: number): {category: string, parts: string, thumbnail: string}[]\n* bindgroup[scopeId]: {category: string, parts: string, thumbnail: string};\n\n\n### Surface Class\n* canvas要素にサーフェスを描画します。\n  * SERIKOアニメーションを再生します。\n  * マウスイベントを捕捉します。\n\n#### render(): void\n* サーフェスを再描画します。\n\n#### play(animationId: number, callback?: () => void): void\n* animationIdのアニメーションを再生します。\n  * アニメーション再生後にcallbackが1度だけ呼ばれます。\n\n#### stop(animationId: number): void\n* animationIdのアニメーションを停止します。\n\n#### yenE(): void\n* yen-eタイミングのアニメーションを再生します。\n\n#### talk(): void\n* talkタイミングのカウンタを進め、\n  指定回数呼び出されるとtalkタイミングのアニメーションを再生します。\n\n#### getSurfaceSize(): {width: number, height: number}\n* 現在のベースサーフェスの大きさを返します\n",
   "readmeFilename": "readme.md",
   "repository": {
     "type": "git",
@@ -28531,7 +28628,7 @@ module.exports={
   },
   "typings": "./lib/index.d.ts",
   "url": "https://github.com/ikagaka/Shell.js",
-  "version": "4.3.2"
+  "version": "4.3.3"
 }
 
 },{}],30:[function(require,module,exports){

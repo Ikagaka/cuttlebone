@@ -60,6 +60,7 @@
 }());
 $("#bootlog").append(JSON.stringify(cuttlebone.versions, null, "  ")).append("<br />");
 var shell = null;
+var shellNDir = null;
 var balloon = null;
 var balloonDir = null;
 var nmdmgr = new cuttlebone.NamedManager();
@@ -104,6 +105,7 @@ function changeNar(nanikaDir){
   }
 }
 function changeShell(nanikaDir){
+  shellNDir = nanikaDir;
   balloon && balloon.unload();
   balloon = new cuttlebone.Balloon(balloonDir);
   $("#bootlog").append("loading balloon nar file.").append("<br />");
@@ -137,25 +139,84 @@ function changeShell(nanikaDir){
     named.on("choiceselectex", onEvent);
     named.on("choiceselect", onEvent);
     named.contextmenu(function(ev){
+      console.log("contextmenu", ev)
       // ここで動的に生成
+      var scopeId = ev.scopeId;
       return {
-        callback: function(key){
-          switch(key){
-            case "quit":
-              nmdmgr.vanish(hwnd);
-              break;
-          }
-        },
         items: {
-          "edit": {name: "これはスコープ"+ev.scopeId+"です"},
-          "sep1": "---------",
-          "fold1": {
-            "name": "とくに意味のないサブグループ",
-            "items": {
-              "fold1-key1": {"name": "とくに意味のない項目"},
+          showRegion: { name: '当たり判定表示', callback: function(){ named.shell.showRegion(); } },
+          hideRegion: { name: '当たり判定非表示', callback: function(){ named.shell.hideRegion(); } },
+          sep1: "---------",
+          changeShell: {
+            name: 'シェル変更',
+            items: (function(){
+              var shelllist = shellNDir.getDirectory("shell").listChildren();
+              return shelllist.reduce(function(a, b, i){
+                a["changeShell"+i] = {
+                  name: b,
+                  callback: function(){
+                    var shellDir = shellNDir.getDirectory("shell/"+shelllist[i]).asArrayBuffer();
+                    var shell = new Shell(shellDir);
+                    console.log(shell, shellDir, shellNDir);
+                    shell.load().then(function(){
+                      named.changeShell(shell);
+                    });
+                  }
+                };
+                return a;
+              }, {});
+            }())
+          },
+          changeBalloon: {
+            name: 'バルーン変更',
+            callback: function(){
+              $('#install_field').remove();
+              var $install_field = $('<input type="file" />').attr('id', 'install_field').css("display", 'none');
+              $install_field.change(function(ev){
+                $install_field.remove();
+                Array.prototype.slice.call(ev.target.files).forEach(function(file){
+                  NarLoader.loadFromBlob(file).then(function(balloonNDir){
+                    var balloonDir = balloonNDir.asArrayBuffer();
+                    var balloon = new Balloon(balloonDir);
+                    balloon.load().then(function(){
+                      named.changeBalloon(balloon);
+                    });
+                  });
+                });
+              }).appendTo("body").click();
             }
           },
-          "quit": {name: "終了"}
+          sep2: "---------",
+          bindGroups: {
+            name: "着せ替えオン",
+            items: (function(){
+              var bindgroups = named.shell.getBindGroups(scopeId);
+              return bindgroups.reduce((function(a, b, i){
+                a["bindGroups"+i] = {
+                  name: i + ":" + b.category+ " " + b.parts,
+                  callback: function(){
+                    named.shell.bind(b.category, b.parts);
+                  }
+                };
+                return a;
+              }), {});
+            }())
+          },
+          unbindGroups: {
+            name: "着せ替えオフ",
+            items: (function(){
+              var bindgroups = named.shell.getBindGroups(scopeId);
+              return bindgroups.reduce((function(a, b, i){
+                a["unbindGroups"+i] = {
+                  name: i + ":" + b.category+ " " + b.parts,
+                  callback: function(){
+                    named.shell.unbind(b.category, b.parts);
+                  }
+                };
+                return a;
+              }), {});
+            }())
+          }
         }
       };
     });
