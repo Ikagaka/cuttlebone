@@ -220,6 +220,7 @@ function changeShell(nanikaDir){
         }
       };
     });
+    console.log(named);
 
     $("#play").off().on("click", function(){
       ssp.play($("#code").val().replace(/\n|\r/, ""));
