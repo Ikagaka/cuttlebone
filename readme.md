@@ -58,10 +58,6 @@ Promise.all([
   var hwnd = nmdmgr.materialize(shell, balloon);
   var named = nmdmgr.named(hwnd);
 
-
-  var hwnd = nmdmgr.materialize(shell, balloon);
-  var named = nmdmgr.named(hwnd);
-
   named.scope(0).surface(0);
   named.scope(0).blimp(0).talk("Hello world!");
 });
