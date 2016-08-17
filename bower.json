@@ -8,7 +8,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "narloader": "Ikagaka/NarLoader#master",
+    "narloader": "Ikagaka/NarLoader#jszip3",
     "qunit": "*",
     "qunit-tap": "*",
     "empower": "*",

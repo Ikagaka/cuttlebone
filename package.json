@@ -9,20 +9,22 @@
     "cuttlebone"
   ],
   "scripts": {
+    "setup": "npm install -g http-server mversion",
     "init": "npm run update; npm run build",
-    "update": "rm -rf bower_components; npm update; bower update",
-    "clean": "rm lib/*.js dist/*.js",
-    "start": "http-server --silent -p 8000 & coffee -w --compile --output lib src/*.coffee & watchify lib/index.js --outfile dist/cuttlebone.js  --standalone cuttlebone -v",
-    "stop": "killall -- node */http-server -p 8000",
-    "build": "npm run clean; coffee -c -o lib src/*.coffee; browserify lib/index.js --standalone cuttlebone -o dist/cuttlebone.js",
-    "patch": "mversion patch -m"
+    "update": "npm update; bower update",
+    "build": "npm run clean&& coffee -c -b -o lib src/*.coffee&& browserify lib/index.js --standalone cuttlebone -o dist/cuttlebone.js",
+    "start": "http-server -s& coffee -w -b -o lib src/*.coffee &   watchify lib/index.js --standalone cuttlebone -o dist/cuttlebone.js v",
+    "stop": "killall -- node",
+    "clean": "rm -rf lib/*  dist/*",
+    "reset": "rm -rf bower_components node_modules",
+    "patch": "mversion patch"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/ikagaka/cuttlebone"
   },
   "dependencies": {
-    "ikagaka.shell.js": "Ikagaka/Shell.js",
+    "ikagaka.shell.js": "Ikagaka/Shell.js#5.x",
     "ikagaka.balloon.js": "Ikagaka/Balloon.js",
     "ikagaka.namedmanager.js": "Ikagaka/NamedManager.js"
   },
