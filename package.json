@@ -9,7 +9,7 @@
     "cuttlebone"
   ],
   "scripts": {
-    "setup": "npm install -g http-server mversion",
+    "setup": "npm install -g bower http-server mversion",
     "init": "npm run update; npm run build",
     "update": "npm update; bower update",
     "build": "npm run clean&& coffee -c -b -o lib src/*.coffee&& browserify lib/index.js --standalone cuttlebone -o dist/cuttlebone.js",
@@ -28,7 +28,11 @@
     "ikagaka.balloon.js": "Ikagaka/Balloon.js",
     "ikagaka.namedmanager.js": "Ikagaka/NamedManager.js"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "browserify": "^13.1.0",
+    "coffee": "^3.2.4",
+    "watchify": "^3.7.0"
+  },
   "bugs": {
     "url": "https://github.com/Ikagaka/cuttlebone/issues"
   },
