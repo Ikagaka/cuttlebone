@@ -21,7 +21,7 @@ after_script:
   - git commit -am "travis-auto-update"
   - git status
   - git ls-files
-  - '[ "$TRAVIS_BRANCH" == "dev" ] && [ $GH_TOKEN ] && git push --quiet "https://${GH_TOKEN}@github.com/Ikagaka/cuttlebone.git" gh-pages:gh-pages > /dev/null 2>&1'
+  - '[ "$TRAVIS_BRANCH" == "dev" ] && [ $GH_TOKEN ] && git push --force --quiet "https://${GH_TOKEN}@github.com/Ikagaka/cuttlebone.git" gh-pages:gh-pages > /dev/null 2>&1'
 env:
   global:
     - GIT_COMMITTER_NAME=legokichi
