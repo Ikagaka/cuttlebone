@@ -26,7 +26,7 @@
   "dependencies": {
     "ikagaka.shell.js": "Ikagaka/Shell.js#5.x",
     "ikagaka.balloon.js": "Ikagaka/Balloon.js#4.x",
-    "ikagaka.namedmanager.js": "Ikagaka/NamedManager.js"
+    "ikagaka.namedmanager.js": "Ikagaka/NamedManager.js#5.x"
   },
   "devDependencies": {
     "browserify": "^13.1.0",
