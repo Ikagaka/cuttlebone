@@ -1,308 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.cuttlebone = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      } else {
-        // At least give some kind of context to the user
-        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
-        err.context = er;
-        throw err;
-      }
-    }
-  }
-
-  handler = this._events[type];
-
-  if (isUndefined(handler))
-    return false;
-
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    args = Array.prototype.slice.call(arguments, 1);
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
-
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else if (listeners) {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.prototype.listenerCount = function(type) {
-  if (this._events) {
-    var evlistener = this._events[type];
-
-    if (isFunction(evlistener))
-      return 1;
-    else if (evlistener)
-      return evlistener.length;
-  }
-  return 0;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  return emitter.listenerCount(type);
-};
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
-},{}],2:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 var Balloon, Blimp, Named, NamedManager, Scope, Shell, Surface, SurfaceRender, SurfaceUtil, b_version, n_version, ref, ref1, ref2, s_version;
 
@@ -336,7 +32,7 @@ exports.Named = Named;
 
 exports.Scope = Scope;
 
-},{"ikagaka.balloon.js":7,"ikagaka.namedmanager.js":20,"ikagaka.shell.js":35}],3:[function(require,module,exports){
+},{"ikagaka.balloon.js":7,"ikagaka.namedmanager.js":20,"ikagaka.shell.js":35}],2:[function(require,module,exports){
 /**
  * Encoding.js
  *
@@ -6623,7 +6319,7 @@ var zenkanaCase_table = [
 return Encoding;
 });
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 'use strict';
 
 var has = Object.prototype.hasOwnProperty;
@@ -6914,6 +6610,310 @@ if ('undefined' !== typeof module) {
   module.exports = EventEmitter;
 }
 
+},{}],4:[function(require,module,exports){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        // At least give some kind of context to the user
+        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+        err.context = er;
+        throw err;
+      }
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        args = Array.prototype.slice.call(arguments, 1);
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    args = Array.prototype.slice.call(arguments, 1);
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else if (listeners) {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  return emitter.listenerCount(type);
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
 },{}],5:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
@@ -7131,7 +7131,7 @@ if ('undefined' !== typeof module) {
 
 }).call(this);
 
-},{"./Blimp":6,"eventemitter3":4,"ikagaka.shell.js":12,"jquery":37}],6:[function(require,module,exports){
+},{"./Blimp":6,"eventemitter3":3,"ikagaka.shell.js":12,"jquery":37}],6:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
   var $, Blimp, SurfaceUtil,
@@ -8519,7 +8519,7 @@ var Shell = (function (_super) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Shell;
 
-},{"./Surface":9,"./SurfaceUtil":11,"eventemitter3":4,"jquery":37,"surfaces_txt2yaml":68}],9:[function(require,module,exports){
+},{"./Surface":9,"./SurfaceUtil":11,"eventemitter3":3,"jquery":37,"surfaces_txt2yaml":68}],9:[function(require,module,exports){
 /// <reference path="../typings/tsd.d.ts"/>
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -9088,7 +9088,7 @@ var Surface = (function (_super) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Surface;
 
-},{"./SurfaceRender":10,"./SurfaceUtil":11,"eventemitter3":4,"jquery":37}],10:[function(require,module,exports){
+},{"./SurfaceRender":10,"./SurfaceUtil":11,"eventemitter3":3,"jquery":37}],10:[function(require,module,exports){
 /// <reference path="../typings/tsd.d.ts"/>
 var SurfaceUtil = require("./SurfaceUtil");
 var SurfaceRender = (function () {
@@ -9826,7 +9826,7 @@ function getScrollXY() {
 }
 exports.getScrollXY = getScrollXY;
 
-},{"encoding-japanese":3}],12:[function(require,module,exports){
+},{"encoding-japanese":2}],12:[function(require,module,exports){
 /// <reference path="../typings/tsd.d.ts"/>
 var SurfaceRender_1 = require("./SurfaceRender");
 var _SurfaceUtil = require("./SurfaceUtil");
@@ -9864,7 +9864,7 @@ module.exports={
           "directUrl": "https://raw.githubusercontent.com/ikagaka/Shell.js/master/package.json"
         }
       },
-      "/home/legokichi/Github/cuttlebone/node_modules/ikagaka.balloon.js"
+      "/home/travis/build/Ikagaka/Shell.js/cuttlebone/node_modules/ikagaka.balloon.js"
     ]
   ],
   "_from": "ikagaka/Shell.js",
@@ -9895,10 +9895,10 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#2532a06ffd98cd5cb935e26d856f593d26035a07",
-  "_shasum": "c53fa127509e06ddb40d0da666924fc1859fed6c",
+  "_shasum": "1f6dc3c361268d1313a6de2e2f84821e95f50d10",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js",
-  "_where": "/home/legokichi/Github/cuttlebone/node_modules/ikagaka.balloon.js",
+  "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone/node_modules/ikagaka.balloon.js",
   "author": {
     "name": "Ikagaka"
   },
@@ -9982,7 +9982,7 @@ module.exports={
           "directUrl": "https://raw.githubusercontent.com/ikagaka/Balloon.js/master/package.json"
         }
       },
-      "/home/legokichi/Github/cuttlebone"
+      "/home/travis/build/Ikagaka/Shell.js/cuttlebone"
     ]
   ],
   "_from": "ikagaka/Balloon.js",
@@ -10021,10 +10021,10 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#e98229912ecb102a1fb1b44e3e02bb127363beda",
-  "_shasum": "9f41d67c15feb275d4dbdc4770d8b0cc1fb9616d",
+  "_shasum": "63bfa5198c88f1074d86db403ae8132718d53798",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
-  "_where": "/home/legokichi/Github/cuttlebone",
+  "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone",
   "author": {
     "name": "Ikagaka"
   },
@@ -12467,7 +12467,7 @@ module.exports = function ($) {
 
 }).call(this);
 
-},{"./LayerUtil":15,"./Menu":16,"./Scope":19,"eventemitter3":4,"ikagaka.shell.js":25,"jquery":27}],18:[function(require,module,exports){
+},{"./LayerUtil":15,"./Menu":16,"./Scope":19,"eventemitter3":3,"ikagaka.shell.js":25,"jquery":27}],18:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
   var $, EventEmitter, Named, NamedManager,
@@ -12564,7 +12564,7 @@ module.exports = function ($) {
 
 }).call(this);
 
-},{"./Named":17,"eventemitter3":4,"jquery":27}],19:[function(require,module,exports){
+},{"./Named":17,"eventemitter3":3,"jquery":27}],19:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
   var $, Scope, SurfaceUtil;
@@ -12719,13 +12719,13 @@ module.exports = function ($) {
 
 },{"../package.json":28,"./Named":17,"./NamedManager":18,"./Scope":19,"jquery":27}],21:[function(require,module,exports){
 arguments[4][8][0].apply(exports,arguments)
-},{"./Surface":22,"./SurfaceUtil":24,"dup":8,"eventemitter3":4,"jquery":27,"surfaces_txt2yaml":68}],22:[function(require,module,exports){
+},{"./Surface":22,"./SurfaceUtil":24,"dup":8,"eventemitter3":3,"jquery":27,"surfaces_txt2yaml":68}],22:[function(require,module,exports){
 arguments[4][9][0].apply(exports,arguments)
-},{"./SurfaceRender":23,"./SurfaceUtil":24,"dup":9,"eventemitter3":4,"jquery":27}],23:[function(require,module,exports){
+},{"./SurfaceRender":23,"./SurfaceUtil":24,"dup":9,"eventemitter3":3,"jquery":27}],23:[function(require,module,exports){
 arguments[4][10][0].apply(exports,arguments)
 },{"./SurfaceUtil":24,"dup":10}],24:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
-},{"dup":11,"encoding-japanese":3}],25:[function(require,module,exports){
+},{"dup":11,"encoding-japanese":2}],25:[function(require,module,exports){
 arguments[4][12][0].apply(exports,arguments)
 },{"../package.json":26,"./Shell":21,"./Surface":22,"./SurfaceRender":23,"./SurfaceUtil":24,"dup":12,"jquery":27}],26:[function(require,module,exports){
 module.exports={
@@ -12749,7 +12749,7 @@ module.exports={
           "directUrl": "https://raw.githubusercontent.com/ikagaka/Shell.js/master/package.json"
         }
       },
-      "/home/legokichi/Github/cuttlebone/node_modules/ikagaka.namedmanager.js"
+      "/home/travis/build/Ikagaka/Shell.js/cuttlebone/node_modules/ikagaka.namedmanager.js"
     ]
   ],
   "_from": "ikagaka/Shell.js#master",
@@ -12780,10 +12780,10 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#2532a06ffd98cd5cb935e26d856f593d26035a07",
-  "_shasum": "bfc34799fe485d2a24d5a06c7087bee805b4b4c6",
+  "_shasum": "73b8cb4faa1c22ce828a568a091276c4b589e7f5",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
-  "_where": "/home/legokichi/Github/cuttlebone/node_modules/ikagaka.namedmanager.js",
+  "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone/node_modules/ikagaka.namedmanager.js",
   "author": {
     "name": "Ikagaka"
   },
@@ -23877,7 +23877,7 @@ module.exports={
           "directUrl": "https://raw.githubusercontent.com/ikagaka/NamedManager.js/master/package.json"
         }
       },
-      "/home/legokichi/Github/cuttlebone"
+      "/home/travis/build/Ikagaka/Shell.js/cuttlebone"
     ]
   ],
   "_from": "ikagaka/NamedManager.js",
@@ -23915,10 +23915,10 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/NamedManager.js.git#720cdcbf1770f1f9bd9e1cb0030b30f54bb6ada0",
-  "_shasum": "da0e14722b56d11f4de14355cd3cb7bf0f5f7ece",
+  "_shasum": "9d34e980b358899fdb516a8a9aa702eb07859152",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
-  "_where": "/home/legokichi/Github/cuttlebone",
+  "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone",
   "author": {
     "name": "Ikagaka"
   },
@@ -23992,15 +23992,11 @@ class Shell extends EventEmitter.EventEmitter {
         this.surfaceDefTree = new ST.SurfaceDefinitionTree();
         this.surfaceTree = this.surfaceDefTree.surfaces;
         this.cacheCanvas = {};
-        this.bindgroup = [];
-        this.enableRegion = false;
     }
     load() {
         return Promise.resolve(this)
             .then(() => this.loadDescript()) // 1st // ←なにこれ（自問自
-            .then(() => this.loadConfig())
-            .then(() => this.loadBindGroup()) // 2nd // 依存関係的なやつだと思われ
-            .then(() => console.log("descript done"))
+            .then(() => console.log("descript done")) // 依存関係的なやつだと思われ
             .then(() => this.loadSurfacesTxt()) // 1st
             .then(() => this.loadSurfaceTable()) // 1st
             .then(() => console.log("surfaces done"))
@@ -24032,23 +24028,10 @@ class Shell extends EventEmitter.EventEmitter {
             });
             this.descriptJSON = json;
         }
-        return Promise.resolve(this);
-    }
-    loadConfig() {
         // key-valueなdescriptをconfigへ変換
         return new SC.ShellConfig().loadFromJSONLike(this.descriptJSON).then((config) => {
             this.config = config;
         }).then(() => this);
-    }
-    // descript.txtからbindgroup探してデフォルト値を反映
-    loadBindGroup() {
-        this.config.char.forEach((char, charId) => {
-            this.bindgroup[charId] = [];
-            char.bindgroup.forEach((o, animId) => {
-                this.bindgroup[charId][animId] = o.default;
-            });
-        });
-        return Promise.resolve(this);
     }
     // surfaces.txtを読んでthis.surfacesTxtに反映
     loadSurfacesTxt() {
@@ -24198,9 +24181,9 @@ class Shell extends EventEmitter.EventEmitter {
             console.warn("surfaceId:", _surfaceId, "is not defined in surfaceTree", this.surfaceTree);
             return null;
         }
-        const srf = new Surface_1.default(div, scopeId, _surfaceId, this.surfaceDefTree, this.bindgroup);
-        srf.enableRegionDraw = this.enableRegion; // 当たり判定表示設定の反映
-        if (this.enableRegion) {
+        const srf = new Surface_1.default(div, scopeId, _surfaceId, this.surfaceDefTree, this.config);
+        // const srf = new Surface(div, scopeId, _surfaceId, this.surfaceDefTree, this.config, this.state);
+        if (this.config.enableRegion) {
             srf.render();
         }
         srf.on("mouse", (ev) => {
@@ -24249,18 +24232,21 @@ class Shell extends EventEmitter.EventEmitter {
     }
     bind(a, b) {
         if (typeof a === "number" && typeof b === "number") {
+            // public bind(scopeId: number, bindgroupId: number): void
             const scopeId = a;
             const bindgroupId = b;
-            if (this.bindgroup[scopeId] == null) {
+            if (this.config.bindgroup[scopeId] == null) {
                 console.warn("Shell#bind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
                 return;
             }
-            this.bindgroup[scopeId][bindgroupId] = true;
+            this.config.bindgroup[scopeId][bindgroupId] = true;
             this.attachedSurface.forEach(({ surface: srf, div }) => {
                 srf.updateBind();
             });
+            return;
         }
         else if (typeof a === "string" && typeof b === "string") {
+            // public bind(scopeId: number, bindgroupId: number): void
             const _category = a;
             const _parts = b;
             this.config.char.forEach((char, scopeId) => {
@@ -24271,6 +24257,7 @@ class Shell extends EventEmitter.EventEmitter {
                     }
                 });
             });
+            return;
         }
         else {
             console.error("Shell#bind", "TypeError:", a, b);
@@ -24278,18 +24265,21 @@ class Shell extends EventEmitter.EventEmitter {
     }
     unbind(a, b) {
         if (typeof a === "number" && typeof b === "number") {
+            // 特定のスコープへのオンオフ
             const scopeId = a;
             const bindgroupId = b;
-            if (this.bindgroup[scopeId] == null) {
+            if (this.config.bindgroup[scopeId] == null) {
                 console.warn("Shell#unbind > bindgroup", "scopeId:", scopeId, "bindgroupId:", bindgroupId, "is not defined");
                 return;
             }
-            this.bindgroup[scopeId][bindgroupId] = false;
+            this.config.bindgroup[scopeId][bindgroupId] = false;
             this.attachedSurface.forEach(({ surface: srf, div }) => {
                 srf.updateBind();
             });
         }
         else if (typeof a === "string" && typeof b === "string") {
+            // public unbind(category: string, parts: string): void
+            // カテゴリ全体のオンオフ
             const _category = a;
             const _parts = b;
             this.config.char.forEach((char, scopeId) => {
@@ -24313,18 +24303,12 @@ class Shell extends EventEmitter.EventEmitter {
     }
     //当たり判定表示
     showRegion() {
-        this.enableRegion = true;
-        this.attachedSurface.forEach(({ surface: srf, div }) => {
-            srf.enableRegionDraw = true;
-        });
+        this.config.enableRegion = true;
         this.render();
     }
     //当たり判定非表示
     hideRegion() {
-        this.enableRegion = false;
-        this.attachedSurface.forEach(({ surface: srf, div }) => {
-            srf.enableRegionDraw = false;
-        });
+        this.config.enableRegion = false;
         this.render();
     }
     // 着せ替えメニュー用情報ていきょう
@@ -24337,7 +24321,7 @@ class Shell extends EventEmitter.EventEmitter {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Shell;
 
-},{"./ShellConfig":30,"./Surface":31,"./SurfaceTree":33,"./SurfaceUtil":34,"events":1,"surfaces_txt2yaml":68}],30:[function(require,module,exports){
+},{"./ShellConfig":30,"./Surface":31,"./SurfaceTree":33,"./SurfaceUtil":34,"events":4,"surfaces_txt2yaml":68}],30:[function(require,module,exports){
 /// <reference path="../typings/index.d.ts"/>
 "use strict";
 class ShellConfig {
@@ -24345,18 +24329,29 @@ class ShellConfig {
         this.seriko = new SerikoConfig();
         this.menu = new MenuConfig();
         this.char = [];
+        // states
+        this.bindgroup = [];
+        this.enableRegion = false;
     }
     loadFromJSONLike(json) {
         const seriko = json["seriko"] != null ? json["seriko"] : {};
         const menu = json["menu"] != null ? json["menu"] : {};
         const char = (Array.isArray(json["char"]) ? json["char"] : []);
         // char*
-        char.forEach((_char, id) => {
-            new CharConfig().loadFromJSONLike(_char).then((conf) => {
+        return Promise.all(char.map((_char, id) => {
+            return new CharConfig().loadFromJSONLike(_char).then((conf) => {
                 this.char[id] = conf;
             });
+        })).then((configs) => {
+            // descript.txtからbindgroup探してデフォルト値を反映
+            this.char.forEach((_char, charId) => {
+                this.bindgroup[charId] = [];
+                _char.bindgroup.forEach((o, animId) => {
+                    this.bindgroup[charId][animId] = o.default;
+                });
+            });
+            return this;
         });
-        return Promise.resolve(this);
     }
 }
 exports.ShellConfig = ShellConfig;
@@ -24505,8 +24500,9 @@ const SurfaceUtil = require("./SurfaceUtil");
 const ST = require("./SurfaceTree");
 const EventEmitter = require("events");
 const $ = require("jquery");
+const SC = require("./ShellConfig");
 class Surface extends EventEmitter.EventEmitter {
-    constructor(div, scopeId, surfaceId, surfaceDefTree, bindgroup) {
+    constructor(div, scopeId, surfaceId, surfaceDefTree, config) {
         super();
         this.element = div;
         this.scopeId = scopeId;
@@ -24516,7 +24512,7 @@ class Surface extends EventEmitter.EventEmitter {
         if (ctx == null)
             throw new Error("Surface#constructor: ctx is null");
         this.ctx = ctx;
-        this.bindgroup = bindgroup;
+        this.config = config;
         this.position = "fixed";
         this.surfaceDefTree = surfaceDefTree;
         this.surfaceTree = surfaceDefTree.surfaces;
@@ -24544,7 +24540,7 @@ class Surface extends EventEmitter.EventEmitter {
         this.element = document.createElement("div");
         this.surfaceNode = new ST.SurfaceDefinition();
         this.surfaceTree = [];
-        this.bindgroup = [];
+        this.config = new SC.ShellConfig();
         this.layers = [];
         this.animationsQueue = {};
         this.talkCounts = {};
@@ -24616,7 +24612,7 @@ class Surface extends EventEmitter.EventEmitter {
         const { intervals, patterns, options, collisions } = anim;
         if (this.isBind(animId)) {
             // 現在有効な bind
-            if (intervals.length > 0) {
+            if (intervals.length > 1) {
                 // bind+hogeは着せ替え付随アニメーション。
                 // bind+sometimesを分解して実行
                 intervals.forEach(([interval, args]) => {
@@ -24657,6 +24653,7 @@ class Surface extends EventEmitter.EventEmitter {
     updateBind() {
         // Shell.tsから呼ばれるためpublic
         // Shell#bind,Shell#unbindで発動
+        // bindなレイヤ状態を変更する
         this.surfaceNode.animations.forEach((anim, animId) => {
             if (anim.intervals.some(([interval, args]) => "bind" === interval)) {
                 this.initBind(animId, anim);
@@ -24791,9 +24788,9 @@ class Surface extends EventEmitter.EventEmitter {
         });
     }
     isBind(animId) {
-        if (this.bindgroup[this.scopeId] == null)
+        if (this.config.bindgroup[this.scopeId] == null)
             return false;
-        if (this.bindgroup[this.scopeId][animId] === false)
+        if (this.config.bindgroup[this.scopeId][animId] === false)
             return false;
         return true;
     }
@@ -24928,7 +24925,7 @@ class Surface extends EventEmitter.EventEmitter {
         this.bufferRender.composeElements([{ type: "overlay", canvas: composedBase, x: 0, y: 0 }]); // 現在有効な ベースサーフェスのレイヤを合成
         this.bufferRender.composeElements(fronts);
         // 当たり判定を描画
-        if (this.enableRegionDraw) {
+        if (this.config.enableRegion) {
             this.bufferRender.drawRegions((this.surfaceNode.collisions), "" + this.surfaceId);
             this.backgrounds.forEach((_, animId) => {
                 this.bufferRender.drawRegions((this.surfaceNode.animations[animId].collisions), "" + this.surfaceId);
@@ -25044,7 +25041,7 @@ class Surface extends EventEmitter.EventEmitter {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Surface;
 
-},{"./SurfaceRender":32,"./SurfaceTree":33,"./SurfaceUtil":34,"events":1,"jquery":37}],32:[function(require,module,exports){
+},{"./ShellConfig":30,"./SurfaceRender":32,"./SurfaceTree":33,"./SurfaceUtil":34,"events":4,"jquery":37}],32:[function(require,module,exports){
 /// <reference path="../typings/index.d.ts"/>
 "use strict";
 const SurfaceUtil = require("./SurfaceUtil");
@@ -26219,7 +26216,7 @@ function decolateJSONizeDescript(o, key, value) {
 }
 exports.decolateJSONizeDescript = decolateJSONizeDescript;
 
-},{"encoding-japanese":3}],35:[function(require,module,exports){
+},{"encoding-japanese":2}],35:[function(require,module,exports){
 /// <reference path="../typings/index.d.ts"/>
 "use strict";
 const SurfaceRender_1 = require("./SurfaceRender");
@@ -26258,7 +26255,7 @@ module.exports={
           "directUrl": "https://raw.githubusercontent.com/ikagaka/Shell.js/5.x/package.json"
         }
       },
-      "/home/legokichi/Github/cuttlebone"
+      "/home/travis/build/Ikagaka/Shell.js/cuttlebone"
     ]
   ],
   "_from": "ikagaka/Shell.js#5.x",
@@ -26289,11 +26286,11 @@ module.exports={
     "#USER",
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#8b40261c563f6e0e46b92c3f41e2db3f032a2da0",
-  "_shasum": "a2d585e688a6ca40d1a8e9429876fdf520d383a5",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#7ea9a7c77b1ca6404daad23ac4aabfc82162bc4b",
+  "_shasum": "2ed0778245a967641e2e6ca4f46aafb93ea3ccd2",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js#5.x",
-  "_where": "/home/legokichi/Github/cuttlebone",
+  "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone",
   "author": {
     "name": "Ikagaka"
   },
@@ -26331,7 +26328,7 @@ module.exports={
     "typescript": "^2.0.0",
     "watchify": "^3.7.0"
   },
-  "gitHead": "8b40261c563f6e0e46b92c3f41e2db3f032a2da0",
+  "gitHead": "7ea9a7c77b1ca6404daad23ac4aabfc82162bc4b",
   "keywords": [
     "nar",
     "ikagaka",
@@ -26358,7 +26355,7 @@ module.exports={
     "init": "npm run update; npm run build",
     "patch": "mversion patch",
     "reset": "rm -rf bower_components node_modules typings",
-    "setup": "npm install -g gulp-cli typings http-server mversion",
+    "setup": "npm install -g gulp-cli bower typings http-server mversion",
     "start": "http-server -s& tsc -w -p src & coffee -w -b -o lib src/*.coffee & babel lib -w -d es5 & gulp watch &   watchify es5/index.js --standalone Shell -o dist/Shell.js -v",
     "stop": "killall -- node",
     "tree": "tree -C -L 2 -I node_modules",
@@ -41470,5 +41467,5 @@ if (typeof exports !== "undefined" && exports !== null) {
   exports.txt_to_yaml = SurfacesTxt2Yaml.txt_to_yaml;
 }
 
-},{"js-yaml":38}]},{},[2])(2)
+},{"js-yaml":38}]},{},[1])(1)
 });
