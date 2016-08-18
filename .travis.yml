@@ -2,9 +2,9 @@ language: node_js
 node_js:
   - 6.3.1
 branches:
-  only: 'dev'
-before_install:
-before_script:
+  only: dev
+before_install: null
+before_script: null
 script:
   - echo "nothing"
 after_script:
@@ -21,12 +21,15 @@ after_script:
   - git commit -am "travis-auto-update"
   - git status
   - git ls-files
-  - '[ "$TRAVIS_BRANCH" == "dev" ] && [ $GH_TOKEN ] && git push --force --quiet "https://${GH_TOKEN}@github.com/Ikagaka/cuttlebone.git" gh-pages:gh-pages > /dev/null 2>&1'
+  - >-
+    [ "$TRAVIS_BRANCH" == "dev" ] && [ $GH_TOKEN ] && git push --force --quiet
+    "https://${GH_TOKEN}@github.com/Ikagaka/cuttlebone.git" gh-pages:gh-pages >
+    /dev/null 2>&1
 env:
   global:
     - GIT_COMMITTER_NAME=legokichi
     - GIT_COMMITTER_EMAIL=legokichi@gmail.com
     - GIT_AUTHOR_NAME=legokichi
     - GIT_AUTHOR_EMAIL=legokichi@gmail.com
-    - secure: "Qb4ImvPXMDvTX4tVQ16BxfaZZ8NUGWFsmwDT/Zgb4L2rWT8mPb4SXPe9wjazmzqW9AdxnQ4V1reuVfVhIxcu21nxzYDxnc1+IyJ4dhISRoi80994iOfhllfjztZLUDzRZBcyO475IEgpD+v2V5KzAbafpfoZRLgemIxFQmjvhOw="
-
+    - secure: >-
+        AGL6tmGkN5I+pX2SbZ+qtXsGclOlCOnaFgdBQVX0vddG8p2kOApA7t00cxXJ9E1VPy6X8zmJkkJhK4TuWzcNpjvOxHqKkpa5ChG6c0QyVaEMcpDzG0ldly12bmCCIHB4gr/tDKPl53ARGvyMd/kUMMQCOtoTfRUvegU/IfipNrg=
