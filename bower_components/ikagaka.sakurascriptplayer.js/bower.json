@@ -1,0 +1,16 @@
+{
+  "name": "ikagaka.sakurascriptplayer.js",
+  "description": "ikagaka SakuraScript player",
+  "dependencies": {},
+  "devDependencies": {
+    "cuttlebone": "*"
+  },
+  "main": "dist/SakuraScriptPlayer.js",
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "npm-debug.log"
+  ],
+  "version": "1.2.5"
+}

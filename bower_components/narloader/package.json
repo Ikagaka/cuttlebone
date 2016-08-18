@@ -1,0 +1,33 @@
+{
+  "name": "narloader",
+  "version": "0.7.3",
+  "description": "NarLoader - Nanika ARchive Loader",
+  "keywords": [
+    "nar",
+    "ukagaka"
+  ],
+  "main": "NarLoader.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "jszip": ">= 3.*",
+    "encoding-japanese": ">= 1.0.13",
+    "bluebird": ">= 2.3.11"
+  },
+  "devDependencies": {
+    "coffee-script": ">= 1.8.0",
+    "mocha": ">= 2.0.0",
+    "chai": ">= 1.9.2",
+    "sinon": ">= 1.10.3"
+  },
+  "author": {
+    "name": "narazaka",
+    "url": "http://narazaka.net/"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ikagaka/NarLoader.git"
+  }
+}

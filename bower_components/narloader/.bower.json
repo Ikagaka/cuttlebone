@@ -1,0 +1,35 @@
+{
+  "name": "narloader",
+  "description": "NarLoader - Nanika ARchive Loader",
+  "main": "NarLoader.js",
+  "dependencies": {
+    "jszip": "Stuk/jszip#master",
+    "encoding-japanese": "polygonplanet/encoding.js#master",
+    "bluebird": ">= 2.3.11"
+  },
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "npm-debug.log",
+    "coverage"
+  ],
+  "exportsOverride": {
+    "encoding-japanese": {
+      "js": "encoding.min.js"
+    },
+    "ikagaka.wmdescript.js": {
+      "js": "src/Descript.js"
+    }
+  },
+  "homepage": "https://github.com/Ikagaka/NarLoader",
+  "_release": "ec48654e0a",
+  "_resolution": {
+    "type": "branch",
+    "branch": "jszip3",
+    "commit": "ec48654e0a0fdfd9d1c630bb3bf7aff1733aa301"
+  },
+  "_source": "git://github.com/Ikagaka/NarLoader.git",
+  "_target": "jszip3",
+  "_originalSource": "Ikagaka/NarLoader"
+}

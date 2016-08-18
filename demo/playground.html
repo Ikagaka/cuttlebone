@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>playground</title>
+  <script src="../bower_components/bluebird/js/browser/bluebird.min.js"></script>
+  <script src="../bower_components/encoding-japanese/encoding.min.js"></script>
+  <script src="../bower_components/jszip/dist/jszip.min.js"></script>
+  <script src="../bower_components/narloader/NarLoader.js"></script>
+  <script src="../bower_components/ikagaka.sakurascriptplayer.js/dist/SakuraScriptPlayer.js"></script>
+  <script src="../dist/cuttlebone.js"></script>
+  <style>
+  textarea {
+    width: 300px;
+    height: 300px;
+  }
+  fieldset {
+    display: inline-block;
+  }
+  </style>
+</head>
+<body>
+  <fieldset>
+    <legend>surface test</legend>
+    <p><label>nar: <input type="file" id="nar" /></label></p>
+    <p><label>shell: <select name="shellId" id="shellId"></select></label></p>
+    <p>bindgroup: <ol id="bindgroupId" start="0"/></ol></p>
+    <p>collision: <input type="checkbox" id="collisionDraw" /></p>
+    <p><button id="setDefaultPos">もとの座標に帰って来い</button></p>
+    <p><input type="button" id="kill" value="kill" /></p>
+  </fieldset>
+  <fieldset id="wrapper">
+  <legend>SakuraScript</legend>
+    <input type="button" value="play" id="play" />
+    <p>
+    <textarea id="code" placeholder="\h\s[0]こんにちは！\w4世界！\w8">
+\u\s[10]
+\h\s[0]ドーモ、\w4CRTゅう＝サン。\w8マリです。\w8
+\u\s[10]ドーモ、\w4マリ＝サン。\w8CRTゅうです。\w8
+\h\s[7]CRTモニタ死すべし。\w8慈悲はない。\w8
+\u\s[11]ニンジャ！\w8ニンジャナンデ！！？？\w8
+\h\s[2]イヤーッ！\w8
+\u\s[12]グワーッ！\w8
+サヨナラ！\s[5000]\i[100]\w8
+    </textarea>
+    </p>
+  </fieldset>
+  <fieldset style="display:block;">
+    <legend>log</legend>
+    <p id="bootlog">
+    </p>
+  </fieldset>
+<script>
+(function(){
+  window.onerror = function(err){
+    $("#bootlog")
+    .append("<span style='color:red;'>"+err+"</span>").append("<br />")
+    .append("<span style='color:red;'>"+err.stack+"</span>").append("<br />");
+  }
+}());
+$("#bootlog").append(JSON.stringify(cuttlebone.versions, null, "  ")).append("<br />");
+var shell = null;
+var shellNDir = null;
+var balloon = null;
+var balloonDir = null;
+var nmdmgr = new cuttlebone.NamedManager();
+var hwnd = null;
+$(function(){document.body.appendChild(nmdmgr.element);});
+$("#bootlog").append("downloading shell nar file.").append("<br />");
+$("#bootlog").append("downloading balloon nar file.").append("<br />");
+Promise.all([
+  NarLoader.loadFromURL("../nar/mobilemaster.nar"),
+  NarLoader.loadFromURL("../nar/origin.nar")
+]).then(function(args){
+  $("#bootlog").append("downloaded.").append("<br />");
+  $("#bootlog").append("downloaded.").append("<br />");
+  balloonDir = args[1].asArrayBuffer();
+  return args[0];
+}).then(changeNar)
+$("#nar").change(function(ev){
+  if(!!nmdmgr.namedies[hwnd]){
+    nmdmgr.vanish(hwnd);
+    $("#bootlog").append("vanished.").append("<br />");
+  }
+  if($(this).prop("files")[0] instanceof Blob){
+    $("#bootlog").append("loading shell nar file.").append("<br />");
+    NarLoader.loadFromBlob($(this).prop("files")[0]).then(changeNar);
+  }
+});
+function changeNar(nanikaDir){
+  $("#bootlog").append("loaded.").append("<br />");
+  console.log(nanikaDir.files);
+  var shelllist = nanikaDir.getDirectory("shell").listChildren();
+  console.log(shelllist)
+  var $frag = $(document.createDocumentFragment());
+  shelllist.forEach(function(shellId){
+    $("<option />").val(shellId).text(shellId).appendTo($frag);
+  });
+  $("#shellId").children().remove().end().append($frag).off().change(function(){ changeShell(nanikaDir); });
+  if(shelllist.length === 0) return console.warn("this nar does not have any shell");
+  if(shelllist.indexOf("master") !== -1) {
+    $("#shellId").val("master").change();
+  }else{
+    $("#shellId").val(shelllist[0]).change();
+  }
+}
+function changeShell(nanikaDir){
+  shellNDir = nanikaDir;
+  balloon && balloon.unload();
+  balloon = new cuttlebone.Balloon(balloonDir);
+  $("#bootlog").append("loading balloon nar file.").append("<br />");
+  balloon.load().then(function(){
+    $("#bootlog").append("loaded.").append("<br />");
+    var shellDir = nanikaDir.getDirectory("shell/"+$("#shellId").val()).asArrayBuffer();
+    !!shell && shell.unload();
+    $("#bootlog").append("loading shell").append("<br />");
+    shell = new cuttlebone.Shell(shellDir);
+    return shell.load();
+  }).then(function(shell){
+
+    $("#bootlog").append("loaded.").append("<br />");
+    $("#bootlog").append("materializing.").append("<br />");
+    hwnd = nmdmgr.materialize(shell, balloon);
+    var named = nmdmgr.named(hwnd);
+    $("#bootlog").append("materialized.").append("<br />");
+    var ssp = new SakuraScriptPlayer(named);
+
+    function onEvent(ev) { console.log(ev); }
+    named.on("mousedown", onEvent);
+    //named.on("mousemove", onEvent);
+    named.on("mouseup", onEvent);
+    named.on("mouseclick", onEvent);
+    named.on("mousedblclick", onEvent);
+    named.on("balloonclick", onEvent);
+    named.on("balloondblclick", onEvent);
+    named.on("anchorselect", onEvent);
+    named.on("anchorselectex", onEvent);
+    named.on("raise", onEvent);
+    named.on("choiceselectex", onEvent);
+    named.on("choiceselect", onEvent);
+    named.contextmenu(function(ev){
+      console.log("contextmenu", ev)
+      // ここで動的に生成
+      var scopeId = ev.scopeId;
+      return {
+        items: {
+          showRegion: { name: '当たり判定表示', callback: function(){ named.shell.showRegion(); } },
+          hideRegion: { name: '当たり判定非表示', callback: function(){ named.shell.hideRegion(); } },
+          sep1: "---------",
+          changeShell: {
+            name: 'シェル変更',
+            items: (function(){
+              var shelllist = shellNDir.getDirectory("shell").listChildren();
+              return shelllist.reduce(function(a, b, i){
+                a["changeShell"+i] = {
+                  name: b,
+                  callback: function(){
+                    var shellDir = shellNDir.getDirectory("shell/"+shelllist[i]).asArrayBuffer();
+                    var shell = new cuttlebone.Shell(shellDir);
+                    console.log(shell, shellDir, shellNDir);
+                    shell.load().then(function(){
+                      named.changeShell(shell);
+                    });
+                  }
+                };
+                return a;
+              }, {});
+            }())
+          },
+          changeBalloon: {
+            name: 'バルーン変更',
+            callback: function(){
+              $('#install_field').remove();
+              var $install_field = $('<input type="file" />').attr('id', 'install_field').css("display", 'none');
+              $install_field.change(function(ev){
+                $install_field.remove();
+                Array.prototype.slice.call(ev.target.files).forEach(function(file){
+                  NarLoader.loadFromBlob(file).then(function(balloonNDir){
+                    var balloonDir = balloonNDir.asArrayBuffer();
+                    var balloon = new cuttlebone.Balloon(balloonDir);
+                    balloon.load().then(function(){
+                      named.changeBalloon(balloon);
+                    });
+                  });
+                });
+              }).appendTo("body").click();
+            }
+          },
+          sep2: "---------",
+          bindGroups: {
+            name: "着せ替えオン",
+            items: (function(){
+              var bindgroups = named.shell.getBindGroups(scopeId);
+              return bindgroups.reduce((function(a, b, i){
+                a["bindGroups"+i] = {
+                  name: i + ":" + b.category+ " " + b.parts,
+                  callback: function(){
+                    named.shell.bind(b.category, b.parts);
+                  }
+                };
+                return a;
+              }), {});
+            }())
+          },
+          unbindGroups: {
+            name: "着せ替えオフ",
+            items: (function(){
+              var bindgroups = named.shell.getBindGroups(scopeId);
+              return bindgroups.reduce((function(a, b, i){
+                a["unbindGroups"+i] = {
+                  name: i + ":" + b.category+ " " + b.parts,
+                  callback: function(){
+                    named.shell.unbind(b.category, b.parts);
+                  }
+                };
+                return a;
+              }), {});
+            }())
+          }
+        }
+      };
+    });
+    console.log(named);
+
+    $("#play").off().on("click", function(){
+      ssp.play($("#code").val().replace(/\n|\r/, ""));
+    });
+
+    $("#setDefaultPos").off().on("click", function(){
+      named.scopes.forEach(function(scope, i){
+        scope.position({right: 0, bottom:0});
+      })
+    });
+
+    $("#kill").off().click(function(){
+      nmdmgr.vanish(hwnd);
+      $("#bootlog").append("vanished.").append("<br />");
+    });
+
+    $("#bindgroupId").children().remove();
+    var $frag = $(document.createDocumentFragment());
+    Object.keys(shell.bindgroup).forEach(function(scopeId){
+      $li = $("<li />").appendTo($frag)
+      Object.keys(shell.bindgroup[scopeId]).forEach(function(bindgroupId){
+        $checkbox = $("<input type='checkbox' name='bindgroupId'/>")
+        .attr("data-scopeId", scopeId).val(bindgroupId)
+        .prop("checked", shell.bindgroup[scopeId][bindgroupId]);
+        $label = $("<label />").text(bindgroupId+":").append($checkbox).appendTo($li);
+      });
+    });
+    $("#bindgroupId").append($frag);
+    $("#bindgroupId input[name='bindgroupId']").unbind().change(function(){
+      var bindgroupIds = {};
+      var scopeId = $(this).attr("data-scopeId");
+      $(this).each(function(){
+        var bindgroupId = $(this).val();
+        if($(this).prop("checked")) shell.bind(Number(scopeId), Number(bindgroupId));
+        else                        shell.unbind(Number(scopeId), Number(bindgroupId));
+      });
+      shell.render();
+    });
+    $("#collisionDraw").unbind().change(function(){
+      if($(this).prop("checked")){
+        shell.showRegion();
+      }else{
+        shell.hideRegion();
+      }
+    });
+  }).catch(function(err){
+    console.error(err.stack);
+  });
+}
+</script>
+</body>
+</html>

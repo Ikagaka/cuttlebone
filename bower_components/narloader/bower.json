@@ -1,0 +1,25 @@
+{
+	"name": "narloader",
+	"description": "NarLoader - Nanika ARchive Loader",
+	"main": "NarLoader.js",
+	"dependencies": {
+		"jszip": "Stuk/jszip#master",
+		"encoding-japanese": "polygonplanet/encoding.js#master",
+		"bluebird": ">= 2.3.11"
+	},
+	"ignore": [
+		"**/.*",
+		"bower_components",
+		"node_modules",
+		"npm-debug.log",
+		"coverage"
+	],
+	"exportsOverride": {
+		"encoding-japanese": {
+			"js": "encoding.min.js"
+		},
+		"ikagaka.wmdescript.js": {
+			"js": "src/Descript.js"
+		}
+	}
+}

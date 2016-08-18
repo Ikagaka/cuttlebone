@@ -1,0 +1,40 @@
+{
+  "name": "power-assert-formatter",
+  "description": "Power Assert output formatter",
+  "main": "build/power-assert-formatter.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "gulpfile.js",
+    "package.json",
+    "coverage",
+    "test"
+  ],
+  "keywords": [
+    "power-assert",
+    "test",
+    "testing",
+    "assert",
+    "assertion"
+  ],
+  "authors": [
+    {
+      "name": "Takuto Wada",
+      "email": "takuto.wada@gmail.com",
+      "homepage": "https://github.com/twada"
+    },
+    {
+      "name": "James Talmage",
+      "homepage": "https://github.com/jamestalmage"
+    }
+  ],
+  "homepage": "https://github.com/power-assert-js/power-assert-formatter",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/power-assert-js/power-assert-formatter.git"
+  },
+  "devDependencies": {
+    "mocha": "~2.2.4",
+    "requirejs": "~2.1.17"
+  }
+}

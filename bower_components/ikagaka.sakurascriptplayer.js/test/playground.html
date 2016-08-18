@@ -1,0 +1,88 @@
+<script src="../bower_components/encoding-japanese/encoding.js"></script>
+<script src="../bower_components/jszip/dist/jszip.min.js"></script>
+<script src="../bower_components/narloader/NarLoader.js"></script>
+<script src="../bower_components/cuttlebone/lib/cuttlebone.js"></script>
+<script src="../dist/SakuraScriptPlayer.js"></script>
+nar: <input type="file" id="nar" /><br />
+SakuraScript: <input type="text" value="\t\0\s[0]Hello World!\w8\![raise,OnTest,&#x22;1,2&#x22;,34,\[56\],\[7\\8\]]\n\1\s[10]Hello Web Ghost!\n\h\n[half]\q[選択肢,choiceselect] \q[On選択肢,OnC,r1,r2] \q[選択肢Ex,choiceselect,ex1,ex2] \__q[choiceselect2]choice2\__q\n\_a[anchor]anchor\_a \_a[OnA,r1,r2]Onanchor\_a \_a[anchor,ex1,ex2]anchorEx\_a\n\1CkickWaiting\x\cClicked.\e" id="SakuraScript"/>
+<input type="button" value="play" id="Play"/>
+<script>
+$(function() {
+  $("#nar").change(function(ev) {
+    var file = ev.target.files[0];
+    NarLoader.loadFromBlob(file).then(onNarLoad);
+    $(this).val(null);
+  });
+  NarLoader.loadFromURL("../bower_components/cuttlebone/nar/origin.nar").then(function(nanikaDir) {
+    balloonDir = nanikaDir.asArrayBuffer();
+    nmdmgr = new cuttlebone.NamedManager();
+    $(nmdmgr.element).appendTo("body");
+    NarLoader.loadFromURL("../bower_components/cuttlebone/nar/mobilemaster.nar").then(onNarLoad);
+  });
+});
+
+function onNarLoad(nanikaDir) {
+  var shellDir = nanikaDir.getDirectory("shell/master").asArrayBuffer();
+  var shell = new cuttlebone.Shell(shellDir);
+  var balloon = new cuttlebone.Balloon(balloonDir);
+  Promise.all([shell.load(), balloon.load()]).then(function(arg) {
+    var shell = arg[0];
+    var balloon = arg[1];
+    var hwnd = nmdmgr.materialize(shell, balloon);
+    var named = nmdmgr.named(hwnd);
+
+    named.on("mousedown", onEvent);
+    named.on("mousemove", onEvent);
+    named.on("mouseup", onEvent);
+    named.on("mouseclick", onEvent);
+    named.on("mousedblclick", onEvent);
+    named.on("balloonclick", onEvent);
+    named.on("balloondblclick", onEvent);
+    named.on("anchorselect", onEvent);
+    named.on("anchorselectex", onEvent);
+    named.on("raise", onEvent);
+    named.on("choiceselectex", onEvent);
+    named.on("choiceselect", onEvent);
+
+    named.load().then(function(named){
+      var ssp = new SakuraScriptPlayer(named);
+      ssp
+        .on('finish',function(){console.log('finish')})
+        .on('reject',function(){console.log('reject')})
+        .on('close',function(){console.log('close')})
+        .on('script:destroy',function(){console.log('script:destroy')})
+        .on('script:raise',function(args){console.log('script:raise', args)});
+      var ssps = [ssp];
+
+      $(named.element).on("IkagakaSurfaceEvent", function(ev){
+        console.log(ev.detail);
+      });
+
+      $("#Play").click(function(){
+        var SakuraScript = $("#SakuraScript").val();
+
+        console.log(SakuraScript);
+
+        ssps.forEach(function(ssp){
+          ssp.play(SakuraScript, {
+            finish: function(){console.log('session', 'finish')},
+            reject: function(){console.log('session', 'reject')},
+            close: function(){console.log('session', 'close')},
+            'script:destroy': function(){console.log('session', 'script:destroy')},
+            'script:raise': (function(args){console.log('session', 'script:raise', args, this)}).bind(ssp),
+          });
+        });
+      }).click();
+    });
+
+  })["catch"](function(err) { console.error(err, err.stack); });
+}
+
+
+
+function onEvent(ev) {
+  console.log(ev);
+}
+
+
+</script>

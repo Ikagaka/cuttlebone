@@ -1,0 +1,36 @@
+{
+  "name": "ikagaka.sakurascriptplayer.js",
+  "version": "1.2.5",
+  "description": "ikagaka SakuraScript player",
+  "url": "https://github.com/ikagaka/SakuraScriptPlayer.js",
+  "keywords": [
+    "ikagaka",
+    "unstable",
+    "ukagaka"
+  ],
+  "scripts": {
+    "init": "npm update; bower update; npm run build; npm run watch",
+    "update": "rm -rf bower_components node_modules; npm update; bower update",
+    "clean": "rm lib/*.js dist/*.js demo/*.js",
+    "start": "http-server --silent -p 8000 & coffee -w --compile --output lib src/*.coffee & watchify lib/index.js --outfile dist/SakuraScriptPlayer.js  --standalone SakuraScriptPlayer -v",
+    "stop": "killall -- node */http-server -p 8000",
+    "build": "coffee -c -o lib src/*.coffee; browserify lib/index.js --standalone SakuraScriptPlayer -o dist/SakuraScriptPlayer.js",
+    "patch": "mversion patch -m"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ikagaka/SakuraScriptPlayer.js"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "bugs": {
+    "url": "https://github.com/Ikagaka/cuttlebone/issues"
+  },
+  "main": "dist/SakuraScriptPlayer.js",
+  "author": "Ikagaka",
+  "license": "MIT",
+  "contributors": [
+    "legokichi",
+    "narazaka"
+  ]
+}

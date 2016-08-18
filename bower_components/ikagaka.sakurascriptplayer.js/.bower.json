@@ -1,0 +1,26 @@
+{
+  "name": "ikagaka.sakurascriptplayer.js",
+  "description": "ikagaka SakuraScript player",
+  "dependencies": {},
+  "devDependencies": {
+    "cuttlebone": "*"
+  },
+  "main": "dist/SakuraScriptPlayer.js",
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "npm-debug.log"
+  ],
+  "version": "1.2.5",
+  "homepage": "https://github.com/ikagaka/SakuraScriptPlayer.js",
+  "_release": "1.2.5",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.2.5",
+    "commit": "485217aee2518a57ec431060aa9c071df60d767c"
+  },
+  "_source": "git://github.com/ikagaka/SakuraScriptPlayer.js.git",
+  "_target": "*",
+  "_originalSource": "ikagaka/SakuraScriptPlayer.js"
+}
