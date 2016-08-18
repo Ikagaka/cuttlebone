@@ -9895,7 +9895,7 @@ module.exports={
     "/ikagaka.balloon.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#2532a06ffd98cd5cb935e26d856f593d26035a07",
-  "_shasum": "1f6dc3c361268d1313a6de2e2f84821e95f50d10",
+  "_shasum": "a5dba0d1c0d93f16b4560be99d742cf0646c89a3",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js",
   "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone/node_modules/ikagaka.balloon.js",
@@ -10021,7 +10021,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/Balloon.js.git#e98229912ecb102a1fb1b44e3e02bb127363beda",
-  "_shasum": "63bfa5198c88f1074d86db403ae8132718d53798",
+  "_shasum": "49d3f4ca99f21cab62d086f2b2b68b128af937a4",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js",
   "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone",
@@ -12780,7 +12780,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#2532a06ffd98cd5cb935e26d856f593d26035a07",
-  "_shasum": "73b8cb4faa1c22ce828a568a091276c4b589e7f5",
+  "_shasum": "c0089fcfb7aa26e2a962d26a03ae985ed206d90e",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -23915,7 +23915,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/NamedManager.js.git#720cdcbf1770f1f9bd9e1cb0030b30f54bb6ada0",
-  "_shasum": "9d34e980b358899fdb516a8a9aa702eb07859152",
+  "_shasum": "80da58327ea59440f16481af540449fb06fd6f92",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
   "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone",
@@ -26221,19 +26221,23 @@ exports.decolateJSONizeDescript = decolateJSONizeDescript;
 "use strict";
 const SurfaceRender_1 = require("./SurfaceRender");
 const _SurfaceUtil = require("./SurfaceUtil");
+const _SurfaceTree = require("./SurfaceTree");
 const Surface_1 = require('./Surface');
+const _ShellConfig = require("./ShellConfig");
 const Shell_1 = require("./Shell");
-const $ = require("jquery");
 var _package = require("../package.json");
 exports.SurfaceRender = SurfaceRender_1.default;
 exports.SurfaceUtil = _SurfaceUtil;
+exports.SurfaceTree = _SurfaceTree;
 exports.Surface = Surface_1.default;
+exports.ShellConfig = _ShellConfig;
 exports.Shell = Shell_1.default;
 exports.version = _package.version;
+const $ = require("jquery");
 window["$"] = window["$"] || $;
 window["jQuery"] = window["jQuery"] || $;
 
-},{"../package.json":36,"./Shell":29,"./Surface":31,"./SurfaceRender":32,"./SurfaceUtil":34,"jquery":37}],36:[function(require,module,exports){
+},{"../package.json":36,"./Shell":29,"./ShellConfig":30,"./Surface":31,"./SurfaceRender":32,"./SurfaceTree":33,"./SurfaceUtil":34,"jquery":37}],36:[function(require,module,exports){
 module.exports={
   "_args": [
     [
@@ -26286,8 +26290,8 @@ module.exports={
     "#USER",
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#7ea9a7c77b1ca6404daad23ac4aabfc82162bc4b",
-  "_shasum": "2ed0778245a967641e2e6ca4f46aafb93ea3ccd2",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#1e4e739b7219dedb5c1caaed70ca4c5f1d3b23bf",
+  "_shasum": "1177db9802ddd15cdd79d02ced87acba38529a7e",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js#5.x",
   "_where": "/home/travis/build/Ikagaka/Shell.js/cuttlebone",
@@ -26310,6 +26314,7 @@ module.exports={
   "dependencies": {
     "encoding-japanese": "^1.0.24",
     "events": "^1.1.0",
+    "jquery": "^3.1.0",
     "surfaces_txt2yaml": "github:legokichi/surfaces_txt2yaml#master"
   },
   "description": "Ukagaka Shell Renderer for Web Browser",
@@ -26328,7 +26333,7 @@ module.exports={
     "typescript": "^2.0.0",
     "watchify": "^3.7.0"
   },
-  "gitHead": "7ea9a7c77b1ca6404daad23ac4aabfc82162bc4b",
+  "gitHead": "1e4e739b7219dedb5c1caaed70ca4c5f1d3b23bf",
   "keywords": [
     "nar",
     "ikagaka",
