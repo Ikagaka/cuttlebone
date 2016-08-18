@@ -239,12 +239,12 @@ function changeShell(nanikaDir){
 
     $("#bindgroupId").children().remove();
     var $frag = $(document.createDocumentFragment());
-    Object.keys(shell.bindgroup).forEach(function(scopeId){
+    Object.keys(shell.config.bindgroup).forEach(function(scopeId){
       $li = $("<li />").appendTo($frag)
-      Object.keys(shell.bindgroup[scopeId]).forEach(function(bindgroupId){
+      Object.keys(shell.config.bindgroup[scopeId]).forEach(function(bindgroupId){
         $checkbox = $("<input type='checkbox' name='bindgroupId'/>")
         .attr("data-scopeId", scopeId).val(bindgroupId)
-        .prop("checked", shell.bindgroup[scopeId][bindgroupId]);
+        .prop("checked", shell.config.bindgroup[scopeId][bindgroupId]);
         $label = $("<label />").text(bindgroupId+":").append($checkbox).appendTo($li);
       });
     });
