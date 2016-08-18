@@ -7769,8 +7769,8 @@ module.exports={
     "#USER",
     "/"
   ],
-  "_resolved": "git://github.com/ikagaka/Balloon.js.git#fec37f508ef5a254274efd667d5968e7edd44d9c",
-  "_shasum": "66af2a22cac40cd42ffab54e714eb68fcc114793",
+  "_resolved": "git://github.com/ikagaka/Balloon.js.git#54ab6914ab0336f6b13c622a9ee0f334ea89fe1c",
+  "_shasum": "666444459e9a6a80be8f769782c518f9a600e15b",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Balloon.js#4.x",
   "_where": "/home/legokichi/Github/cuttlebone",
@@ -7816,7 +7816,7 @@ module.exports={
     "typescript": "^2.0.0",
     "watchify": "^3.7.0"
   },
-  "gitHead": "fec37f508ef5a254274efd667d5968e7edd44d9c",
+  "gitHead": "54ab6914ab0336f6b13c622a9ee0f334ea89fe1c",
   "homepage": "https://github.com/ikagaka/Balloon.js#readme",
   "keywords": [
     "nar",
@@ -12467,7 +12467,7 @@ module.exports={
     "/ikagaka.namedmanager.js"
   ],
   "_resolved": "git://github.com/ikagaka/Shell.js.git#2532a06ffd98cd5cb935e26d856f593d26035a07",
-  "_shasum": "a8ce164d8dff71fcd4c67d4d5555014a6c57fa5c",
+  "_shasum": "e3aa9db107ac0544883a228c5f40064356700857",
   "_shrinkwrap": null,
   "_spec": "ikagaka.shell.js@github:ikagaka/Shell.js#master",
   "_where": "/home/legokichi/Github/cuttlebone/node_modules/ikagaka.namedmanager.js",
@@ -23602,7 +23602,7 @@ module.exports={
     "/"
   ],
   "_resolved": "git://github.com/ikagaka/NamedManager.js.git#720cdcbf1770f1f9bd9e1cb0030b30f54bb6ada0",
-  "_shasum": "52dfb7f4d316f57097610f08a10d59f419104d86",
+  "_shasum": "ac16130b5349d0a4e67ac4419f4a24a59d120075",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/NamedManager.js",
   "_where": "/home/legokichi/Github/cuttlebone",
@@ -25978,8 +25978,8 @@ module.exports={
     "/",
     "/ikagaka.balloon.js"
   ],
-  "_resolved": "git://github.com/ikagaka/Shell.js.git#1e4e739b7219dedb5c1caaed70ca4c5f1d3b23bf",
-  "_shasum": "c308af80c4fbf75e9a52228a186accf1481ee443",
+  "_resolved": "git://github.com/ikagaka/Shell.js.git#e5154b13d4b70cdcd692cfa410493bc312d40229",
+  "_shasum": "89458a21223929016350ccadd0b1d5aee8be1e8a",
   "_shrinkwrap": null,
   "_spec": "github:ikagaka/Shell.js#5.x",
   "_where": "/home/legokichi/Github/cuttlebone",
@@ -26021,7 +26021,7 @@ module.exports={
     "typescript": "^2.0.0",
     "watchify": "^3.7.0"
   },
-  "gitHead": "1e4e739b7219dedb5c1caaed70ca4c5f1d3b23bf",
+  "gitHead": "e5154b13d4b70cdcd692cfa410493bc312d40229",
   "keywords": [
     "nar",
     "ikagaka",
